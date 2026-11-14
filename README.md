@@ -33,18 +33,18 @@ Admin login: http://localhost:3000/admin/login, username `asif`. The password is
 | Faculty search with autocomplete ("Ny" finds Nyme Ahmed), typo tolerant | Done, tested |
 | "Free now / until when / next free" from each TSF, Dhaka time, Fri+Sat weekend, holidays, semester dates | Done, tested (14 unit tests) |
 | Admin: upload TSF one teacher at a time or many (paste JSON, JSON file, or CSV), checked and previewed as a timetable before saving | Done, tested in a browser |
-| Teachers without a TSF list, teacher import (CSV), holidays, semester, manual notices, pages for Ask AIUB | Done |
+| Teachers without a TSF list, teacher import (CSV), holidays, semester, pages for Ask AIUB | Done |
 | Voice: speak a question, hear the answer (browser speech, no server cost) | Done; needs Chrome/Edge and a microphone |
 | Ask AIUB: answers teacher questions from schedules, notices from the notice list, other questions only from pages an admin has added, always with the source | Done. Not yet an AI model, see below |
 | Live notice alerts on every open screen, anonymous online counter, Bangla/English labels, installable app manifest | Done |
 | Room Finder | Page and "coming soon" state only. Needs the floor plans |
-| Notice scraper | **Written, not switched on.** See below |
+| Notices pipeline: replaceable sources (RSS, JSON, forwarded email), duplicate detection, 5-minute scheduler, Web Push, admin review | **Built and tested with sample data. No AIUB source connected.** See `docs/NOTICES.md` |
 
-35 automated tests: `cd backend && pytest`.
+65 automated tests: `cd backend && pytest`.
 
 ## Things you must do or decide
 
-1. **Notice scraper and faculty list.** When this was built, aiub.edu's robots rules refused automated access to `/category/notices` and `/faculty-list/faculties`. The scraper (`backend/app/scraper/notices.py`) checks `robots.txt` and will not fetch what is refused. Get permission from AIUB IT or an official feed, then save the page's HTML and run `python -m app.scraper.notices --html page.html --dry` so the page can be matched to the parser. It has only been tested on a made-up sample. Until then, admins post notices by hand.
+1. **A notice source.** aiub.edu's robots rules disallow automated access, so the app never reads its pages. Ask AIUB IT for a notice feed, an API or an email forward (`docs/NOTICES.md`). Until one is connected the Notices page stays empty and admins cannot post by hand. The faculty list must also come from AIUB or be entered by an admin.
 2. **Ask AIUB is not an AI model yet.** It finds the best matching passage in pages you add and shows it with its link. A language model (for example Gemini Flash or Groq Llama) can sit on top later to phrase answers, with the same source rule.
 3. **Permission to show schedules.** Three of the five TSFs came from the logged-in student portal. Ask the departments before going public. Never scrape the portal.
 4. **Estimated times.** Some TSF end times were cut off in the screenshots and were estimated from block sizes. Check them against the portal.
@@ -54,7 +54,7 @@ Admin login: http://localhost:3000/admin/login, username `asif`. The password is
 - Put it behind Cloudflare. The API already sends `Cache-Control: public, max-age=15` on search, faculty and notice lists, so most requests never reach the server. Set `TRUST_PROXY_HEADERS=1` so rate limits see real student IPs.
 - Use PostgreSQL: `DATABASE_URL=postgresql+psycopg://user:pass@host/db` (add `psycopg[binary]` to requirements).
 - Set `AIUB_SECRET` to a long random value, `CORS_ORIGINS` to your site address, `ALLOW_TIME_TRAVEL=0`.
-- Run the API with 2 or more workers: `uvicorn app.main:app --workers 2`. Keep the notice scraper as one separate process: `python -m app.scraper.notices --loop 5`. New notices reach open screens within about 5 seconds, including those saved by the scraper.
+- Run the API with 2 or more workers: `uvicorn app.main:app --workers 2`. The 5-minute notice check can run inside the API (`ENABLE_SCHEDULER=1`) or as `python -m app.scheduler`. New notices reach open screens within about 5 seconds.
 - The online counter and rate limits live in each worker's memory. For several servers, move them to Redis.
 
 **Load test honesty:** in the build sandbox (2 CPUs shared with the load generator) 2,000 simulated students made 11,600 requests with zero errors, but the machine itself only managed about 200 requests per second, so its response times say little about real hosting. Measured without the network, one core handled roughly 400 to 600 requests per second on the real endpoints. That is enough headroom for 2,000 students on a small server, but it is an estimate: run a load test (k6 or Locust) on your actual hosting before exam week.
@@ -62,7 +62,7 @@ Admin login: http://localhost:3000/admin/login, username `asif`. The password is
 ## Layout
 
 ```
-backend/   FastAPI. app/api (public + admin), app/services (free_time, tsf_import, store, realtime), app/scraper, tests/
+backend/   FastAPI. app/api (public + admin), app/services (free_time, tsf_import, store, realtime, ingest, push), app/notice_sources, tests/
 frontend/  Next.js 15 + Tailwind. app/ (pages), components/, lib/
 docs/      PLAN.md (the full project plan)
 ```

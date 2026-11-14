@@ -14,7 +14,6 @@ from ..auth import (client_ip, get_admin_by_username, hash_password, make_token,
 from ..db import get_db
 from ..models import Admin, AskLog, Document, Faculty, Holiday, Notice, Semester, TsfUpload, Visitor
 from ..services import tsf_import
-from ..services.notices import ingest_notice
 from ..services.realtime import presence
 from ..services.store import store
 from ..services.timeutil import now_local
@@ -253,20 +252,6 @@ def set_semester(b: SemesterIn, a: Admin = Depends(require_super), db: Session =
 
 
 # ---------------- notices + knowledge base ----------------
-class NoticeIn(BaseModel):
-    title: str = Field(min_length=3, max_length=500)
-    url: str = Field(min_length=8, max_length=600)
-    published_date: date | None = None
-    body: str | None = None
-    tags: list[str] | None = None
-
-
-@router.post("/notices")
-def add_notice(b: NoticeIn, a: Admin = Depends(require_admin), db: Session = Depends(get_db)):
-    n, created = ingest_notice(db, b.title, b.url, b.published_date, b.body, b.tags, source="admin")
-    return {"id": n.id, "created": created}
-
-
 class DocIn(BaseModel):
     url: str = Field(min_length=8, max_length=600)
     title: str = Field(min_length=2, max_length=300)

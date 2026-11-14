@@ -2,12 +2,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Calendar, MissingTsf, NoticesAdmin, Stats, Teachers } from "@/components/admin/Tabs";
+import { Alerts, Inbox, Sources } from "@/components/admin/Pipeline";
 import TsfManager from "@/components/admin/TsfManager";
 import { adminToken, api, ApiError } from "@/lib/api";
 
 const TABS = [
   { id: "tsf", label: "Upload TSF" }, { id: "missing", label: "Missing TSFs" }, { id: "teachers", label: "Teachers" },
-  { id: "calendar", label: "Calendar" }, { id: "notices", label: "Notices and answers" }, { id: "stats", label: "Usage" },
+  { id: "calendar", label: "Calendar" }, { id: "sources", label: "Notice sources" }, { id: "inbox", label: "Email inbox" },
+  { id: "alerts", label: "Alerts" }, { id: "notices", label: "Ask AIUB pages" }, { id: "stats", label: "Usage" },
 ] as const;
 
 export default function Admin() {
@@ -42,6 +44,9 @@ export default function Admin() {
         {tab === "missing" && <MissingTsf />}
         {tab === "teachers" && <Teachers />}
         {tab === "calendar" && <Calendar isSuper={me.role === "super_admin"} />}
+        {tab === "sources" && <Sources />}
+        {tab === "inbox" && <Inbox />}
+        {tab === "alerts" && <Alerts />}
         {tab === "notices" && <NoticesAdmin />}
         {tab === "stats" && <Stats />}
       </div>

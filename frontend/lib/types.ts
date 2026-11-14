@@ -39,7 +39,7 @@ export interface Suggestion {
 
 export interface Notice {
   id: number; title: string; url: string; date: string | null; summary: string | null; tags: string[];
-  source: string; first_seen_at: string;
+  source: string; first_seen_at: string; attachment_url?: string | null;
 }
 
 export interface Meta {

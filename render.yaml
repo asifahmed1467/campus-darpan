@@ -33,6 +33,25 @@ services:
         value: "0"
       - key: TRUST_PROXY_HEADERS
         value: "1"
+      # --- Notices: nothing is read from aiub.edu. See docs/NOTICES.md ---
+      - key: SITE_URL
+        value: https://campus-darpan.onrender.com
+      - key: ENABLE_SCHEDULER
+        value: "1"              # checks the configured sources every 5 minutes while the API is awake
+      - key: NOTICE_SOURCES
+        value: "[]"             # fill in when AIUB provides a feed, an API or an email forward
+      - key: CRON_SECRET
+        generateValue: true     # a free pinger sends this to POST /api/internal/run-cycle every 5 minutes
+      - key: INBOUND_EMAIL_SECRET
+        generateValue: true
+      - key: INBOUND_SENDER_ALLOWLIST
+        sync: false             # e.g. aiub.edu, once AIUB tells you the sender
+      - key: VAPID_PUBLIC_KEY
+        sync: false             # python -m app.tools.vapid
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        value: mailto:oovvxsxsoo@gmail.com
 
   - type: web
     name: campus-darpan

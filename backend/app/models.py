@@ -81,7 +81,9 @@ class Notice(Base):
     body: Mapped[str | None] = mapped_column(Text, nullable=True)
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     tags: Mapped[list] = mapped_column(JSON, default=list)
-    source: Mapped[str] = mapped_column(String(30), default="scraper")  # scraper / admin / demo
+    source: Mapped[str] = mapped_column(String(60), default="feed")  # name of the NoticeSource that supplied it
+    content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    attachment_url: Mapped[str | None] = mapped_column(String(600), nullable=True)
     first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
 
 
@@ -121,3 +123,61 @@ class AskLog(Base):
     mode: Mapped[str] = mapped_column(String(20))  # faculty / docs / none
     answered: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class IngestRun(Base):
+    """One attempt to read one notice source (the scrape log)."""
+    __tablename__ = "ingest_runs"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    source: Mapped[str] = mapped_column(String(60), index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="running")  # ok / error / skipped
+    found: Mapped[int] = mapped_column(Integer, default=0)
+    new: Mapped[int] = mapped_column(Integer, default=0)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class InboundEmail(Base):
+    """A forwarded notice email received on the webhook. Nothing from students' own mailboxes ever lands here."""
+    __tablename__ = "inbound_emails"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
+    message_id: Mapped[str | None] = mapped_column(String(300), unique=True, nullable=True)
+    sender: Mapped[str] = mapped_column(String(300))
+    subject: Mapped[str] = mapped_column(String(500))
+    status: Mapped[str] = mapped_column(String(20), index=True)  # accepted / quarantined / rejected / published
+    reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    title: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    url: Mapped[str | None] = mapped_column(String(600), nullable=True)
+    attachment_url: Mapped[str | None] = mapped_column(String(600), nullable=True)
+    published_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    excerpt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notice_id: Mapped[int | None] = mapped_column(ForeignKey("notices.id", ondelete="SET NULL"), nullable=True)
+
+
+class PushSubscription(Base):
+    """A browser that asked to be notified. Anonymous: no student account is involved."""
+    __tablename__ = "push_subscriptions"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    endpoint: Mapped[str] = mapped_column(String(800), unique=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    tags: Mapped[list] = mapped_column(JSON, default=list)  # empty = every notice
+    active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    failures: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class NotificationLog(Base):
+    """One row per notice that was pushed: who it reached. Also the guard against sending a notice twice."""
+    __tablename__ = "notification_log"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    notice_id: Mapped[int] = mapped_column(ForeignKey("notices.id", ondelete="CASCADE"), unique=True)
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
+    recipients: Mapped[int] = mapped_column(Integer, default=0)
+    delivered: Mapped[int] = mapped_column(Integer, default=0)
+    failed: Mapped[int] = mapped_column(Integer, default=0)
+    removed: Mapped[int] = mapped_column(Integer, default=0)
+    note: Mapped[str | None] = mapped_column(String(300), nullable=True)

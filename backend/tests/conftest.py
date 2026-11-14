@@ -2,7 +2,7 @@ import os
 import tempfile
 
 _tmp = tempfile.mkdtemp()
-os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/test.db"
+os.environ["DATABASE_URL"] = os.getenv("TEST_DATABASE_URL") or f"sqlite:///{_tmp}/test.db"  # set TEST_DATABASE_URL to run on PostgreSQL
 os.environ["ADMIN_INITIAL_PASSWORD"] = "test-password-123"
 os.environ["ALLOW_TIME_TRAVEL"] = "1"
 

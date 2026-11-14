@@ -2,6 +2,7 @@ import re
 from datetime import date
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from ..models import Notice
@@ -29,19 +30,34 @@ def notice_dict(n: Notice) -> dict:
     return {"id": n.id, "title": n.title, "url": n.url,
             "date": n.published_date.isoformat() if n.published_date else None,
             "summary": n.summary, "tags": n.tags or [], "source": n.source,
+            "attachment_url": n.attachment_url,
             "first_seen_at": n.first_seen_at.isoformat()}
 
 
 def ingest_notice(db: Session, title: str, url: str, published: date | None = None, body: str | None = None,
-                  tags: list[str] | None = None, source: str = "scraper") -> tuple[Notice, bool]:
-    """Insert a notice if its URL is new. Returns (notice, created). Pushes a live event to open browsers."""
-    existing = db.scalar(select(Notice).where(Notice.url == url))
+                  tags: list[str] | None = None, source: str = "feed", attachment_url: str | None = None,
+                  summary: str | None = None) -> tuple[Notice, bool]:
+    """Insert a notice unless it is already known. Returns (notice, created).
+
+    Duplicate rules: same canonical link, or same title+date (the content hash). Two workers racing on the same
+    link are safe: the unique index decides and the loser simply gets the existing row."""
+    from .dedupe import canonical_url, content_hash, url_variants
+    url = canonical_url(url)
+    h = content_hash(title, published)
+    existing = db.scalar(select(Notice).where(Notice.url.in_(url_variants(url))))
+    if existing is None and published is not None:
+        existing = db.scalar(select(Notice).where(Notice.content_hash == h))
     if existing:
         return existing, False
-    n = Notice(title=title.strip(), url=url, published_date=published, body=body,
-               tags=tags or auto_tags(title, body), source=source)
+    n = Notice(title=title.strip()[:500], url=url, published_date=published, body=body, summary=summary,
+               tags=tags or auto_tags(title, body or summary), source=source, content_hash=h,
+               attachment_url=attachment_url)
     db.add(n)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        return db.scalar(select(Notice).where(Notice.url == url)), False
     from ..api.public import clear_notice_cache
     clear_notice_cache()
     broadcaster.publish({"type": "notice", "notice": notice_dict(n)})

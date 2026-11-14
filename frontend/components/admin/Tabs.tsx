@@ -105,21 +105,10 @@ export function Calendar({ isSuper }: { isSuper: boolean }) {
 }
 
 export function NoticesAdmin() {
-  const a = useAction(); const d = useAction();
-  const [n, setN] = useState({ title: "", url: "", published_date: "", tags: "" });
+  const d = useAction();
   const [doc, setDoc] = useState({ url: "", title: "", text: "" });
   return (
     <div className="space-y-10">
-      <section>
-        <h2 className="text-3xl font-bold">Post a notice by hand</h2>
-        <p className="mt-1 max-w-[60ch] text-mute">Use this until the automatic notice check is switched on. It appears on every open screen straight away. Adding the same link twice does nothing.</p>
-        <form className="mt-3 space-y-3" onSubmit={(e) => { e.preventDefault(); a.run(async () => { const r = await api<{ created: boolean }>("/api/admin/notices", { method: "POST", admin: true, json: { title: n.title, url: n.url, published_date: n.published_date || null, tags: n.tags.trim() ? n.tags.split(",").map((x) => x.trim()).filter(Boolean) : null } }); if (r.created) setN({ title: "", url: "", published_date: "", tags: "" }); return r.created ? "Notice published." : "That link is already posted."; }); }}>
-          <F id="nt" label="Title" value={n.title} required onChange={(e) => setN({ ...n, title: e.target.value })} />
-          <Row><F id="nu" label="Link on aiub.edu" type="url" value={n.url} required placeholder="https://www.aiub.edu/…" onChange={(e) => setN({ ...n, url: e.target.value })} /><F id="nd" label="Published on" type="date" value={n.published_date} onChange={(e) => setN({ ...n, published_date: e.target.value })} /></Row>
-          <F id="ng" label="Tags (optional, separated by commas; chosen automatically if empty)" value={n.tags} onChange={(e) => setN({ ...n, tags: e.target.value })} />
-          <button className="btn btn-primary" disabled={a.busy}>Publish notice</button> <Msg ok={a.ok} err={a.err} />
-        </form>
-      </section>
       <section>
         <h2 className="text-3xl font-bold">Teach Ask AIUB a page</h2>
         <p className="mt-1 max-w-[60ch] text-mute">Paste the text of an aiub.edu page (scholarships, fees, rules). Ask AIUB answers from these pages only and always links to the address you enter.</p>

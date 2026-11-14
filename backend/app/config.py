@@ -27,3 +27,23 @@ STORE_TTL_SEC = 30
 
 # Set TRUST_PROXY_HEADERS=1 only when the API sits behind Cloudflare/nginx (so client IPs can be trusted).
 TRUST_PROXY_HEADERS = os.getenv("TRUST_PROXY_HEADERS", "0") == "1"
+
+# ---- Notice sources (all optional; the site works without any) ----
+# JSON list, e.g. [{"type":"rss","name":"aiub-feed","url":"https://...","authorized_by":"AIUB IT, 2026-12-01"}]
+NOTICE_SOURCES = os.getenv("NOTICE_SOURCES", "[]")
+# A notice is only accepted when its link points to one of these hosts (and their subdomains).
+NOTICE_LINK_DOMAINS = [d.strip().lower() for d in os.getenv("NOTICE_LINK_DOMAINS", "aiub.edu").split(",") if d.strip()]
+SCHEDULER_INTERVAL_SEC = int(os.getenv("SCHEDULER_INTERVAL_SEC", "300"))
+ENABLE_SCHEDULER = os.getenv("ENABLE_SCHEDULER", "0") == "1"
+CRON_SECRET = os.getenv("CRON_SECRET", "")  # lets a free pinger trigger a cycle: POST /api/internal/run-cycle
+
+# Forwarded-email webhook
+INBOUND_EMAIL_SECRET = os.getenv("INBOUND_EMAIL_SECRET", "")
+INBOUND_SENDER_ALLOWLIST = [d.strip().lower() for d in os.getenv("INBOUND_SENDER_ALLOWLIST", "").split(",") if d.strip()]
+INBOUND_AUTO_PUBLISH = os.getenv("INBOUND_AUTO_PUBLISH", "1") == "1"  # 0 = every email waits for an admin
+
+# Web Push (generate keys with: python -m app.tools.vapid)
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:admin@example.com")
+SITE_URL = os.getenv("SITE_URL", "http://localhost:3000").rstrip("/")

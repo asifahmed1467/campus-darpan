@@ -6,7 +6,7 @@ import type { Notice } from "@/lib/types";
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export function NoticeList({ items, freshIds = [] }: { items: Notice[]; freshIds?: number[] }) {
-  if (!items.length) return <p className="py-6 text-mute">No notices to show yet. New AIUB notices appear here within minutes of being posted.</p>;
+  if (!items.length) return <p className="py-6 text-mute">No notices to show yet. They will appear here, each with a link to the official page on aiub.edu, once the notice feed is connected.</p>;
   return (
     <ul>
       {items.map((n) => {
@@ -14,7 +14,7 @@ export function NoticeList({ items, freshIds = [] }: { items: Notice[]; freshIds
         const external = /^https?:/.test(n.url) && !n.url.includes("example.invalid");
         const fresh = freshIds.includes(n.id);
         return (
-          <li key={n.id} className="grid grid-cols-[3.5rem_1fr] gap-x-4 border-t border-line py-4 first:border-t-0">
+          <li key={n.id} id={`n${n.id}`} className="scroll-mt-24 grid grid-cols-[3.5rem_1fr] gap-x-4 border-t border-line py-4 first:border-t-0">
             <div className="text-center leading-none">
               <div className="font-display text-3xl font-bold">{d ? d.getDate() : "–"}</div>
               <div className="mt-1 text-sm text-mute">{d ? `${MONTHS[d.getMonth()]} ${d.getFullYear()}` : ""}</div>
@@ -26,6 +26,12 @@ export function NoticeList({ items, freshIds = [] }: { items: Notice[]; freshIds
                 {n.source === "demo" && <span className="ml-2 rounded border border-line px-1.5 py-0.5 align-middle text-xs font-medium text-mute">Sample</span>}
               </h3>
               {n.summary && <p className="mt-1 text-[15px] text-mute">{n.summary}</p>}
+              {external && (
+                <p className="mt-1 flex flex-wrap gap-x-4 text-[15px]">
+                  <a className="font-semibold text-brand underline" href={n.url} target="_blank" rel="noopener noreferrer">Read on aiub.edu</a>
+                  {n.attachment_url && <a className="font-semibold text-brand underline" href={n.attachment_url} target="_blank" rel="noopener noreferrer">Open the PDF</a>}
+                </p>
+              )}
               <div className="mt-2 flex flex-wrap gap-1.5">{n.tags.map((t) => <span key={t} className="rounded-full bg-track px-2.5 py-0.5 text-sm">{t}</span>)}</div>
             </div>
           </li>

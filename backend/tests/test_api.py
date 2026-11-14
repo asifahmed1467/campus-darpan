@@ -158,12 +158,19 @@ def test_presence_counter_is_anonymous(client, auth):
     assert a["online_now"] == 2 and a["unique_today"] == 2
 
 
-def test_notices_listing_tags_and_admin_add(client, auth):
+def test_notices_listing_tags_and_no_manual_posting(client, auth):
+    from app.db import SessionLocal
+    from app.services.notices import ingest_notice
+    from datetime import date
     r = client.get("/api/notices").json()
     assert len(r["items"]) == 3 and all("DEMO" in n["title"] for n in r["items"][:3])
-    n = {"title": "Midterm exam routine published", "url": "https://www.aiub.edu/x-1", "published_date": "2026-11-13"}
-    assert client.post("/api/admin/notices", json=n, headers=auth).json()["created"] is True
-    assert client.post("/api/admin/notices", json=n, headers=auth).json()["created"] is False  # same URL, no duplicate
+    # admins can no longer post notices by hand
+    n = {"title": "Midterm exam routine published", "url": "https://www.aiub.edu/x-1"}
+    assert client.post("/api/admin/notices", json=n, headers=auth).status_code in (404, 405)
+    db = SessionLocal()
+    assert ingest_notice(db, n["title"], n["url"], date(2026, 11, 13), source="test")[1] is True
+    assert ingest_notice(db, n["title"], n["url"], date(2026, 11, 13), source="test")[1] is False  # same link, no duplicate
+    db.close()
     items = client.get("/api/notices", params={"tag": "Exam"}).json()["items"]
     assert items[0]["title"].startswith("Midterm") and "Exam" in items[0]["tags"]
 

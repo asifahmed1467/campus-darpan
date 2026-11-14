@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { NoticeList } from "@/components/Notices";
+import PushButton from "@/components/PushButton";
 import { api } from "@/lib/api";
 import { useDebounced, useLive } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
@@ -16,7 +17,6 @@ export default function NoticesPage() {
   const [older, setOlder] = useState<Notice[]>([]);
   const [fresh, setFresh] = useState<Notice[]>([]);
   const [more, setMore] = useState(true);
-  const [perm, setPerm] = useState<string>("unsupported");
 
   const { data, error, loading, reload } = useLive(() => {
     const p = new URLSearchParams({ limit: "20" });
@@ -26,7 +26,6 @@ export default function NoticesPage() {
   }, [tag, dq], 120_000);
 
   useEffect(() => { setOlder([]); setMore(true); }, [tag, dq]);
-  useEffect(() => { if ("Notification" in window) setPerm(Notification.permission); }, []);
   useEffect(() => {
     const on = (e: Event) => { const n = (e as CustomEvent<Notice>).detail; setFresh((f) => (f.some((x) => x.id === n.id) ? f : [n, ...f])); reload(); };
     window.addEventListener("aiub:notice", on);
@@ -49,10 +48,8 @@ export default function NoticesPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-4xl font-bold sm:text-5xl">{t("notices.title")}</h1>
-      <p className="mt-2 text-mute">New notices from AIUB appear here and pop up on screen within minutes of being posted.</p>
-      {perm === "default" && (
-        <button className="btn btn-quiet mt-4" onClick={async () => setPerm(await Notification.requestPermission())}>Get alerts when this tab is in the background</button>
-      )}
+      <p className="mt-2 text-mute">Every notice links to the official page on aiub.edu. Turn on notifications to hear about new ones.</p>
+      <PushButton />
       <div className="mt-6"><label htmlFor="nq" className="sr-only">Search notices</label>
         <input id="nq" type="search" className="field font-display !text-lg" placeholder="Search notice titles" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
@@ -64,7 +61,7 @@ export default function NoticesPage() {
         {loading && !data ? <div className="space-y-4 py-5"><div className="skeleton h-14" /><div className="skeleton h-14" /><div className="skeleton h-14" /></div>
           : error && !data ? <div className="py-6"><p className="text-busy">{error}</p><button className="btn btn-quiet mt-3" onClick={reload}>Try again</button></div>
           : shown.length ? <NoticeList items={shown} freshIds={fresh.map((n) => n.id)} />
-          : <p className="py-6 text-mute">{tag || dq ? "No notices match. Clear the filter or search to see everything." : "No notices have been loaded yet."}</p>}
+          : <p className="py-6 text-mute">{tag || dq ? "No notices match. Clear the filter or search to see everything." : "No notices have been loaded yet. The official notice feed is not connected."}</p>}
       </div>
       {shown.length >= 20 && more && <div className="mt-5 text-center"><button className="btn btn-quiet" onClick={loadOlder}>Load older notices</button></div>}
     </div>

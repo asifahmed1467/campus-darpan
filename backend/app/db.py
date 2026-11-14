@@ -25,6 +25,26 @@ def get_db():
         db.close()
 
 
+# Columns added after the first release. create_all() never alters an existing table, so add them here.
+_NEW_COLUMNS = {
+    "notices": [("content_hash", "VARCHAR(64)"), ("attachment_url", "VARCHAR(600)")],
+}
+
+
+def _ensure_columns():
+    from sqlalchemy import inspect, text
+    insp = inspect(engine)
+    for table, cols in _NEW_COLUMNS.items():
+        if not insp.has_table(table):
+            continue
+        have = {c["name"] for c in insp.get_columns(table)}
+        with engine.begin() as conn:
+            for name, ddl in cols:
+                if name not in have:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}"))
+
+
 def init_db():
     from . import models  # noqa: F401  (register tables)
     Base.metadata.create_all(engine)
+    _ensure_columns()
