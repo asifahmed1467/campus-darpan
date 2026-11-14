@@ -1,0 +1,142 @@
+{
+  "semester": "Fall 2026-27",
+  "timezone": "Asia/Dhaka",
+  "weekend": ["FRI", "SAT"],
+  "slot_types": ["CLASS", "CONSULTATION", "ADMIN"],
+  "notes": "Free time is DERIVED (not stored): CONSULTATION = available to students; outside CLASS/ADMIN = 'not in class'. room null = TBA in source. room_source 'inferred' = taken from the portal header above the TSF, please verify.",
+  "faculty": [
+    {
+      "name": "Nyme Ahmed",
+      "email": null,
+      "faculty_code": null,
+      "department": null,
+      "source": "portal screenshot",
+      "slots": [
+        {"day": "SUN", "start": "08:00", "end": "10:20", "type": "CLASS", "course": "OOP1", "section": "K", "room": null},
+        {"day": "SUN", "start": "10:20", "end": "12:40", "type": "CONSULTATION"},
+        {"day": "SUN", "start": "12:40", "end": "14:40", "type": "CLASS", "course": "OOP1", "section": "H", "room": null},
+        {"day": "SUN", "start": "14:40", "end": "17:00", "type": "CONSULTATION"},
+
+        {"day": "MON", "start": "08:00", "end": "10:20", "type": "CLASS", "course": "OOP1", "section": "B", "room": null},
+        {"day": "MON", "start": "10:20", "end": "11:20", "type": "CONSULTATION"},
+        {"day": "MON", "start": "11:20", "end": "12:50", "type": "CLASS", "course": "TOC", "section": "R", "room": null},
+        {"day": "MON", "start": "12:50", "end": "14:40", "type": "CONSULTATION"},
+        {"day": "MON", "start": "14:40", "end": "16:10", "type": "CLASS", "course": "TOC", "section": "B", "room": null},
+        {"day": "MON", "start": "16:10", "end": "17:00", "type": "CONSULTATION"},
+
+        {"day": "TUE", "start": "08:00", "end": "10:00", "type": "CLASS", "course": "OOP1", "section": "K", "room": null},
+        {"day": "TUE", "start": "10:00", "end": "12:40", "type": "CONSULTATION"},
+        {"day": "TUE", "start": "12:40", "end": "15:00", "type": "CLASS", "course": "OOP1", "section": "H", "room": null},
+        {"day": "TUE", "start": "15:00", "end": "17:00", "type": "CONSULTATION"},
+
+        {"day": "WED", "start": "08:00", "end": "10:00", "type": "CLASS", "course": "OOP1", "section": "B", "room": null},
+        {"day": "WED", "start": "10:00", "end": "11:20", "type": "CONSULTATION"},
+        {"day": "WED", "start": "11:20", "end": "12:50", "type": "CLASS", "course": "TOC", "section": "R", "room": null},
+        {"day": "WED", "start": "12:50", "end": "14:40", "type": "CONSULTATION"},
+        {"day": "WED", "start": "14:40", "end": "16:10", "type": "CLASS", "course": "TOC", "section": "B", "room": null},
+        {"day": "WED", "start": "16:10", "end": "17:00", "type": "CONSULTATION"},
+
+        {"day": "THU", "start": "12:00", "end": "17:00", "type": "ADMIN", "label": "Administrative Hour"}
+      ]
+    },
+    {
+      "name": "Dipta Justin Gomes",
+      "email": null,
+      "faculty_code": null,
+      "department": null,
+      "source": "portal screenshot (no consultation hours shown in this view)",
+      "slots": [
+        {"day": "SUN", "start": "09:40", "end": "11:10", "type": "CLASS", "course": "CVAPR", "section": "I", "room": "3207", "room_source": "inferred"},
+        {"day": "SUN", "start": "13:00", "end": "14:30", "type": "CLASS", "course": "EIDS&E", "section": "B", "room": null},
+
+        {"day": "MON", "start": "08:00", "end": "09:30", "type": "CLASS", "course": "BGT", "section": "A", "room": null},
+        {"day": "MON", "start": "09:40", "end": "11:10", "type": "CLASS", "course": "BGT", "section": "B", "room": null},
+
+        {"day": "TUE", "start": "09:40", "end": "11:10", "type": "CLASS", "course": "CVAPR", "section": "I", "room": "3207", "room_source": "inferred"},
+        {"day": "TUE", "start": "13:00", "end": "14:30", "type": "CLASS", "course": "EIDS&E", "section": "B", "room": null},
+
+        {"day": "WED", "start": "08:00", "end": "09:30", "type": "CLASS", "course": "BGT", "section": "A", "room": null},
+        {"day": "WED", "start": "09:40", "end": "11:10", "type": "CLASS", "course": "BGT", "section": "B", "room": null}
+      ]
+    },
+    {
+      "name": "Mohammad Asaduzzaman Khan",
+      "email": null,
+      "faculty_code": null,
+      "department": null,
+      "source": "portal screenshot (no consultation hours shown in this view)",
+      "slots": [
+        {"day": "SUN", "start": "08:00", "end": "10:00", "type": "CLASS", "course": "DC", "section": "A", "room": null},
+        {"day": "SUN", "start": "12:40", "end": "15:00", "type": "CLASS", "course": "DC", "section": "C", "room": "DS0406", "room_source": "inferred", "class_type": "Lab"},
+
+        {"day": "MON", "start": "08:00", "end": "09:00", "type": "CLASS", "course": "ITES", "section": "C3", "room": null},
+        {"day": "MON", "start": "10:20", "end": "12:20", "type": "CLASS", "course": "DC", "section": "B", "room": null},
+        {"day": "MON", "start": "15:00", "end": "17:20", "type": "CLASS", "course": "DC", "section": "D", "room": null},
+
+        {"day": "TUE", "start": "08:00", "end": "10:20", "type": "CLASS", "course": "DC", "section": "A", "room": null},
+        {"day": "TUE", "start": "12:40", "end": "14:40", "type": "CLASS", "course": "DC", "section": "C", "room": null},
+
+        {"day": "WED", "start": "10:20", "end": "12:40", "type": "CLASS", "course": "DC", "section": "B", "room": null},
+        {"day": "WED", "start": "15:00", "end": "17:00", "type": "CLASS", "course": "DC", "section": "D", "room": null}
+      ]
+    },
+    {
+      "name": "Farzan Mitu",
+      "email": "farzan.mitu@aiub.edu",
+      "faculty_code": "FBA",
+      "department": null,
+      "source": "printed class schedule on office board (no consultation hours listed)",
+      "slots": [
+        {"day": "SUN", "start": "08:00", "end": "09:00", "type": "CLASS", "course": "Foundation Course", "section": "A", "room": "9409"},
+        {"day": "SUN", "start": "14:40", "end": "16:10", "type": "CLASS", "course": "Principles of Marketing", "section": "A", "room": "2101"},
+
+        {"day": "MON", "start": "09:10", "end": "10:10", "type": "CLASS", "course": "Foundation Course", "section": "B", "room": "9409"},
+        {"day": "MON", "start": "11:20", "end": "12:50", "type": "CLASS", "course": "Intro to Business", "section": "S3-B", "room": "6216"},
+        {"day": "MON", "start": "14:40", "end": "16:10", "type": "CLASS", "course": "Intro to Business", "section": "S3-A", "room": "6109"},
+
+        {"day": "TUE", "start": "11:20", "end": "12:20", "type": "CLASS", "course": "Foundation Course", "section": "C", "room": "9409"},
+        {"day": "TUE", "start": "14:40", "end": "16:10", "type": "CLASS", "course": "Principles of Marketing", "section": "A", "room": "2101"},
+
+        {"day": "WED", "start": "10:20", "end": "11:20", "type": "CLASS", "course": "Foundation Course", "section": "D", "room": "9408"},
+        {"day": "WED", "start": "11:20", "end": "12:50", "type": "CLASS", "course": "Intro to Business", "section": "S3-B", "room": "6216"},
+        {"day": "WED", "start": "13:40", "end": "14:40", "type": "CLASS", "course": "Foundation Course", "section": "E", "room": "9408"},
+        {"day": "WED", "start": "14:40", "end": "16:10", "type": "CLASS", "course": "Intro to Business", "section": "S3-A", "room": "6109"}
+      ]
+    },
+    {
+      "name": "Iftekhar Mahmud",
+      "email": null,
+      "faculty_code": "FASS",
+      "department": "English",
+      "designation": "Lecturer",
+      "source": "printed TSF on notice board (photo)",
+      "slots": [
+        {"day": "SUN", "start": "08:00", "end": "09:30", "type": "CLASS", "course": "BC", "section": "E", "room": "DS0803"},
+        {"day": "SUN", "start": "09:40", "end": "11:10", "type": "CLASS", "course": "ERS&PS", "section": "E1", "room": "5106"},
+        {"day": "SUN", "start": "11:10", "end": "13:00", "type": "CONSULTATION"},
+        {"day": "SUN", "start": "13:00", "end": "14:30", "type": "CLASS", "course": "TLAS", "section": "A", "room": "6212"},
+        {"day": "SUN", "start": "14:30", "end": "16:15", "type": "CONSULTATION"},
+
+        {"day": "MON", "start": "08:00", "end": "09:30", "type": "CLASS", "course": "EWS&C", "section": "D", "room": "DS0703"},
+        {"day": "MON", "start": "09:30", "end": "11:20", "type": "CONSULTATION"},
+        {"day": "MON", "start": "11:20", "end": "12:50", "type": "CLASS", "course": "TLAS", "section": "B", "room": "3207"},
+        {"day": "MON", "start": "13:00", "end": "14:30", "type": "CLASS", "course": "BC", "section": "V", "room": "DS0804"},
+        {"day": "MON", "start": "14:30", "end": "16:15", "type": "CONSULTATION"},
+
+        {"day": "TUE", "start": "08:00", "end": "09:30", "type": "CLASS", "course": "BC", "section": "E", "room": "DS0803"},
+        {"day": "TUE", "start": "09:40", "end": "11:10", "type": "CLASS", "course": "ERS&PS", "section": "E1", "room": "5106"},
+        {"day": "TUE", "start": "11:10", "end": "13:00", "type": "CONSULTATION"},
+        {"day": "TUE", "start": "13:00", "end": "14:30", "type": "CLASS", "course": "TLAS", "section": "A", "room": "6212"},
+        {"day": "TUE", "start": "14:30", "end": "16:15", "type": "CONSULTATION"},
+
+        {"day": "WED", "start": "08:00", "end": "09:30", "type": "CLASS", "course": "EWS&C", "section": "D", "room": "DS0703"},
+        {"day": "WED", "start": "09:30", "end": "11:20", "type": "CONSULTATION"},
+        {"day": "WED", "start": "11:20", "end": "12:50", "type": "CLASS", "course": "TLAS", "section": "B", "room": "3207"},
+        {"day": "WED", "start": "13:00", "end": "14:30", "type": "CLASS", "course": "BC", "section": "V", "room": "DS0804"},
+        {"day": "WED", "start": "14:30", "end": "16:15", "type": "CONSULTATION"},
+
+        {"day": "THU", "start": "08:00", "end": "13:40", "type": "CONSULTATION"}
+      ]
+    }
+  ]
+}
