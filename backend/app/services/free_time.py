@@ -64,7 +64,7 @@ class Schedule:
             out = []
             for a, b in merged:
                 room = next((s.room for s in cons if s.room and s.start >= a and s.end <= b), None)
-                out.append((a, b, room or self.default_room))
+                out.append((a, b, self.default_room or room))
             return out
         out, cursor = [], WORK_START_MIN
         for a, b in self.busy(day) + [(WORK_END_MIN, WORK_END_MIN)]:
