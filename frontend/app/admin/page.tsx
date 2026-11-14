@@ -31,10 +31,10 @@ export default function Admin() {
         <div className="flex items-center gap-3"><span className="text-mute">{me.name}{me.role === "super_admin" ? " (super admin)" : ""}</span>
           <button className="chip" onClick={() => { adminToken.clear(); router.replace("/admin/login"); }}>Log out</button></div>
       </div>
-      <div role="tablist" aria-label="Admin sections" className="mt-5 flex gap-1 overflow-x-auto border-b-2 border-ink">
+      <div role="tablist" aria-label="Admin sections" className="mt-5 flex gap-1 overflow-x-auto border-b-2 border-edge">
         {TABS.map((t) => (
           <button key={t.id} role="tab" id={`tab-${t.id}`} aria-selected={tab === t.id} aria-controls={`panel-${t.id}`} onClick={() => setTab(t.id)}
-            className={`-mb-0.5 shrink-0 rounded-t-lg border-2 border-b-0 px-4 py-2.5 font-display font-semibold ${tab === t.id ? "border-ink bg-sheet" : "border-transparent text-mute hover:text-ink"}`}>{t.label}</button>
+            className={`-mb-0.5 shrink-0 rounded-t-lg border-2 border-b-0 px-4 py-2.5 font-display font-semibold ${tab === t.id ? "border-edge bg-sheet" : "border-transparent text-mute hover:text-ink"}`}>{t.label}</button>
         ))}
       </div>
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="mt-6">

@@ -30,7 +30,7 @@ export function FavButton({ id, name }: { id: number; name: string }) {
     <button type="button" onClick={() => favs.toggle(id)} aria-pressed={on}
       aria-label={on ? `Remove ${name} from favourites` : `Add ${name} to favourites`}
       className="grid h-11 w-11 place-items-center rounded-full text-mute hover:text-ink">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill={on ? "#F2B01E" : "none"} stroke={on ? "#B7860B" : "currentColor"} strokeWidth="1.8" strokeLinejoin="round">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill={on ? "rgb(var(--c-needle))" : "none"} stroke={on ? "rgb(var(--c-warn))" : "currentColor"} strokeWidth="1.8" strokeLinejoin="round">
         <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9L3.5 9.7l5.9-.8L12 3.5z" />
       </svg>
     </button>
@@ -44,7 +44,7 @@ export default function FacultyRow({ f, compact = false }: { f: Faculty; compact
     <li className="relative border-t border-line first:border-t-0">
       <Link href={`/faculty/${f.id}`} className="block rounded-lg py-4 pl-3 pr-14 hover:bg-sheet focus-visible:bg-sheet sm:pl-4">
         <div className="flex items-start gap-3">
-          <span aria-hidden className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-ink font-display text-sm font-bold text-white">{initials(f.name)}</span>
+          <span aria-hidden className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-inverse font-display text-sm font-bold text-white">{initials(f.name)}</span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
               <span className="font-display text-lg font-semibold leading-tight">{f.name}</span>

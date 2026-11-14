@@ -26,7 +26,7 @@ export function NoticeList({ items, freshIds = [] }: { items: Notice[]; freshIds
                 {n.source === "demo" && <span className="ml-2 rounded border border-line px-1.5 py-0.5 align-middle text-xs font-medium text-mute">Sample</span>}
               </h3>
               {n.summary && <p className="mt-1 text-[15px] text-mute">{n.summary}</p>}
-              <div className="mt-2 flex flex-wrap gap-1.5">{n.tags.map((t) => <span key={t} className="rounded-full bg-[#DDE4F0] px-2.5 py-0.5 text-sm">{t}</span>)}</div>
+              <div className="mt-2 flex flex-wrap gap-1.5">{n.tags.map((t) => <span key={t} className="rounded-full bg-track px-2.5 py-0.5 text-sm">{t}</span>)}</div>
             </div>
           </li>
         );
@@ -56,7 +56,7 @@ export function NoticeAlert() {
   }, []);
   if (!toast) return null;
   return (
-    <div role="status" aria-live="polite" className="toast fixed inset-x-3 bottom-20 z-50 mx-auto max-w-md rounded-xl border-2 border-ink bg-sheet p-4 shadow-[4px_4px_0_0_#0F1B3D] md:bottom-6 md:left-auto md:right-6">
+    <div role="status" aria-live="polite" className="toast fixed inset-x-3 bottom-20 z-50 mx-auto max-w-md rounded-xl border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))] md:bottom-6 md:left-auto md:right-6">
       <div className="flex items-start gap-3">
         <span aria-hidden className="mt-1 h-3 w-3 shrink-0 rounded-full bg-needle ring-2 ring-ink" />
         <div className="min-w-0 flex-1">

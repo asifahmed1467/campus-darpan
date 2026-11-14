@@ -24,17 +24,17 @@ export default function DayStrip({ blocks, nowMin, tall = false, hours = false }
   return (
     <div>
       <div role="img" aria-label={label}
-        className={`relative w-full overflow-hidden rounded-[5px] bg-[#DDE4F0] ${tall ? "h-9" : "h-3.5"}`}>
+        className={`relative w-full overflow-hidden rounded-[5px] bg-track ${tall ? "h-9" : "h-3.5"}`}>
         {ticks.slice(1, -1).map((h) => (
-          <span key={h} className="absolute inset-y-0 w-px bg-white/70" style={{ left: `${pct(h * 60)}%` }} />
+          <span key={h} className="absolute inset-y-0 w-px bg-sheet/70" style={{ left: `${pct(h * 60)}%` }} />
         ))}
         {blocks.map((b, i) => (
           <span key={i} className={`absolute inset-y-0 ${COLOR[b.type] ?? "bg-mute"}`}
-            style={{ left: `${pct(b.start)}%`, width: `${Math.max(0.8, pct(b.end) - pct(b.start))}%`, boxShadow: "inset 1px 0 0 rgba(255,255,255,.55), inset -1px 0 0 rgba(255,255,255,.55)" }} />
+            style={{ left: `${pct(b.start)}%`, width: `${Math.max(0.8, pct(b.end) - pct(b.start))}%`, boxShadow: "inset 1px 0 0 rgb(var(--c-sheet) / .55), inset -1px 0 0 rgb(var(--c-sheet) / .55)" }} />
         ))}
         {showNeedle && (
           <span aria-hidden className="needle absolute inset-y-0 z-10 w-[3px] -translate-x-1/2 rounded-full bg-needle"
-            style={{ ["--x" as string]: `${pct(nowMin!)}%`, boxShadow: "0 0 0 1.5px rgba(15,27,61,.55)" }} />
+            style={{ ["--x" as string]: `${pct(nowMin!)}%`, boxShadow: "0 0 0 1.5px rgb(var(--c-shadow) / .55)" }} />
         )}
       </div>
       {hours && (

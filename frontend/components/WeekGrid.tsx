@@ -43,7 +43,7 @@ export default function WeekGrid({ week, todayKey, nowMin }: { week: { day: stri
                 const a = mm(s.start), b = mm(s.end);
                 const title = s.type === "CONSULTATION" ? "Consultation" : s.type === "ADMIN" ? (s.label ?? "Admin duty") : [s.course, s.section && `[${s.section}]`].filter(Boolean).join(" ") || "Class";
                 return (
-                  <div key={i} className={`absolute inset-x-[3px] overflow-hidden rounded-md px-1.5 py-1 text-[12px] leading-tight shadow-[0_0_0_1.5px_#fff] ${STYLE[s.type] ?? "bg-mute text-white"}`}
+                  <div key={i} className={`absolute inset-x-[3px] overflow-hidden rounded-md px-1.5 py-1 text-[12px] leading-tight shadow-[0_0_0_1.5px_rgb(var(--c-sheet))] ${STYLE[s.type] ?? "bg-mute text-white"}`}
                     style={{ top: y(a), height: Math.max(20, ((b - a) / 60) * HOUR_PX - 1.5) }}
                     title={`${title}, ${fmtMin(a)} to ${fmtMin(b)}${s.room ? `, room ${s.room}` : ""}`}>
                     <div className="font-semibold">{title}</div>
@@ -53,7 +53,7 @@ export default function WeekGrid({ week, todayKey, nowMin }: { week: { day: stri
                 );
               })}
               {d.day === todayKey && nowMin != null && nowMin >= start && nowMin <= end && (
-                <span aria-hidden className="absolute inset-x-0 z-10 h-[3px] bg-needle shadow-[0_0_0_1px_#0F1B3D]" style={{ top: y(nowMin) - 1 }} />
+                <span aria-hidden className="absolute inset-x-0 z-10 h-[3px] bg-needle shadow-[0_0_0_1px_rgb(var(--c-shadow))]" style={{ top: y(nowMin) - 1 }} />
               )}
             </div>
           ))}

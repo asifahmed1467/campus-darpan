@@ -103,14 +103,14 @@ export default function TsfManager() {
 
       {report?.errors.map((e, i) => <p key={i} role="alert" className="rounded-lg border-2 border-busy bg-sheet p-3 text-busy">{e}</p>)}
       {report?.teachers.map((t, i) => (
-        <section key={i} className={`rounded-xl border-2 bg-sheet p-4 ${t.errors.length ? "border-busy" : "border-ink"}`}>
+        <section key={i} className={`rounded-xl border-2 bg-sheet p-4 ${t.errors.length ? "border-busy" : "border-edge"}`}>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className="text-xl font-bold">{t.name}</h3>
             <span className="text-[15px] text-mute">{t.match ? `Updates the existing teacher “${t.match.name}”` : "Not in the directory yet, will be added"}</span>
           </div>
           <p className="text-[15px] text-mute">{t.slot_count} blocks. Classes {t.hours.CLASS} h, consultation {t.hours.CONSULTATION} h, admin {t.hours.ADMIN} h per week.</p>
           {t.errors.length > 0 && <ul className="mt-2 list-disc pl-5 text-busy">{t.errors.map((e, j) => <li key={j}>{e}</li>)}</ul>}
-          {t.warnings.length > 0 && <ul className="mt-2 list-disc pl-5 text-[15px] text-[#8a5a00]">{t.warnings.map((e, j) => <li key={j}>{e}</li>)}</ul>}
+          {t.warnings.length > 0 && <ul className="mt-2 list-disc pl-5 text-[15px] text-warn">{t.warnings.map((e, j) => <li key={j}>{e}</li>)}</ul>}
           {t.slots.length > 0 && (
             <details className="mt-3" open={!t.errors.length}>
               <summary className="cursor-pointer font-display font-semibold">Weekly timetable preview</summary>

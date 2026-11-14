@@ -18,7 +18,7 @@ export function MicButton({ onText, onError, className = "" }: { onText: (t: str
         setOn(true);
         stop.current = listen(lang, onText, () => setOn(false), (m) => onError?.(m));
       }}
-      className={`relative grid h-11 w-11 shrink-0 place-items-center rounded-full ${on ? "bg-busy text-white" : "bg-brand text-white hover:bg-ink"} ${className}`}>
+      className={`relative grid h-11 w-11 shrink-0 place-items-center rounded-full ${on ? "bg-busy text-white" : "bg-brand text-white hover:bg-inverse"} ${className}`}>
       {on && <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-busy/40 motion-reduce:hidden" />}
       <svg className="relative" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         <rect x="9" y="3" width="6" height="12" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" />

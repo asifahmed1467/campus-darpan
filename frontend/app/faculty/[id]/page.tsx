@@ -43,7 +43,7 @@ export default function FacultyProfile() {
     <div className="mx-auto max-w-4xl">
       <Link href="/faculty" className="inline-block py-2 font-display font-semibold text-brand underline">All faculty</Link>
       <div className="mt-2 flex items-start gap-4">
-        <span aria-hidden className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-ink font-display text-2xl font-bold text-white">{initials(p.name)}</span>
+        <span aria-hidden className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-inverse font-display text-2xl font-bold text-white">{initials(p.name)}</span>
         <div className="min-w-0 flex-1">
           <h1 className="text-4xl font-bold sm:text-5xl">{p.name}</h1>
           <p className="mt-1 text-lg text-mute">{[p.designation, p.department, p.faculty_code].filter(Boolean).join(", ")}</p>
@@ -51,7 +51,7 @@ export default function FacultyProfile() {
         <FavButton id={p.id} name={p.name} />
       </div>
 
-      <section aria-labelledby="st" className="mt-8 rounded-2xl border-2 border-ink bg-sheet p-5 shadow-[6px_6px_0_0_#0F1B3D] sm:p-7">
+      <section aria-labelledby="st" className="mt-8 rounded-2xl border-2 border-edge bg-sheet p-5 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-7">
         <h2 id="st" className="sr-only">Availability now</h2>
         <StatusLabel f={p} />
         <p className={`mt-2 font-display text-4xl font-bold leading-tight sm:text-5xl ${TONE_TEXT[info.tone]}`}>{info.main || t(info.label)}</p>

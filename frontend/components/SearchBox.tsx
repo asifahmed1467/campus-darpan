@@ -71,7 +71,7 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
   const showList = open && q.trim().length > 0 && searched !== "";
   return (
     <div ref={box} className="relative min-w-0">
-      <div className={`flex items-center gap-2 rounded-2xl border-2 border-ink bg-sheet pl-4 pr-1.5 shadow-[4px_4px_0_0_#0F1B3D] ${big ? "py-2" : "py-1"}`}>
+      <div className={`flex items-center gap-2 rounded-2xl border-2 border-edge bg-sheet pl-4 pr-1.5 shadow-[4px_4px_0_0_rgb(var(--c-shadow))] ${big ? "py-2" : "py-1"}`}>
         <svg aria-hidden width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
         <input id={id} role="combobox" aria-expanded={showList} aria-controls={`${id}-list`} aria-autocomplete="list"
           aria-activedescendant={active >= 0 ? `${id}-o${active}` : undefined} aria-label={t("search.placeholder")}
@@ -89,7 +89,7 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
 
       {showList && (
         <ul id={`${id}-list`} role="listbox" aria-label="Matching teachers"
-          className="absolute left-0 right-0 top-[calc(100%-1.25rem)] z-30 max-h-[70vh] overflow-auto rounded-xl border-2 border-ink bg-sheet shadow-[4px_4px_0_0_#0F1B3D]">
+          className="absolute left-0 right-0 top-[calc(100%-1.25rem)] z-30 max-h-[70vh] overflow-auto rounded-xl border-2 border-edge bg-sheet shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
           {items.map((s, i) => {
             const info = suggestionLine(s);
             return (

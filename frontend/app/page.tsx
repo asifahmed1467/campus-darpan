@@ -39,7 +39,7 @@ export default function Home() {
           </div>
         </div>
 
-        <section aria-labelledby="rn" className="min-w-0 rounded-2xl border-2 border-ink bg-sheet p-2 shadow-[6px_6px_0_0_#0F1B3D] sm:p-3">
+        <section aria-labelledby="rn" className="min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="text-2xl font-bold">{t("home.right_now")}</h2>
             {now && <p className="font-display text-lg font-semibold">{fmtMin(minutesOf(now))}, {dayName(now)}</p>}
@@ -81,7 +81,7 @@ export default function Home() {
           <p className="mt-3 text-[15px] text-mute">Fridays and Saturdays are the weekend.</p>
         </aside>
       </section>
-      <section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-ink p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
+      <section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-inverse p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
         <Mark size={84} className="shrink-0" />
         <div className="min-w-0">
           <p className="font-bn text-4xl font-bold leading-tight sm:text-5xl">{NAME_BN}</p>

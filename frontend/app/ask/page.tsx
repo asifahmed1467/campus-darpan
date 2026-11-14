@@ -58,11 +58,11 @@ function AskInner() {
           </div>
         )}
         {msgs.map((m, i) => m.role === "me" ? (
-          <div key={i} className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-sm bg-ink px-4 py-3 text-white">{m.text}</div>
+          <div key={i} className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-sm bg-inverse px-4 py-3 text-white">{m.text}</div>
         ) : m.role === "err" ? (
           <div key={i} role="alert" className="rounded-2xl border-2 border-busy bg-sheet px-4 py-3 text-busy">{m.text}</div>
         ) : (
-          <div key={i} className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-ink bg-sheet p-4 shadow-[4px_4px_0_0_#0F1B3D]">
+          <div key={i} className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
             <p className="text-lg">{m.res.answer}</p>
             {m.res.faculty && (
               <Link href={`/faculty/${m.res.faculty.id}`} className="mt-3 block rounded-xl border border-line bg-paper p-3 hover:border-brand">
@@ -92,7 +92,7 @@ function AskInner() {
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); ask(q, false); }} className="sticky bottom-[68px] z-20 mt-6 bg-paper pb-3 pt-2 md:bottom-0">
-        <div className="flex items-center gap-2 rounded-2xl border-2 border-ink bg-sheet py-1.5 pl-4 pr-1.5 shadow-[4px_4px_0_0_#0F1B3D]">
+        <div className="flex items-center gap-2 rounded-2xl border-2 border-edge bg-sheet py-1.5 pl-4 pr-1.5 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
           <label htmlFor="ask" className="sr-only">{t("ask.placeholder")}</label>
           <input id="ask" className="min-w-0 flex-1 bg-transparent py-2 font-display text-lg outline-none placeholder:text-mute focus-visible:outline-none" value={q} maxLength={300} autoComplete="off"
             onChange={(e) => setQ(e.target.value)} placeholder={t("ask.placeholder")} enterKeyHint="send" />
@@ -101,7 +101,7 @@ function AskInner() {
         </div>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[15px]">
           <p role="status" className="text-busy">{voiceMsg}</p>
-          <label className="flex items-center gap-2 text-mute"><input type="checkbox" className="h-5 w-5 accent-[#0B2A6F]" checked={auto}
+          <label className="flex items-center gap-2 text-mute"><input type="checkbox" className="h-5 w-5 accent-brand" checked={auto}
             onChange={(e) => { setAuto(e.target.checked); try { localStorage.setItem("aiub_autospeak", e.target.checked ? "1" : "0"); } catch { /* ignore */ } }} />Read answers aloud</label>
         </div>
       </form>

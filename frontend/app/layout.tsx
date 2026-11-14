@@ -19,7 +19,10 @@ export const viewport: Viewport = { themeColor: "#0B2A6F", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("cd-theme");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}` }} />
+      </head>
       <body>
         <LangProvider><Shell>{children}</Shell></LangProvider>
       </body>
