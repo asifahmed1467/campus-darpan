@@ -54,6 +54,7 @@ export default function FacultyRow({ f, compact = false }: { f: Faculty; compact
               <span>{[f.designation, f.department].filter(Boolean).join(", ") || f.faculty_code || " "}</span>
               <span className="sm:text-right">{info.line}</span>
             </div>
+            {f.email && <div className="text-[15px] text-mute [overflow-wrap:anywhere]">{f.email}</div>}
             {!compact && info.sub && <div className="text-[15px] text-ink/80">{info.sub}</div>}
           </div>
         </div>

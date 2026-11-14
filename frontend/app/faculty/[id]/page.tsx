@@ -57,12 +57,12 @@ export default function FacultyProfile() {
         <p className={`mt-2 font-display text-4xl font-bold leading-tight sm:text-5xl ${TONE_TEXT[info.tone]}`}>{info.main || t(info.label)}</p>
         {info.extra && <p className="mt-1 text-2xl font-semibold">{info.extra}</p>}
         {info.sub && <p className="mt-2 text-xl">{info.sub}</p>}
-        {p.status.status === "no_schedule" && p.email && <p className="mt-2 text-mute">Email {p.name.split(" ")[0]} to ask when they are in.</p>}
+        {p.status.status === "no_schedule" && p.email && <p className="mt-2 text-mute">Email {p.name} to ask when they are in.</p>}
         {p.status.basis === "gap" && p.status.status !== "no_schedule" && <p className="mt-3 text-[15px] text-mute">This teacher's TSF lists no consultation hours, so free time is shown as gaps between classes.</p>}
         <div className="mt-6"><DayStrip blocks={p.today} nowMin={now} tall hours /></div>
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <SpeakButton text={p.message} />
-          {p.email && <a className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px]" href={`mailto:${p.email}`}>Email</a>}
+          {p.email && <a className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px] [overflow-wrap:anywhere]" href={`mailto:${p.email}`}>{p.email}</a>}
           <button className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px]" onClick={share}>{copied ? "Link copied" : "Share"}</button>
           {(p.room || p.building) && <span className="ml-auto rounded-lg bg-paper px-3 py-1.5 font-display font-semibold">Office {[p.building, p.room].filter(Boolean).join(" ")}</span>}
         </div>
