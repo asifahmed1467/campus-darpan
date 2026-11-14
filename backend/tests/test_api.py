@@ -189,3 +189,18 @@ def test_cdn_cache_headers(client):
     assert "cache-control" not in client.get("/api/search/suggest", params={"q": "Ny", "at": "2026-11-15T10:30"}).headers
     assert "cache-control" not in client.get("/api/health").headers
     assert "cache-control" not in client.get("/api/presence/count").headers
+
+
+def test_directory_import_keeps_same_named_people_apart_and_tidies_caps(client, auth):
+    csv_text = ('name,email,faculty_code,designation\n'
+                '"MEHEDI HASAN","mehedi@aiub.edu","FE","SENIOR ASSISTANT PROFESSOR, Faculty"\n'
+                '"MEHEDI HASAN","mehedi.hasan@aiub.edu","FST","ASSISTANT PROFESSOR, Faculty"\n'
+                '"DR. MD. ANWARUL KABIR","kabir@aiub.edu","FST","ASSOCIATE PROFESSOR, Faculty"\n')
+    r = client.post("/api/admin/faculty/import", json={"format": "csv", "content": csv_text}, headers=auth).json()
+    assert r["created"] == 3 and r["updated"] == 0
+    again = client.post("/api/admin/faculty/import", json={"format": "csv", "content": csv_text}, headers=auth).json()
+    assert again["created"] == 0 and again["updated"] == 3
+    items = client.get("/api/search/suggest", params={"q": "mehedi"}).json()["items"]
+    assert len(items) == 2
+    k = client.get("/api/search/suggest", params={"q": "anwarul"}).json()["items"][0]
+    assert k["name"] == "Dr. Md. Anwarul Kabir"

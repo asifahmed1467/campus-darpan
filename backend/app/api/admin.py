@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import re
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -137,11 +138,33 @@ class ImportIn(BaseModel):
     content: str = Field(max_length=2_000_000)
 
 
+_KEEP_UPPER = {"PHD", "PHD.,", "SFHEA", "IQAC", "OSA", "CS", "EEE", "CSE", "II", "III", "IV", "MBA", "BBA", "CoE", "COE"}
+
+
+def _tidy(text: str | None) -> str | None:
+    """AIUB lists many names in ALL CAPS; show them as 'Dr. Md. Anwarul Kabir'. Mixed-case text is left alone."""
+    if not text or text != text.upper():
+        return text or None
+
+    def word(w: str) -> str:
+        if w.strip(",.[]()") in _KEEP_UPPER or re.fullmatch(r"(?:[A-Z]\.)+[A-Z]?\.?", w):
+            return w
+        return "-".join(p.capitalize() for p in w.split("-"))
+    return " ".join(word(w) for w in text.split())
+
+
+def _tidy_designation(text: str | None) -> str | None:
+    parts = [p.strip() for p in (text or "").split(",") if p.strip() and p.strip().lower() != "faculty"]
+    return ", ".join(_tidy(p) or p for p in parts) or None
+
+
 @router.post("/faculty/import")
 def import_faculty(b: ImportIn, a: Admin = Depends(require_admin), db: Session = Depends(get_db)):
-    """Bulk add/update the directory (CSV columns: name,email,faculty_code,department,designation,room,building,photo_url,profile_url)."""
+    """Bulk add/update the directory (CSV columns: name,email,faculty_code,department,designation,room,building,photo_url,profile_url).
+    Teachers are matched by email. A row without a known email only matches a teacher who has no email yet, by name,
+    so two different people called 'Mehedi Hasan' stay two people."""
     try:
-        rows = list(csv.DictReader(io.StringIO(b.content.lstrip("﻿")))) if b.format == "csv" else json.loads(b.content)
+        rows = list(csv.DictReader(io.StringIO(b.content.lstrip("\ufeff")))) if b.format == "csv" else json.loads(b.content)
     except Exception as e:
         raise HTTPException(400, f"Could not read the file: {e}")
     created = updated = 0
@@ -153,9 +176,12 @@ def import_faculty(b: ImportIn, a: Admin = Depends(require_admin), db: Session =
             errors.append(f"row {i}: name is missing")
             continue
         email = (r.get("email") or "").lower() or None
-        f = (db.scalar(select(Faculty).where(Faculty.email == email)) if email else None) or \
-            db.scalar(select(Faculty).where(Faculty.name_norm == tsf_import.norm_name(name)))
+        f = db.scalar(select(Faculty).where(Faculty.email == email)) if email else None
+        if not f:
+            same_name = db.scalars(select(Faculty).where(Faculty.name_norm == tsf_import.norm_name(name))).all()
+            f = next((x for x in same_name if not x.email), None) or (same_name[0] if same_name and not email else None)
         fields = {k: r.get(k) or None for k in ("faculty_code", "department", "designation", "room", "building", "photo_url", "profile_url")}
+        fields["designation"] = _tidy_designation(fields["designation"])
         if f:
             for k, v in fields.items():
                 if v:
@@ -164,7 +190,7 @@ def import_faculty(b: ImportIn, a: Admin = Depends(require_admin), db: Session =
                 f.email = email
             updated += 1
         else:
-            db.add(Faculty(name=name, name_norm=tsf_import.norm_name(name), email=email, aliases=[], **fields))
+            db.add(Faculty(name=_tidy(name), name_norm=tsf_import.norm_name(name), email=email, aliases=[], **fields))
             created += 1
     db.commit()
     store.invalidate()
