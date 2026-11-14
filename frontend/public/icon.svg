@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ক্যাম্পাসদর্পণ"><rect width="64" height="64" rx="14" fill="#0B2A6F"/><g transform="translate(2.56 1.5) scale(0.92)"><path d="M29.6 44 L34.4 44 L35.2 54.5 a3.6 3.6 0 1 1 -6.4 0 Z" fill="#F4C95D"/>
+<circle cx="32" cy="26" r="19.5" fill="#EEF2F8" stroke="#fff" stroke-width="5"/>
+<circle cx="32" cy="26" r="22.4" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="1"/>
+<rect x="18" y="19" width="13" height="6" rx="2" fill="#0B2A6F"/><rect x="33" y="19" width="13" height="6" rx="2" fill="#0F9D58"/>
+<rect x="18" y="29" width="9" height="6" rx="2" fill="#0F9D58"/><rect x="29" y="29" width="17" height="6" rx="2" fill="#0B2A6F"/>
+<rect x="36" y="13.5" width="3.4" height="25" rx="1.7" fill="#F2B01E" stroke="#0B2A6F" stroke-width=".8"/>
+<path d="M17.8 17.5a14.5 14.5 0 0 1 5.5-5" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></g></svg>

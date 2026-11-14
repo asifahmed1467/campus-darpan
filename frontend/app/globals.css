@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; }
+body {
+  @apply bg-paper text-ink font-body antialiased;
+  font-size: 17px; line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+h1, h2, h3 { @apply font-display; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance; }
+p { text-wrap: pretty; }
+a { text-underline-offset: 3px; }
+
+:focus-visible { outline: 3px solid #2B6BFF; outline-offset: 2px; border-radius: 6px; }
+
+/* The one animated moment: each day-strip's "now" needle sweeps from the left edge to the current time. */
+@keyframes needle-in { from { left: 0%; opacity: 0; } 15% { opacity: 1; } to { left: var(--x); opacity: 1; } }
+.needle { left: var(--x); animation: needle-in 900ms cubic-bezier(.2,.7,.2,1) both; }
+@keyframes toast-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.toast { animation: toast-in 220ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .needle, .toast { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
+.skeleton { background: linear-gradient(90deg, #E3E9F3 25%, #EEF2F8 37%, #E3E9F3 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; border-radius: 8px; }
+@keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-display font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed; min-height: 44px; }
+.btn-primary { @apply bg-brand text-white hover:bg-ink; }
+.btn-quiet { @apply bg-sheet text-ink border border-line hover:border-brand; }
+.chip { @apply inline-flex items-center rounded-full border border-line bg-sheet px-3 text-sm font-medium text-ink hover:border-brand; min-height: 36px; }
+.chip[aria-pressed="true"] { @apply bg-ink text-white border-ink; }
+.field { @apply w-full rounded-lg border border-line bg-sheet px-3 py-2.5 text-ink placeholder:text-mute; min-height: 44px; }
