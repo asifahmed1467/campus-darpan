@@ -118,6 +118,9 @@ def test_tsf_upload_one_by_one_adds_new_teacher_and_replaces_existing(client, au
     assert r.status_code == 200 and r.json()["applied"][0]["slots"] == 1
     hit = client.get("/api/search/suggest", params={"q": "test te", "at": "2026-11-15T10:30"}).json()["items"][0]
     assert hit["name"] == "Dr. Test TEACHER" and hit["status"] == "available"
+    # the consultation room becomes the teacher's office room automatically
+    prof = client.get(f"/api/faculty/{hit['id']}").json()
+    assert prof["room"] == "D-0510"
     # re-upload replaces, other teachers untouched
     one["slots"] = [{"day": "MON", "start": "10:00", "end": "11:30", "type": "CONSULTATION"}]
     client.post("/api/admin/tsf/confirm", json={"format": "json", "content": json.dumps(one)}, headers=auth)

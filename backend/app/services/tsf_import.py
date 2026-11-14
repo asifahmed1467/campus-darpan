@@ -203,6 +203,10 @@ def apply(db: Session, fmt: str, content: str, semester: str | None, by: str, cr
             for k, v in t.meta.items():
                 if v and not getattr(f, k):
                     setattr(f, k, v)
+        if not f.room:  # office room: the room the teacher holds consultation hours in
+            rooms = [s["room"] for s in t.slots if s["type"] == "CONSULTATION" and s["room"]]
+            if rooms:
+                f.room = max(set(rooms), key=rooms.count)
         db.query(TsfSlot).filter(TsfSlot.faculty_id == f.id, TsfSlot.semester == sem).delete()
         for s in t.slots:
             db.add(TsfSlot(faculty_id=f.id, semester=sem, day=s["day"], start_min=s["start"], end_min=s["end"],
