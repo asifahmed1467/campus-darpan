@@ -370,3 +370,14 @@ def test_source_test_endpoint_is_a_dry_run(client, auth, monkeypatch):
     assert client.get("/api/notices", params={"q": "Tested source notice"}).json()["items"] == []
     monkeypatch.setattr(admin_notices, "load_sources", lambda: [FakeSource("bad", error=SourceError("HTTP 500"))])
     assert client.post("/api/admin/sources/bad/test", headers=auth).json() == {"ok": False, "error": "HTTP 500"}
+
+
+def test_html_list_parses_rows_and_skips_pagination():
+    from app.notice_sources.html_list import parse_list
+    html = '''<a href="/category/notices?pageNo=2&pageSize=20">2</a>
+    <a href="/holiday-notice-x">04 Nov 2026 Holiday Notice: National Day</a>
+    <a href="https://evil.example/x">05 Nov 2026 Off-site link</a>
+    <a href="/mid-term">09 Nov 2026 Mid Term Exam ... Department of EEE</a><a href="/about">About</a>'''
+    items = parse_list(html, "https://www.aiub.edu/category/notices")
+    assert [i.url for i in items] == ["https://www.aiub.edu/holiday-notice-x", "https://www.aiub.edu/mid-term"]
+    assert str(items[0].published) == "2026-11-04" and items[0].title.startswith("Holiday Notice")

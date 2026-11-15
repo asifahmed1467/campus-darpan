@@ -7,6 +7,7 @@ import logging
 from .. import config
 from .base import NoticeSource
 from .email_inbox import EmailInboxSource
+from .html_list import HtmlListSource
 from .json_api import JsonApiSource
 from .rss import RssSource
 
@@ -21,6 +22,8 @@ def build_source(spec: dict) -> NoticeSource:
     if kind == "json":
         return JsonApiSource(name, spec["url"], spec.get("items_path", ""), spec.get("fields"),
                              spec.get("auth_env"), spec.get("authorized_by"))
+    if kind == "html_list":
+        return HtmlListSource(name, spec["url"])
     if kind == "email":
         return EmailInboxSource(name)
     raise ValueError(f"Unknown source type '{kind}'")
