@@ -27,7 +27,7 @@ BUILDINGS: tuple[Building, ...] = (
     Building("D", "D Building", "D", "tower", 9, "Has a North side, a South side and an Extension. Joined to Annex 9 by two bridges on the 2nd and 3rd floors.",
              formats=(("DN03", "D building, North side, room 03"), ("DS03", "D building, South side, room 03"),
                       ("DE204", "D building, Extension, 2nd floor, room 04"))),
-    Building("C", "C Building (Administrative)", "C", "admin", None, "The round glass building. Administrative offices.", ("Library",)),
+    Building("C", "C Building (Administrative)", "C", "admin", None, "The round glass building. Administrative offices."),
     Building("A1", "Annex 1", "1", "annex", 1, "Ground floor only."),
     Building("A2", "Annex 2", "2", "annex", 1, "Ground floor only."),
     Building("A3", "Annex 3", "3", "annex", None),
@@ -35,7 +35,7 @@ BUILDINGS: tuple[Building, ...] = (
     Building("A5", "Annex 5", "5", "annex", None),
     Building("A6", "Annex 6", "6", "annex", None),
     Building("A7", "Annex 7 (Architecture building)", "7", "annex", None, "The Architecture building."),
-    Building("A9", "Annex 9", "9", "tower", 5, "New building immediately left of D building, same shape as D. Joined to D by two bridges on the 2nd and 3rd floors.",
+    Building("A9", "Annex 9", "9", "tower", 5, "New building next to D building, same shape as D. Joined to D by two bridges on the 2nd and 3rd floors.",
              formats=(("9204", "Annex 9, 2nd floor, room 04"),)),
 )
 BY_ID = {b.id: b for b in BUILDINGS}

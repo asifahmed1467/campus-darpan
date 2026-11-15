@@ -68,7 +68,6 @@ export default function RoomsPage() {
             <div className="rounded-2xl border border-line bg-sheet p-4">
               <h2 className="text-2xl font-bold">{b.name}</h2>
               {b.note && <p className="mt-1 text-mute">{b.note}</p>}
-              {b.places.length > 0 && <p className="mt-2"><span className="font-semibold">Inside:</span> {b.places.join(", ")}</p>}
               {b.levels === null && <p className="mt-2 text-mute">The number of floors has not been added yet.</p>}
               {b.formats && b.formats.length > 0 && (
                 <div className="mt-3 rounded-xl border border-line bg-paper p-3">

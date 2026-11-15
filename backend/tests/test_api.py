@@ -242,7 +242,7 @@ def test_campus_and_room_endpoints(client):
     by = {b["id"]: b for b in c["buildings"]}
     assert by["D"]["levels"] == 9 and len(by["D"]["floors"]) == 9 and by["D"]["floors"][0]["label"] == "Ground floor"
     assert by["A9"]["levels"] == 5 and by["A1"]["levels"] == 1 and by["A3"]["levels"] is None and by["A3"]["floors"] == []
-    assert by["C"]["places"] == ["Library"]
+    assert by["C"]["places"] == []
     r = client.get("/api/rooms", params={"q": "9204"}).json()
     assert r["result"]["building"] == "A9" and r["message"].startswith("Annex 9, 2nd floor")
     assert client.get("/api/rooms").json()["result"] is None

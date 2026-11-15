@@ -13,20 +13,19 @@ export interface CampusBuilding {
    --------------------------------------------------------------------------------------------- */
 type Box = { s0: number; s1: number; t0: number; t1: number };
 const PLAN: Record<string, Box> = {
-  D:  { s0: 1.50, s1: 1.72, t0: -0.45, t1: 0.55 },     // tall slab, right of the courts
-  A9: { s0: 1.03, s1: 1.25, t0: -0.45, t1: 0.55 },     // same shape as D, immediately left of it
+  D:  { s0: 1.50, s1: 1.72, t0: -0.45, t1: 0.55 },     // tall slab at the right end
+  A9: { s0: 1.50, s1: 1.72, t0: -1.85, t1: -0.85 },    // same shape as D, in line with it on its back side
   C:  { s0: 0.96, s1: 1.20, t0: -1.52, t1: -1.09 },    // round building (a circle in plan)
   A6: { s0: 0.10, s1: 0.80, t0: -2.52, t1: -2.24 },    // horizontal, parallel to the field
   A5: { s0: 0.10, s1: 0.80, t0: -1.98, t1: -1.70 },
   A2: { s0: -0.10, s1: 0.45, t0: -0.40, t1: -0.12 },   // low strips along the field's back edge
-  A1: { s0: 0.45, s1: 0.96, t0: -0.42, t1: -0.14 },
-  A4: { s0: -0.75, s1: -0.10, t0: -1.55, t1: -1.25 },  // two long buildings at the left end
-  A3: { s0: -0.80, s1: -0.05, t0: -0.90, t1: -0.60 },
+  A1: { s0: 0.55, s1: 1.12, t0: -0.42, t1: -0.14 },
+  A4: { s0: -0.58, s1: -0.38, t0: -1.80, t1: -1.00 },  // two long buildings at the left end, end to end
+  A3: { s0: -0.52, s1: -0.32, t0: -0.88, t1: -0.08 },
   A7: { s0: -1.62, s1: -1.30, t0: -1.95, t1: -0.45 },  // architecture building, far left
 };
 const FIELD: Box = { s0: 0, s1: 1, t0: 0, t1: 1 };
-const COURTS: Box = { s0: 1.08, s1: 1.80, t0: 0.66, t1: 1.12 };
-const PARKING: Box = { s0: 0.90, s1: 1.55, t0: -2.32, t1: -1.66 };
+const PARKING: Box = { s0: 0.90, s1: 1.38, t0: -2.32, t1: -1.66 };
 const LAWN: Box = { s0: 0.42, s1: 0.82, t0: -1.05, t1: -0.68 };
 const PLATE: Box = { s0: -1.95, s1: 2.6, t0: -2.65, t1: 1.3 };
 const TREES: [number, number][] = [[0.78, -2.05], [0.8, -1.7], [1.6, -2.1], [1.62, -1.4], [1.9, -1.2], [0.3, -1.3], [0.28, -1.1], [0.9, -0.8],
@@ -114,18 +113,18 @@ export default function CampusMap({ buildings, selected, floor, onSelect }: {
   const items = order(buildings.filter((b) => PLAN[b.id]).map((b) => ({ b, r: rect(PLAN[b.id]), n: b.id === "C" ? C_LEVELS : b.levels ?? UNKNOWN_LEVELS })));
   const key = (id: string) => (e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(id); } };
   const shadow: CSSProperties = { filter: "drop-shadow(4px 6px 3px rgb(0 0 0 / 0.2))" };
-  const plate = rect(PLATE), field = rect(FIELD), courts = rect(COURTS), parking = rect(PARKING), lawn = rect(LAWN);
+  const plate = rect(PLATE), field = rect(FIELD), parking = rect(PARKING), lawn = rect(LAWN);
   const [fcu, fcv] = ctr(field);
-  const bridgeLeft = rect(PLAN.A9), bridgeRight = rect(PLAN.D);
+  const bridgeLeft = rect(PLAN.A9), bridgeRight = rect(PLAN.D);   // Annex 9 is behind D along its long side
 
   // The view is cropped to the buildings and grounds; the ground plate continues past the edge.
-  const area = [field, courts, parking, lawn, ...items.map((i) => i.r)];
+  const area = [field, parking, lawn, ...items.map((i) => i.r)];
   const cs = area.flatMap((r) => [P(r.u0, r.v0), P(r.u1, r.v0), P(r.u1, r.v1), P(r.u0, r.v1)]);
   const minX = Math.min(...cs.map((p) => p[0])) - 34, maxX = Math.max(...cs.map((p) => p[0])) + 48;
   const topY = Math.min(...items.map((i) => P(i.r.u0, i.r.v0, i.n * FH)[1] - 70)) - 6;
   const botY = Math.max(...cs.map((p) => p[1])) + 46;
   const treeOk = (s: number, t: number) => !Object.values(PLAN).some((b) => s > b.s0 - 0.1 && s < b.s1 + 0.1 && t > b.t0 - 0.2 && t < b.t1 + 0.2)
-    && !(s > COURTS.s0 - 0.05 && s < COURTS.s1 + 0.05 && t > COURTS.t0 - 0.1 && t < COURTS.t1 + 0.1);
+;
 
   return (
     <svg viewBox={`${minX.toFixed(0)} ${topY.toFixed(0)} ${(maxX - minX).toFixed(0)} ${(botY - topY).toFixed(0)}`} className="w-full"
@@ -135,22 +134,19 @@ export default function CampusMap({ buildings, selected, floor, onSelect }: {
       {/* parking lot */}
       <polygon points={flat(parking)} fill="#9aa1ab" fillOpacity="0.5" stroke={EDGE} strokeOpacity="0.4" />
       {[0.14, 0.28, 0.42, 0.56, 0.7, 0.84].map((k) => <polyline key={k} points={pts(P(parking.u0 + (parking.u1 - parking.u0) * k, parking.v0 + 2), P(parking.u0 + (parking.u1 - parking.u0) * k, parking.v1 - 2))} fill="none" stroke="#fff" strokeOpacity="0.8" strokeWidth="1.3" strokeDasharray="3 3" />)}
-      <text x={P(parking.u0 + (parking.u1 - parking.u0) * 0.9, (parking.v0 + parking.v1) / 2)[0]} y={P(parking.u0 + (parking.u1 - parking.u0) * 0.9, (parking.v0 + parking.v1) / 2)[1] + 5} textAnchor="middle" fontSize="15" className="font-display" style={{ fill: col("mute"), paintOrder: "stroke", stroke: col("paper"), strokeWidth: 3 }}>Parking</text>
+      <text x={P(parking.u0 + (parking.u1 - parking.u0) * 0.8, parking.v0 + (parking.v1 - parking.v0) * 0.3)[0]} y={P(parking.u0 + (parking.u1 - parking.u0) * 0.8, parking.v0 + (parking.v1 - parking.v0) * 0.3)[1] + 5} textAnchor="middle" fontSize="15" className="font-display" style={{ fill: col("mute"), paintOrder: "stroke", stroke: col("paper"), strokeWidth: 3 }}>Parking</text>
 
       {/* garden and pond */}
       <polygon points={flat(lawn)} fill="#7cc27c" fillOpacity="0.35" stroke="#4e9a52" strokeOpacity="0.6" />
       <ellipse cx={P(...ctr(lawn))[0]} cy={P(...ctr(lawn))[1]} rx="16" ry="8" fill="#6fb6dd" fillOpacity="0.75" stroke="#3b86b0" />
 
-      {/* football field and courts */}
+      {/* football field */}
       <polygon points={flat(field)} fill="#4fae5a" fillOpacity="0.5" stroke="#2f8a3d" strokeWidth="1.5" />
       {[0.2, 0.4, 0.6, 0.8].map((k) => <polygon key={k} points={pts(P(field.u0 + (field.u1 - field.u0) * k, field.v0), P(field.u0 + (field.u1 - field.u0) * (k + 0.1), field.v0), P(field.u0 + (field.u1 - field.u0) * (k + 0.1), field.v1), P(field.u0 + (field.u1 - field.u0) * k, field.v1))} fill="#fff" fillOpacity="0.07" />)}
       <polyline points={pts(P(fcu, field.v0), P(fcu, field.v1))} fill="none" stroke="#fff" strokeOpacity="0.85" strokeWidth="1.4" />
       <ellipse cx={P(fcu, fcv)[0]} cy={P(fcu, fcv)[1]} rx="22" ry="12.5" fill="none" stroke="#fff" strokeOpacity="0.85" strokeWidth="1.4" />
       <polygon points={flat(field)} fill="none" stroke="#fff" strokeOpacity="0.8" strokeWidth="1.4" transform="translate(0 0)" />
       <text x={P(fcu, fcv)[0]} y={P(fcu, fcv)[1] + 42} textAnchor="middle" fontSize="16" className="font-display" style={{ fill: col("ink"), paintOrder: "stroke", stroke: col("paper"), strokeWidth: 4 }}>Football field</text>
-      <polygon points={flat(courts)} fill="#7b6fd0" fillOpacity="0.4" stroke="#5a4fb0" strokeWidth="1.5" />
-      <polyline points={pts(P(courts.u0, (courts.v0 + courts.v1) / 2), P(courts.u1, (courts.v0 + courts.v1) / 2))} fill="none" stroke="#fff" strokeOpacity="0.8" strokeWidth="1.3" />
-      <text x={P(...ctr(courts))[0] + 4} y={P(...ctr(courts))[1] + 40} textAnchor="middle" fontSize="16" className="font-display" style={{ fill: col("ink"), paintOrder: "stroke", stroke: col("paper"), strokeWidth: 4 }}>Courts</text>
 
       {/* trees */}
       {TREES.filter(([s, t]) => treeOk(s, t)).map(([s, t], i) => { const p = P(U(s), V(t)); return (
@@ -205,7 +201,6 @@ export default function CampusMap({ buildings, selected, floor, onSelect }: {
                 <ellipse className="hit" cx={x} cy={(y + top) / 2 - dome * 0.4} rx={rx * 1.15} ry={ry + (h + dome) / 2 + 6} fill="transparent" />
                 {label(dome * 0.95 + 18)}
               </g>
-              {b.places.length > 0 && <text x={x} y={y + ry * 1.7 + 17} textAnchor="middle" fontSize="16" className="font-display font-semibold pointer-events-none" style={{ fill: col("ink"), paintOrder: "stroke", stroke: col("paper"), strokeWidth: 4 }}>{b.places.join(", ")}</text>}
             </g>
           );
         }
@@ -214,9 +209,9 @@ export default function CampusMap({ buildings, selected, floor, onSelect }: {
         const roofIn = inset(r, 0.2);
         return (
           <g key={b.id}>
-            {b.id === "A9" && [1, 2].map((fl) => {
+            {b.id === "D" && [1, 2].map((fl) => {
               // two bridges between Annex 9 and D, on the 2nd and 3rd floors
-              const br: R = { u0: bridgeLeft.u1, u1: bridgeRight.u0, v0: bridgeLeft.v1 - 11, v1: bridgeLeft.v1 - 4 };
+              const br: R = { u0: bridgeRight.u0 + 3.2, u1: bridgeRight.u1 - 3.2, v0: bridgeLeft.v1, v1: bridgeRight.v0 };
               return <g key={fl} style={{ opacity: dim }} aria-hidden><Prism r={br} z0={fl * FH + 1.5} z1={(fl + 1) * FH - 1.5} c={{ l: "#6d9bb2", r: "#8fc0d8", roof: "#c9e4f1" }} sw={0.8} />
                 <polyline points={pts(P(br.u0, br.v1, fl * FH + FH * 0.5), P(br.u1, br.v1, fl * FH + FH * 0.5))} stroke="#fff" strokeOpacity="0.7" strokeWidth="2.4" fill="none" /></g>;
             })}
