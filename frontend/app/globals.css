@@ -69,23 +69,24 @@ a { text-underline-offset: 3px; }
 /* Headline: each word eases in one after another */
 @keyframes word-in { from { opacity: 0; transform: translateY(.45em); filter: blur(5px); } to { opacity: 1; transform: none; filter: blur(0); } }
 .word { display: inline-block; animation: word-in 640ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(120ms + var(--w, 0) * 90ms); }
-/* Campus scene */
-.scene { box-shadow: 6px 6px 0 0 rgb(var(--c-shadow)); }
-.scene .bldg { fill: rgb(var(--c-brand) / .16); stroke: rgb(var(--c-brand) / .45); stroke-width: 1.5; transform-box: fill-box; transform-origin: bottom; animation: grow 900ms cubic-bezier(.2,.8,.3,1) both; animation-delay: calc(var(--i) * 90ms); }
-@keyframes grow { from { transform: scaleY(0); opacity: 0; } to { transform: none; opacity: 1; } }
-.scene .win { fill: rgb(var(--c-brand) / .12); }
-.scene .win-on { fill: rgb(var(--c-needle)); animation: twinkle 7s ease-in-out infinite; }
-@keyframes twinkle { 0%, 100% { opacity: .15; } 35%, 65% { opacity: .95; } }
-.scene .ground { fill: rgb(var(--c-brand) / .22); }
-.scene .cloud { fill: rgb(var(--c-brand) / .10); }
-.scene .cloud-a { animation: drift 38s linear infinite; }
-.scene .cloud-b { animation: drift 52s linear infinite reverse; }
-@keyframes drift { from { transform: translateX(-30px); } to { transform: translateX(110px); } }
-.scene .walker { fill: rgb(var(--c-ink)); animation: walk 26s linear infinite; }
-@keyframes walk { from { transform: translateX(-10px); } to { transform: translateX(810px); } }
-.scene .here { fill: rgb(var(--c-needle)); stroke: rgb(var(--c-ink)); stroke-width: 1.5; animation: bob 2.4s ease-in-out infinite; }
-.scene .here-dot { fill: rgb(var(--c-ink)); stroke: none; }
-@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+/* General page motion: on every page, the blocks slide up one after another and list rows follow in order. */
+.page-in > *:not(.reveal), .page-in > * > *:not(.reveal) { animation: rise 600ms cubic-bezier(.2,.7,.2,1) both; }
+.page-in > * > *:nth-child(2) { animation-delay: 80ms; } .page-in > * > *:nth-child(3) { animation-delay: 160ms; }
+.page-in > * > *:nth-child(4) { animation-delay: 240ms; } .page-in > * > *:nth-child(5) { animation-delay: 320ms; }
+.page-in > * > *:nth-child(n+6) { animation-delay: 380ms; }
+.page-in li:not([role]) { animation: slide-in 480ms cubic-bezier(.2,.7,.2,1) both; }
+.page-in li:not([role]):nth-child(1) { animation-delay: 120ms; } .page-in li:not([role]):nth-child(2) { animation-delay: 190ms; }
+.page-in li:not([role]):nth-child(3) { animation-delay: 260ms; } .page-in li:not([role]):nth-child(4) { animation-delay: 330ms; }
+.page-in li:not([role]):nth-child(5) { animation-delay: 400ms; } .page-in li:not([role]):nth-child(6) { animation-delay: 460ms; }
+.page-in li:not([role]):nth-child(n+7) { animation-delay: 520ms; }
+@keyframes slide-in { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+/* Links: the underline grows in on hover; rows glide; logo and toggles react to touch */
+main a.underline { text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat; transition: background-size 260ms ease; }
+main a.underline:hover { background-size: 100% 4px; }
+main li { transition: background-color 180ms ease; }
+header a[aria-label] svg, header a[aria-label] img { transition: transform 400ms cubic-bezier(.3,1.5,.5,1); }
+header a[aria-label]:hover svg, header a[aria-label]:hover img { transform: rotate(-8deg) scale(1.08); }
+header .chip:active { transform: scale(.92); }
 /* Primary buttons get a soft light sweep on hover */
 .btn-primary { position: relative; overflow: hidden; }
 .btn-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .22) 50%, transparent 70%); transform: translateX(-120%); transition: transform 600ms ease; }
@@ -93,8 +94,7 @@ a { text-underline-offset: 3px; }
 .caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 1px; vertical-align: -.15em; background: rgb(var(--c-ink)); animation: caret 1s steps(1) infinite; }
 @keyframes caret { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .word, .scene .bldg, .scene .win-on, .scene .cloud, .scene .walker, .scene .here, .caret { animation: none !important; }
-  .scene .win-on { opacity: .8; }
+  .word, .caret, .page-in > *, .page-in > * > *:not(.reveal), .page-in li:not([role]) { animation: none !important; }
   .scroll-bar { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

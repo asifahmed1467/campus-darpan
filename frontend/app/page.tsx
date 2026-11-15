@@ -2,7 +2,6 @@
 import Link from "next/link";
 import FacultyRow, { RowSkeleton } from "@/components/FacultyRow";
 import { NoticeList } from "@/components/Notices";
-import CampusScene from "@/components/CampusScene";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
 import SearchBox from "@/components/SearchBox";
@@ -63,8 +62,6 @@ export default function Home() {
           </div>
         </section>
       </section>
-
-      <Reveal><CampusScene free={freeNow} total={fac.data?.total ?? 0} notices={notices.data?.items.length ?? 0} /></Reveal>
 
       <Reveal><section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
         <div className="min-w-0">
