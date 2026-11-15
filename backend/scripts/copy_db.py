@@ -1,6 +1,6 @@
 """Copy every row from one database to another (for example Render PostgreSQL to Supabase).
 
-Standalone: needs only   pip install sqlalchemy "psycopg[binary]"
+Standalone: needs only   pip install sqlalchemy pg8000
 The destination must already have the tables (start the API once against it, it creates them).
 
 Set the two addresses in YOUR terminal so passwords never pass through chat:
@@ -13,16 +13,38 @@ Then:
 The source is only read.
 """
 import os
+import ssl
 import sys
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import MetaData, create_engine, func, select, text
 
 
+def _driver() -> str:
+    """psycopg if it loads, otherwise the pure-Python pg8000 (works where Windows blocks compiled files)."""
+    try:
+        import psycopg  # noqa: F401
+        return "psycopg"
+    except Exception:
+        return "pg8000"
+
+
 def engine_for(url: str):
+    if url.startswith("sqlite"):
+        return create_engine(url)
     for old in ("postgres://", "postgresql://"):
         if url.startswith(old):
-            url = "postgresql+psycopg://" + url[len(old):]
-    return create_engine(url, pool_pre_ping=True)
+            url = "postgresql://" + url[len(old):]
+    drv = _driver()
+    if drv == "psycopg":
+        return create_engine(url.replace("postgresql://", "postgresql+psycopg://", 1), pool_pre_ping=True)
+    parts = urlsplit(url.replace("postgresql://", "postgresql+pg8000://", 1))
+    query = [(k, v) for k, v in parse_qsl(parts.query) if k != "sslmode"]       # pg8000 takes SSL as an argument instead
+    url = urlunsplit(parts._replace(query=urlencode(query)))
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE          # encrypted, like sslmode=require (no certificate check)
+    return create_engine(url, pool_pre_ping=True, connect_args={"ssl_context": ctx})
 
 
 def main() -> int:
@@ -52,8 +74,8 @@ def main() -> int:
             d.execute(t.delete())
         for t in order:
             rows = [dict(r._mapping) for r in s.execute(select(sm.tables[t.name]))]
-            for i in range(0, len(rows), 500):
-                d.execute(t.insert(), rows[i:i + 500])
+            for i in range(0, len(rows), 40):            # one multi-row INSERT per 40 rows: far fewer round trips than one per row
+                d.execute(t.insert().values(rows[i:i + 40]))
             pk = [c for c in t.primary_key.columns if c.type.python_type is int]
             if rows and len(pk) == 1 and dst.dialect.name == "postgresql":
                 col = pk[0].name
