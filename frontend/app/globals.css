@@ -87,6 +87,23 @@ main li { transition: background-color 180ms ease; }
 header a[aria-label] svg, header a[aria-label] img { transition: transform 400ms cubic-bezier(.3,1.5,.5,1); }
 header a[aria-label]:hover svg, header a[aria-label]:hover img { transform: rotate(-8deg) scale(1.08); }
 header .chip:active { transform: scale(.92); }
+/* Hero: two soft colour clouds drift behind the headline */
+.hero-glow::after { content: ""; position: absolute; z-index: -1; right: -4rem; top: 3rem; width: 22rem; height: 22rem; border-radius: 9999px; pointer-events: none;
+  background: radial-gradient(circle, rgb(var(--c-needle) / .20), transparent 68%); filter: blur(10px); animation: cloud-b 11s ease-in-out infinite alternate; }
+.hero-glow::before { height: 30rem; background: radial-gradient(55% 55% at 28% 32%, rgb(var(--c-brand) / .22), transparent 70%); animation: cloud-a 9s ease-in-out infinite alternate; }
+@keyframes cloud-a { from { transform: translate3d(-4%, -2%, 0) scale(1); } to { transform: translate3d(8%, 10%, 0) scale(1.15); } }
+@keyframes cloud-b { from { transform: translate3d(0, 0, 0) scale(.9); } to { transform: translate3d(-18%, 14%, 0) scale(1.15); } }
+/* Notice ticker */
+.ticker-track { animation: ticker 55s linear infinite; }
+.ticker:hover .ticker-track, .ticker:focus-within .ticker-track, .ticker:active .ticker-track { animation-play-state: paused; }
+.ticker-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+/* The "Right now" card breathes: a slow float, and a lift when touched */
+@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.float-card { animation: float-y 6s ease-in-out 1.2s infinite; }
+/* Section headings draw an amber underline as they arrive */
+.draw-line::after { content: ""; display: block; height: 4px; width: 3.2rem; margin-top: .5rem; border-radius: 2px; background: rgb(var(--c-needle)); transform: scaleX(0); transform-origin: left; transition: transform 700ms cubic-bezier(.2,.7,.2,1) 300ms; }
+.reveal[data-seen="true"] .draw-line::after, .draw-line.on::after { transform: scaleX(1); }
 /* Primary buttons get a soft light sweep on hover */
 .btn-primary { position: relative; overflow: hidden; }
 .btn-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .22) 50%, transparent 70%); transform: translateX(-120%); transition: transform 600ms ease; }
@@ -94,8 +111,10 @@ header .chip:active { transform: scale(.92); }
 .caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 1px; vertical-align: -.15em; background: rgb(var(--c-ink)); animation: caret 1s steps(1) infinite; }
 @keyframes caret { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .word, .caret, .page-in > *, .page-in > * > *:not(.reveal), .page-in li:not([role]) { animation: none !important; }
+  .ticker-track, .float-card, .hero-glow::after, .word, .caret, .page-in > *, .page-in > * > *:not(.reveal), .page-in li:not([role]) { animation: none !important; }
   .scroll-bar { display: none; }
+  .ticker-track { overflow-x: auto; }
+  .draw-line::after { transform: scaleX(1) !important; transition: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .page-in, .hero-glow::before { animation: none !important; }

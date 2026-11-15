@@ -293,3 +293,17 @@ def test_ask_samples_endpoint(client):
     d = client.get("/api/ask/samples").json()
     assert d["count"] >= 20 and sum(len(t["questions"]) for t in d["topics"]) == d["count"]
     assert {t["topic"] for t in d["topics"]} >= {"About AIUB", "Admission", "Academics", "Registration", "Scholarships"}
+
+
+def test_faculty_is_worked_out_from_department():
+    from app.services.store import faculty_for
+    assert faculty_for("Computer Science") == "FST"
+    assert faculty_for("Electrical & Electronic Engineering") == "FE"
+    assert faculty_for("Computer Engineering") == "FE"
+    assert faculty_for("Marketing") == "FBA"
+    assert faculty_for("Operations and Supply Chain Management") == "FBA"
+    assert faculty_for("Law") == "FASS"
+    assert faculty_for("Journalism and Mass Communication") == "FASS"
+    assert faculty_for("Pharmacy") == "FHLS"
+    assert faculty_for("Natural Science [Physics]") == "FST"
+    assert faculty_for("") is None and faculty_for(None) is None

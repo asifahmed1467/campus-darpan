@@ -21,6 +21,27 @@ from .free_time import Schedule, Slot
 from .tsf_import import norm_name
 
 
+# Which AIUB faculty a department belongs to (aiub.edu "General Information" and AIUB's own job listings).
+# Used when a teacher has no faculty code saved, so the Faculty page can still filter by faculty.
+_DEPT_FACULTY = [
+    ("FBA", ["accounting", "finance", "marketing", "management", "operations and supply chain", "tourism", "hospitality", "business", "banking"]),
+    ("FASS", ["english", "economics", "law", "journalism", "mass communication", "media", "social science", "development studies"]),
+    ("FE", ["electrical", "electronic", "computer engineering", "industrial", "production engineering", "architecture", "telecommunication", "civil"]),
+    ("FHLS", ["pharmacy", "public health", "biochemistry", "microbiology", "nursing", "health"]),
+    ("FST", ["computer science", "software", "data science", "mathematics", "physics", "chemistry", "statistics", "natural science", "information"]),
+]
+
+
+def faculty_for(department: str | None) -> str | None:
+    d = (department or "").casefold()
+    if not d:
+        return None
+    for code, words in _DEPT_FACULTY:
+        if any(w in d for w in words):
+            return code
+    return None
+
+
 @dataclass
 class FacultyView:
     id: int
@@ -108,11 +129,12 @@ class Store:
                 courses.setdefault(s.faculty_id, set()).add(s.course)
 
         for f in db.scalars(select(Faculty)):
+            code = f.faculty_code or faculty_for(f.department)
             other = _tokens(f.department) + _tokens((f.email or "").split("@")[0]) + _tokens(f.room) \
-                + _tokens(f.faculty_code) + [t for a in (f.aliases or []) for t in _tokens(a)] \
+                + _tokens(code) + [t for a in (f.aliases or []) for t in _tokens(a)] \
                 + [t for c in courses.get(f.id, ()) for t in _tokens(c)]
             snap.faculty[f.id] = FacultyView(
-                f.id, f.name, f.email, f.faculty_code, f.department, f.designation, f.room, f.building,
+                f.id, f.name, f.email, code, f.department, f.designation, f.room, f.building,
                 f.photo_url, f.profile_url, f.aliases or [], _tokens(norm_name(f.name)), other, f.id in by_fac)
             if f.id in by_fac:
                 snap.schedules[f.id] = Schedule(by_fac[f.id], default_room=f.room)

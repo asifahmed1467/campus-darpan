@@ -2,6 +2,7 @@
 import Link from "next/link";
 import FacultyRow, { RowSkeleton } from "@/components/FacultyRow";
 import { NoticeList } from "@/components/Notices";
+import NoticeTicker from "@/components/NoticeTicker";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
 import SearchBox from "@/components/SearchBox";
@@ -44,7 +45,7 @@ export default function Home() {
           </div>
         </div>
 
-        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
+        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise float-card min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="flex items-center gap-3 text-2xl font-bold">{t("home.right_now")}
               {freeNow > 0 && <span className="flex items-center gap-1.5 rounded-full bg-go/10 px-2.5 py-0.5 font-display text-sm font-semibold text-go"><span aria-hidden className="dot-live h-2 w-2 rounded-full bg-go" />{freeNow} free</span>}
@@ -63,10 +64,12 @@ export default function Home() {
         </section>
       </section>
 
+      <NoticeTicker items={notices.data?.items ?? []} />
+
       <Reveal><section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
         <div className="min-w-0">
           <div className="mb-2 flex items-baseline justify-between gap-4">
-            <h2 className="text-3xl font-bold">{t("home.notices")}</h2>
+            <h2 className="draw-line text-3xl font-bold">{t("home.notices")}</h2>
             <Link href="/notices" className="font-display font-semibold text-brand underline">{t("home.all_notices")}</Link>
           </div>
           {notices.loading && !notices.data ? <div className="space-y-4 py-4"><div className="skeleton h-14" /><div className="skeleton h-14" /><div className="skeleton h-14" /></div>
@@ -74,7 +77,7 @@ export default function Home() {
             : <NoticeList items={notices.data?.items ?? []} />}
         </div>
         <aside aria-labelledby="up" className="card-hover h-fit rounded-2xl border border-line bg-sheet p-5">
-          <h2 id="up" className="text-2xl font-bold">{t("home.holidays")}</h2>
+          <h2 id="up" className="draw-line text-2xl font-bold">{t("home.holidays")}</h2>
           {meta.data?.semester && <p className="mt-1 text-[15px] text-mute">{meta.data.semester} semester, classes {meta.data.semester_start && new Date(meta.data.semester_start + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })} to {meta.data.semester_end && new Date(meta.data.semester_end + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>}
           <ul className="mt-3 divide-y divide-line">
             {(meta.data?.upcoming_holidays ?? []).map((h) => (
