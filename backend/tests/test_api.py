@@ -176,7 +176,7 @@ def test_notices_listing_tags_and_no_manual_posting(client, auth):
 
 
 def test_rooms_placeholder_and_meta(client):
-    assert client.get("/api/rooms", params={"q": "D-0302"}).json()["coming_soon"] is True
+    assert client.get("/api/rooms", params={"q": "D-0302"}).json()["result"]["building"] == "D"
     m = client.get("/api/meta", params={"at": SAT_NOON}).json()
     assert m["semester"] == "Fall 2026-27" and "Victory Day" in [h["name"] for h in m["upcoming_holidays"]]
 
@@ -214,3 +214,38 @@ def test_directory_import_keeps_same_named_people_apart_and_tidies_caps(client, 
     assert len(items) == 2
     k = client.get("/api/search/suggest", params={"q": "anwarul"}).json()["items"][0]
     assert k["name"] == "Dr. Md. Anwarul Kabir"
+
+
+def test_room_codes_decode(client):
+    from app.services.campus import parse_room
+    r = parse_room("9204")
+    assert (r["building"], r["floor"], r["room"]) == ("A9", 2, "04") and r["message"] == "Annex 9, 2nd floor, room 04." and r["warning"] is None
+    assert parse_room(" 9-2 04 ")["room"] == "04"                      # spaces and dashes are ignored
+    assert parse_room("1005")["floor_label"] == "Ground floor"           # floor 0
+    assert parse_room("9805")["warning"].startswith("Annex 9 has floors up to 4")   # 5 floors counting ground
+    assert parse_room("7101")["ok"] is False and "Annex 7" in parse_room("7101")["message"]
+    d = parse_room("D-0302")
+    assert d["ok"] and d["building"] == "D" and d["floor"] is None       # D format not added yet: building only
+    assert parse_room("DNGA05")["building"] == "D"
+    assert parse_room("hello")["ok"] is False and parse_room("") is None and parse_room(None) is None
+
+
+def test_campus_and_room_endpoints(client):
+    c = client.get("/api/campus").json()
+    ids = [b["id"] for b in c["buildings"]]
+    assert ids == ["D", "C", "A1", "A2", "A3", "A4", "A5", "A6", "A9"]
+    by = {b["id"]: b for b in c["buildings"]}
+    assert by["D"]["levels"] == 9 and len(by["D"]["floors"]) == 9 and by["D"]["floors"][0]["label"] == "Ground floor"
+    assert by["A9"]["levels"] == 5 and by["A1"]["levels"] == 1 and by["A3"]["levels"] is None and by["A3"]["floors"] == []
+    assert by["C"]["places"] == ["Library"]
+    r = client.get("/api/rooms", params={"q": "9204"}).json()
+    assert r["result"]["building"] == "A9" and r["message"].startswith("Annex 9, 2nd floor")
+    assert client.get("/api/rooms").json()["result"] is None
+
+
+def test_faculty_profile_carries_decoded_room(client, auth):
+    csv_text = "name,email,room\nRoom Decode Prof,room.decode@aiub.edu,9204\n"
+    client.post("/api/admin/faculty/import", json={"format": "csv", "content": csv_text}, headers=auth)
+    fid = client.get("/api/search/suggest", params={"q": "Room Decode"}).json()["items"][0]["id"]
+    info = client.get(f"/api/faculty/{fid}").json()["room_info"]
+    assert info["building"] == "A9" and info["floor"] == 2 and info["room"] == "04"

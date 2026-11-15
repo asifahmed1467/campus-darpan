@@ -4,7 +4,7 @@ import re
 import time
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -14,6 +14,7 @@ from ..auth import client_ip, rate_limit
 from ..config import ALLOW_TIME_TRAVEL
 from ..db import get_db
 from ..models import AskLog, Notice
+from ..services.campus import BUILDINGS, building_dict, parse_room
 from ..services.free_time import compute_status, describe
 from ..services.notices import notice_dict
 from ..services.realtime import broadcaster, presence
@@ -44,7 +45,7 @@ def _card(snap: Snapshot, f: FacultyView, now: datetime) -> dict:
         {"start": s.start, "end": s.end, "type": s.type} for s in sched.by_day[dow]]
     return {"id": f.id, "name": f.name, "email": f.email, "faculty_code": f.faculty_code, "today": today,
             "department": f.department, "designation": f.designation, "room": f.room, "building": f.building,
-            "photo_url": f.photo_url, "profile_url": f.profile_url, "has_tsf": f.has_tsf,
+            "photo_url": f.photo_url, "profile_url": f.profile_url, "has_tsf": f.has_tsf, "room_info": parse_room(f.room),
             "status": st, "message": describe(f.name, st, f.room)}
 
 
@@ -246,8 +247,17 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
     return {"mode": mode, "answered": answered, **result}
 
 
-# ---------------- rooms (data arrives later) ----------------
+# ---------------- campus map and room codes ----------------
+@router.get("/campus")
+def campus(response: Response):
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return {"buildings": [building_dict(b) for b in BUILDINGS],
+            "rule": "Annex rooms: first digit is the Annex, then the floor, then two digits for the room. 9204 = Annex 9, 2nd floor, room 04."}
+
+
 @router.get("/rooms")
 def rooms(q: str | None = None):
-    return {"coming_soon": True, "q": q, "results": [],
-            "message": "Room maps are being prepared. Faculty room numbers are already shown on each profile."}
+    r = parse_room(q)
+    if r is None:
+        return {"q": q, "result": None, "message": "Type a room number, for example 9204."}
+    return {"q": q, "result": r, "message": r["message"]}

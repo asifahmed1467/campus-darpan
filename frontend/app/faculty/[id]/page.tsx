@@ -64,7 +64,13 @@ export default function FacultyProfile() {
           <SpeakButton text={p.message} />
           {p.email && <a className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px] [overflow-wrap:anywhere]" href={`mailto:${p.email}`}>{p.email}</a>}
           <button className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px]" onClick={share}>{copied ? "Link copied" : "Share"}</button>
-          {(p.room || p.building) && <span className="ml-auto rounded-lg bg-paper px-3 py-1.5 font-display font-semibold">Office {[p.building, p.room].filter(Boolean).join(" ")}</span>}
+          {(p.room || p.building) && (
+            <span className="ml-auto rounded-lg bg-paper px-3 py-1.5 font-display font-semibold">
+              Office {[p.building, p.room].filter(Boolean).join(" ")}
+              {p.room_info?.ok && p.room_info.floor_label && <span className="font-normal text-mute"> · {p.room_info.building_name}, {p.room_info.floor_label}</span>}
+              {p.room && p.room_info?.ok && <Link className="ml-2 text-[15px] font-semibold text-brand underline" href={`/rooms?code=${encodeURIComponent(p.room)}`}>Show on map</Link>}
+            </span>
+          )}
         </div>
       </section>
 

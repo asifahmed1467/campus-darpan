@@ -46,3 +46,8 @@ a { text-underline-offset: 3px; }
 .chip { @apply inline-flex items-center rounded-full border border-line bg-sheet px-3 text-sm font-medium text-ink hover:border-brand; min-height: 36px; }
 .chip[aria-pressed="true"] { @apply bg-inverse text-white border-inverse; }
 .field { @apply w-full rounded-lg border border-line bg-sheet px-3 py-2.5 text-ink placeholder:text-mute; min-height: 44px; }
+
+/* Campus map: a visible focus ring and hover cue on each building */
+.bld:focus { outline: none; }
+.bld:focus-visible .face { stroke: rgb(var(--c-focus)); stroke-width: 4; }
+.bld:hover .face { stroke-width: 2.5; }
