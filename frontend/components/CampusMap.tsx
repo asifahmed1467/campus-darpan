@@ -16,8 +16,8 @@ const PLAN: Record<string, Box> = {
   D:  { s0: 1.50, s1: 1.72, t0: -0.45, t1: 0.55 },     // tall slab at the right end
   A9: { s0: 1.50, s1: 1.72, t0: -1.85, t1: -0.85 },    // same shape as D, in line with it on its back side
   C:  { s0: 0.96, s1: 1.20, t0: -1.52, t1: -1.09 },    // round building (a circle in plan)
-  A6: { s0: 0.10, s1: 0.80, t0: -2.52, t1: -2.24 },    // horizontal, parallel to the field
-  A5: { s0: 0.10, s1: 0.80, t0: -1.98, t1: -1.70 },
+  A6: { s0: 0.08, s1: 0.26, t0: -2.40, t1: -1.60 },    // two long buildings side by side, running front to back
+  A5: { s0: 0.38, s1: 0.56, t0: -2.40, t1: -1.60 },
   A2: { s0: -0.10, s1: 0.45, t0: -0.40, t1: -0.12 },   // low strips along the field's back edge
   A1: { s0: 0.55, s1: 1.12, t0: -0.42, t1: -0.14 },
   A4: { s0: -0.58, s1: -0.38, t0: -1.80, t1: -1.00 },  // two long buildings at the left end, end to end
