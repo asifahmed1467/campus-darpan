@@ -276,7 +276,7 @@ def test_ask_sample_questions_are_answered_and_labelled(client):
     for row in SAMPLES:                                     # every sample question finds its own answer
         assert search_faq(row[1]) is row, row[1]
     r = client.post("/api/ask", json={"question": "What CGPA do I need to graduate?"}).json()
-    assert r["mode"] == "faq" and r["sample"] is True and "2.50" in r["answer"] and r["answer"].startswith("Sample answer")
+    assert r["mode"] == "faq" and r["sample"] is True and "2.50" in r["answer"] and not r["answer"].startswith("Sample answer")
     assert r["sources"][0]["url"].startswith("https://aiub.edu/")
     r = client.post("/api/ask", json={"question": "how to add drop course"}).json()
     assert r["mode"] == "faq" and "VUES" in r["answer"]

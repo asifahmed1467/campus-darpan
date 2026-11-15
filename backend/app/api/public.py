@@ -236,7 +236,7 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
                       "sources": [{"title": h["title"], "url": h["url"]} for h in hits]}
         elif (faq := search_faq(question)):
             mode = "faq"
-            result = {"answer": "Sample answer (check the source to confirm, as rules and dates change): " + faq[3], "sample": True,
+            result = {"answer": faq[3], "sample": True,
                       "sources": [{"title": faq[4], "url": faq[5]}]}
         else:
             answered = False
