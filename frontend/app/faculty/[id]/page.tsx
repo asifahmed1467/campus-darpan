@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import DayStrip from "@/components/DayStrip";
+import { TodayPanel, WeekGlance } from "@/components/TeacherDay";
 import { FavButton, StatusLabel, initials } from "@/components/FacultyRow";
 import { SpeakButton } from "@/components/Voice";
 import WeekGrid, { Legend } from "@/components/WeekGrid";
@@ -59,7 +59,7 @@ export default function FacultyProfile() {
         {info.sub && <p className="mt-2 text-xl">{info.sub}</p>}
         {p.status.status === "no_schedule" && p.email && <p className="mt-2 text-mute">Email {p.name} to ask when they are in.</p>}
         {p.status.basis === "gap" && p.status.status !== "no_schedule" && <p className="mt-3 text-[15px] text-mute">This teacher's TSF lists no consultation hours, so free time is shown as gaps between classes.</p>}
-        <div className="mt-6"><DayStrip blocks={p.today} nowMin={now} tall hours /></div>
+        {p.has_tsf && <div className="mt-6 border-t border-line pt-5"><TodayPanel week={p.week} todayKey={todayKey} nowMin={now} officeRoom={p.room} /></div>}
         <div className="mt-5 flex flex-wrap items-center gap-2">
           <SpeakButton text={p.message} />
           {p.email && <a className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px] [overflow-wrap:anywhere]" href={`mailto:${p.email}`}>{p.email}</a>}
@@ -76,11 +76,18 @@ export default function FacultyProfile() {
 
       <section aria-labelledby="wk" className="mt-10">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 id="wk" className="text-3xl font-bold">Weekly schedule</h2>
+          <h2 id="wk" className="text-3xl font-bold">This week at a glance</h2>
           {p.semester && <span className="text-mute">{p.semester}</span>}
         </div>
-        {p.has_tsf ? <><WeekGrid week={p.week} todayKey={todayKey} nowMin={now} /><div className="mt-3"><Legend /></div></>
-          : <p className="rounded-xl border border-line bg-sheet p-5 text-mute">This teacher's TSF hasn't been added yet. It appears here as soon as an admin uploads it.</p>}
+        {p.has_tsf ? (
+          <>
+            <WeekGlance week={p.week} todayKey={todayKey} nowMin={now} />
+            <details className="mt-4 rounded-xl border border-line bg-sheet p-3">
+              <summary className="cursor-pointer font-display font-semibold">Detailed timetable (like the one on the door)</summary>
+              <div className="mt-3"><WeekGrid week={p.week} todayKey={todayKey} nowMin={now} /><div className="mt-3"><Legend /></div></div>
+            </details>
+          </>
+        ) : <p className="rounded-xl border border-line bg-sheet p-5 text-mute">This teacher's TSF hasn't been added yet. It appears here as soon as an admin uploads it.</p>}
       </section>
     </div>
   );
