@@ -2,6 +2,7 @@
 import Link from "next/link";
 import FacultyRow, { RowSkeleton } from "@/components/FacultyRow";
 import { NoticeList } from "@/components/Notices";
+import CampusScene from "@/components/CampusScene";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
 import SearchBox from "@/components/SearchBox";
@@ -31,7 +32,9 @@ export default function Home() {
     <div className="space-y-14">
       <section className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
         <div className="hero-glow min-w-0 pt-2 lg:pt-8">
-          <h1 className="rise max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl">{t("hero.title")}</h1>
+          <h1 className="max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl" aria-label={t("hero.title")}>
+            {t("hero.title").split(" ").map((w, i) => <span key={i} aria-hidden className="word mr-[.25em]" style={{ ["--w" as string]: i }}>{w}</span>)}
+          </h1>
           <p className="mt-5 max-w-[34ch] text-lg text-mute sm:text-xl">{t("hero.sub")}</p>
           <div className="mt-8"><SearchBox big /></div>
           <p className="text-[15px] text-mute">Suggestions appear as you type. The mic works for questions like “When is Nyme sir free?”.</p>
@@ -60,6 +63,8 @@ export default function Home() {
           </div>
         </section>
       </section>
+
+      <Reveal><CampusScene free={freeNow} total={fac.data?.total ?? 0} notices={notices.data?.items.length ?? 0} /></Reveal>
 
       <Reveal><section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
         <div className="min-w-0">

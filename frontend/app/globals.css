@@ -20,6 +20,8 @@ body {
   font-size: 17px; line-height: 1.55;
   font-variant-numeric: tabular-nums;
 }
+/* a faint dotted grid behind everything, so pages feel like a campus plan rather than a blank sheet */
+body { background-image: radial-gradient(rgb(var(--c-ink) / .07) 1px, transparent 1.2px); background-size: 26px 26px; }
 h1, h2, h3 { @apply font-display; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance; }
 p { text-wrap: pretty; }
 a { text-underline-offset: 3px; }
@@ -62,6 +64,39 @@ a { text-underline-offset: 3px; }
 .card-hover { transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
 .card-hover:hover { transform: translateY(-2px); border-color: rgb(var(--c-brand) / .5); box-shadow: 0 10px 24px -16px rgb(var(--c-shadow) / .45); }
 .field:focus, .field:focus-visible { box-shadow: 0 0 0 4px rgb(var(--c-focus) / .18); transition: box-shadow 160ms ease; }
+/* Scroll progress bar */
+.scroll-bar { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60; transform-origin: left; background: rgb(var(--c-needle)); transform: scaleX(var(--p, 0)); pointer-events: none; }
+/* Headline: each word eases in one after another */
+@keyframes word-in { from { opacity: 0; transform: translateY(.45em); filter: blur(5px); } to { opacity: 1; transform: none; filter: blur(0); } }
+.word { display: inline-block; animation: word-in 640ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(120ms + var(--w, 0) * 90ms); }
+/* Campus scene */
+.scene { box-shadow: 6px 6px 0 0 rgb(var(--c-shadow)); }
+.scene .bldg { fill: rgb(var(--c-brand) / .16); stroke: rgb(var(--c-brand) / .45); stroke-width: 1.5; transform-box: fill-box; transform-origin: bottom; animation: grow 900ms cubic-bezier(.2,.8,.3,1) both; animation-delay: calc(var(--i) * 90ms); }
+@keyframes grow { from { transform: scaleY(0); opacity: 0; } to { transform: none; opacity: 1; } }
+.scene .win { fill: rgb(var(--c-brand) / .12); }
+.scene .win-on { fill: rgb(var(--c-needle)); animation: twinkle 7s ease-in-out infinite; }
+@keyframes twinkle { 0%, 100% { opacity: .15; } 35%, 65% { opacity: .95; } }
+.scene .ground { fill: rgb(var(--c-brand) / .22); }
+.scene .cloud { fill: rgb(var(--c-brand) / .10); }
+.scene .cloud-a { animation: drift 38s linear infinite; }
+.scene .cloud-b { animation: drift 52s linear infinite reverse; }
+@keyframes drift { from { transform: translateX(-30px); } to { transform: translateX(110px); } }
+.scene .walker { fill: rgb(var(--c-ink)); animation: walk 26s linear infinite; }
+@keyframes walk { from { transform: translateX(-10px); } to { transform: translateX(810px); } }
+.scene .here { fill: rgb(var(--c-needle)); stroke: rgb(var(--c-ink)); stroke-width: 1.5; animation: bob 2.4s ease-in-out infinite; }
+.scene .here-dot { fill: rgb(var(--c-ink)); stroke: none; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+/* Primary buttons get a soft light sweep on hover */
+.btn-primary { position: relative; overflow: hidden; }
+.btn-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .22) 50%, transparent 70%); transform: translateX(-120%); transition: transform 600ms ease; }
+.btn-primary:hover::after { transform: translateX(120%); }
+.caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 1px; vertical-align: -.15em; background: rgb(var(--c-ink)); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .word, .scene .bldg, .scene .win-on, .scene .cloud, .scene .walker, .scene .here, .caret { animation: none !important; }
+  .scene .win-on { opacity: .8; }
+  .scroll-bar { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   .page-in, .hero-glow::before { animation: none !important; }
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }

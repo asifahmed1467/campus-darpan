@@ -23,11 +23,34 @@ function suggestionLine(s: Suggestion) {
   return statusInfo(fake);
 }
 
+const TYPED = ["Nyme Ahmed", "When is Zasmin sir free?", "Where is room DN0921?", "Which notice is new?"];
+/** Types example searches into the empty box, one after another. Stops when the person focuses or types. */
+function useTyped(on: boolean) {
+  const [txt, setTxt] = useState("");
+  useEffect(() => {
+    if (!on || matchMedia("(prefers-reduced-motion: reduce)").matches) { setTxt(""); return; }
+    let i = 0, n = 0, dir = 1, timer: ReturnType<typeof setTimeout>;
+    const step = () => {
+      const w = TYPED[i];
+      n += dir;
+      setTxt(w.slice(0, n));
+      if (dir === 1 && n === w.length) { dir = -1; timer = setTimeout(step, 1500); return; }
+      if (dir === -1 && n === 0) { dir = 1; i = (i + 1) % TYPED.length; timer = setTimeout(step, 350); return; }
+      timer = setTimeout(step, dir === 1 ? 70 : 28);
+    };
+    timer = setTimeout(step, 900);
+    return () => clearTimeout(timer);
+  }, [on]);
+  return txt;
+}
+
 export default function SearchBox({ big = false, autoFocus = false }: { big?: boolean; autoFocus?: boolean }) {
   const router = useRouter();
   const { t } = useLang();
   const id = useId();
   const [q, setQ] = useState("");
+  const [focused, setFocused] = useState(false);
+  const typed = useTyped(big && !focused && q === "");
   const dq = useDebounced(q, 120);
   const [items, setItems] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -76,8 +99,8 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
         <input id={id} role="combobox" aria-expanded={showList} aria-controls={`${id}-list`} aria-autocomplete="list"
           aria-activedescendant={active >= 0 ? `${id}-o${active}` : undefined} aria-label={t("search.placeholder")}
           autoFocus={autoFocus} autoComplete="off" spellCheck={false} enterKeyHint="search"
-          value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onKeyDown={onKey}
-          placeholder={t("search.placeholder")}
+          value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => { setOpen(true); setFocused(true); }} onBlur={() => setFocused(false)} onKeyDown={onKey}
+          placeholder={typed ? typed + "|" : t("search.placeholder")}
           className={`min-w-0 flex-1 bg-transparent font-display outline-none placeholder:text-mute focus-visible:outline-none ${big ? "py-2.5 text-xl" : "py-2 text-lg"}`} />
         <MicButton onText={(text) => {
           setVoiceMsg("");

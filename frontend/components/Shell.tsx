@@ -61,13 +61,19 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const isAdmin = path.startsWith("/admin");
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 6);
+    const bar = document.getElementById("scroll-bar");
+    const on = () => {
+      setScrolled(window.scrollY > 6);
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      if (bar) bar.style.setProperty("--p", h > 0 ? String(Math.min(1, window.scrollY / h)) : "0");
+    };
     on(); window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
   return (
     <>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-inverse focus:px-3 focus:py-2 focus:text-white">Skip to content</a>
+      <div id="scroll-bar" aria-hidden className="scroll-bar" />
       <header className={`sticky top-0 z-40 border-b bg-paper/95 backdrop-blur transition-shadow duration-300 ${scrolled ? "border-line shadow-[0_6px_18px_-12px_rgb(var(--c-shadow)/.35)]" : "border-transparent"}`}>
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2.5">
           <Link href="/" className="flex items-center gap-2.5" aria-label="ক্যাম্পাসদর্পণ, home">
