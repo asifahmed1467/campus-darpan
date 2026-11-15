@@ -70,6 +70,10 @@ def main() -> int:
     if not go:
         print("\nDry run only. Add --go to copy."); return 0
     with src.connect() as s, dst.begin() as d:
+        if dst.dialect.name == "postgresql":
+            # The live API may be writing (it logs a notice check every 5 minutes). Lock the tables so its writes wait until we are done.
+            d.execute(text("SET LOCAL lock_timeout = '60s'"))
+            d.execute(text("LOCK TABLE " + ", ".join(f'"{t.name}"' for t in order) + " IN ACCESS EXCLUSIVE MODE"))
         for t in reversed(order):
             d.execute(t.delete())
         for t in order:
