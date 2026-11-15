@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TodayPanel, WeekGlance } from "@/components/TeacherDay";
 import { FavButton, StatusLabel, initials } from "@/components/FacultyRow";
 import { SpeakButton } from "@/components/Voice";
+import { RoomCard } from "@/components/RoomCard";
 import WeekGrid, { Legend } from "@/components/WeekGrid";
 import { api, minutesOf } from "@/lib/api";
 import { useLive } from "@/lib/hooks";
@@ -51,7 +52,9 @@ export default function FacultyProfile() {
         <FavButton id={p.id} name={p.name} />
       </div>
 
-      <section aria-labelledby="st" className="mt-8 rounded-2xl border-2 border-edge bg-sheet p-5 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-7">
+      <RoomCard p={p} />
+
+      <section aria-labelledby="st" className="rise mt-6 rounded-2xl border-2 border-edge bg-sheet p-5 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-7">
         <h2 id="st" className="sr-only">Availability now</h2>
         <StatusLabel f={p} />
         <p className={`mt-2 font-display text-4xl font-bold leading-tight sm:text-5xl ${TONE_TEXT[info.tone]}`}>{info.main || t(info.label)}</p>
@@ -64,17 +67,10 @@ export default function FacultyProfile() {
           <SpeakButton text={p.message} />
           {p.email && <a className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px] [overflow-wrap:anywhere]" href={`mailto:${p.email}`}>{p.email}</a>}
           <button className="btn btn-quiet !min-h-[40px] !px-3 !py-1.5 text-[15px]" onClick={share}>{copied ? "Link copied" : "Share"}</button>
-          {(p.room || p.building) && (
-            <span className="ml-auto rounded-lg bg-paper px-3 py-1.5 font-display font-semibold">
-              Office {[p.building, p.room].filter(Boolean).join(" ")}
-              {p.room_info?.ok && p.room_info.floor_label && <span className="font-normal text-mute"> · {p.room_info.building_name}, {p.room_info.floor_label}</span>}
-              {p.room && p.room_info?.ok && <Link className="ml-2 text-[15px] font-semibold text-brand underline" href={`/rooms?code=${encodeURIComponent(p.room)}`}>Show on map</Link>}
-            </span>
-          )}
         </div>
       </section>
 
-      <section aria-labelledby="wk" className="mt-10">
+      <section aria-labelledby="wk" className="rise mt-10" style={{ ["--i" as string]: 3 }}>
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="wk" className="text-3xl font-bold">This week at a glance</h2>
           {p.semester && <span className="text-mute">{p.semester}</span>}

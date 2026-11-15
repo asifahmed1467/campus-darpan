@@ -28,7 +28,7 @@ export default function Home() {
     <div className="space-y-14">
       <section className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
         <div className="min-w-0 pt-2 lg:pt-8">
-          <h1 className="max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl">{t("hero.title")}</h1>
+          <h1 className="rise max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl">{t("hero.title")}</h1>
           <p className="mt-5 max-w-[34ch] text-lg text-mute sm:text-xl">{t("hero.sub")}</p>
           <div className="mt-8"><SearchBox big /></div>
           <p className="text-[15px] text-mute">Suggestions appear as you type. The mic works for questions like “When is Nyme sir free?”.</p>
@@ -39,7 +39,7 @@ export default function Home() {
           </div>
         </div>
 
-        <section aria-labelledby="rn" className="min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
+        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="text-2xl font-bold">{t("home.right_now")}</h2>
             {now && <p className="font-display text-lg font-semibold">{fmtMin(minutesOf(now))}, {dayName(now)}</p>}
@@ -47,7 +47,7 @@ export default function Home() {
           {fac.loading && !fac.data ? <RowSkeleton n={4} /> : fac.error && !fac.data ? (
             <div className="px-4 py-6"><p className="text-busy">{fac.error}</p><button className="btn btn-quiet mt-3" onClick={fac.reload}>Try again</button></div>
           ) : rows.length ? (
-            <ul>{rows.map((f) => <FacultyRow key={f.id} f={f} compact />)}</ul>
+            <ul>{rows.map((f, i) => <FacultyRow key={f.id} f={f} compact idx={i} />)}</ul>
           ) : <p className="px-4 py-6 text-mute">No schedules have been added yet. An admin can upload the first TSF from the admin page.</p>}
           <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-[15px]">
             <span className="text-mute">{fac.data ? `${fac.data.total} teachers listed` : ""}</span>

@@ -5,6 +5,7 @@ import { useFavs } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
 import { TONE_DOT, TONE_TEXT, statusInfo } from "@/lib/status";
 import type { Faculty } from "@/lib/types";
+import { RoomBadge } from "./RoomCard";
 import DayStrip from "./DayStrip";
 
 export const initials = (name: string) => {
@@ -17,7 +18,7 @@ export function StatusLabel({ f }: { f: Faculty }) {
   const info = statusInfo(f.status);
   return (
     <span className={`inline-flex items-center gap-2 font-display font-semibold ${TONE_TEXT[info.tone]}`}>
-      <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${TONE_DOT[info.tone]}`} />
+      <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${TONE_DOT[info.tone]} ${info.tone === "go" ? "dot-live" : ""}`} />
       {t(info.label)}
     </span>
   );
@@ -37,17 +38,17 @@ export function FavButton({ id, name }: { id: number; name: string }) {
   );
 }
 
-export default function FacultyRow({ f, compact = false }: { f: Faculty; compact?: boolean }) {
+export default function FacultyRow({ f, compact = false, idx = 0 }: { f: Faculty; compact?: boolean; idx?: number }) {
   const info = statusInfo(f.status);
   const nowMin = minutesOf(f.status.now);
   return (
-    <li className="relative border-t border-line first:border-t-0">
-      <Link href={`/faculty/${f.id}`} className="block rounded-lg py-4 pl-3 pr-14 hover:bg-sheet focus-visible:bg-sheet sm:pl-4">
+    <li className="rise relative border-t border-line first:border-t-0" style={{ ["--i" as string]: Math.min(idx, 10) }}>
+      <Link href={`/faculty/${f.id}`} className="lift block rounded-lg py-4 pl-3 pr-14 hover:bg-sheet focus-visible:bg-sheet sm:pl-4">
         <div className="flex items-start gap-3">
           <span aria-hidden className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-inverse font-display text-sm font-bold text-white">{initials(f.name)}</span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
-              <span className="font-display text-lg font-semibold leading-tight">{f.name}</span>
+              <span className="font-display text-lg font-semibold leading-tight">{f.name}{f.room && <span className="ml-2 align-middle"><RoomBadge room={f.room} building={f.building} /></span>}</span>
               <StatusLabel f={f} />
             </div>
             <div className="flex flex-col gap-x-4 text-[15px] text-mute sm:flex-row sm:justify-between">

@@ -48,7 +48,7 @@ function FacultyList() {
         {res.loading && !res.data ? <RowSkeleton n={5} /> : res.error && !res.data ? (
           <div className="p-5"><p className="text-busy">{res.error}</p><button className="btn btn-quiet mt-3" onClick={res.reload}>Try again</button></div>
         ) : res.data && res.data.items.length ? (
-          <ul>{res.data.items.map((f) => <FacultyRow key={f.id} f={f} />)}</ul>
+          <ul>{res.data.items.map((f, i) => <FacultyRow key={f.id} f={f} idx={i} />)}</ul>
         ) : (
           <p className="p-5 text-mute">{freeOnly ? "Nobody is in a consultation hour or free between classes right now. Turn off “Free now only” to see everyone." : dq ? `No teacher matches “${dq}”. Check the spelling or clear the filters.` : "No teachers have been added yet."}</p>
         )}
