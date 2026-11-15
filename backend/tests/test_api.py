@@ -223,17 +223,22 @@ def test_room_codes_decode(client):
     assert parse_room(" 9-2 04 ")["room"] == "04"                      # spaces and dashes are ignored
     assert parse_room("1005")["floor_label"] == "Ground floor"           # floor 0
     assert parse_room("9805")["warning"].startswith("Annex 9 has floors up to 4")   # 5 floors counting ground
-    assert parse_room("7101")["ok"] is False and "Annex 7" in parse_room("7101")["message"]
+    assert parse_room("8101")["ok"] is False and "Annex 8" in parse_room("8101")["message"]
+    assert parse_room("7101")["building"] == "A7"                        # Annex 7 = Architecture building
     d = parse_room("D-0302")
     assert d["ok"] and d["building"] == "D" and d["floor"] is None       # D format not added yet: building only
-    assert parse_room("DNGA05")["building"] == "D"
+    n, so, e = parse_room("DN03"), parse_room("ds-03"), parse_room("DE204")
+    assert (n["wing"], n["room"], n["floor"]) == ("North side", "03", None)
+    assert (so["wing"], so["room"]) == ("South side", "03")
+    assert (e["wing"], e["floor"], e["room"]) == ("Extension", 2, "04") and e["message"] == "D Building, Extension, 2nd floor, room 04."
+    assert parse_room("DNGA05")["room"] == "GA05" and parse_room("DNGA05")["wing"] == "North side"
     assert parse_room("hello")["ok"] is False and parse_room("") is None and parse_room(None) is None
 
 
 def test_campus_and_room_endpoints(client):
     c = client.get("/api/campus").json()
     ids = [b["id"] for b in c["buildings"]]
-    assert ids == ["D", "C", "A1", "A2", "A3", "A4", "A5", "A6", "A9"]
+    assert ids == ["D", "C", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A9"]
     by = {b["id"]: b for b in c["buildings"]}
     assert by["D"]["levels"] == 9 and len(by["D"]["floors"]) == 9 and by["D"]["floors"][0]["label"] == "Ground floor"
     assert by["A9"]["levels"] == 5 and by["A1"]["levels"] == 1 and by["A3"]["levels"] is None and by["A3"]["floors"] == []

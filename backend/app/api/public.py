@@ -252,7 +252,7 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
 def campus(response: Response):
     response.headers["Cache-Control"] = "public, max-age=300"
     return {"buildings": [building_dict(b) for b in BUILDINGS],
-            "rule": "Annex rooms: first digit is the Annex, then the floor, then two digits for the room. 9204 = Annex 9, 2nd floor, room 04."}
+            "rule": "Annex rooms: first digit is the Annex, then the floor, then two digits for the room. 9204 = Annex 9, 2nd floor, room 04. D building: DN03 = North side room 03, DS03 = South side room 03, DE204 = Extension, 2nd floor, room 04."}
 
 
 @router.get("/rooms")

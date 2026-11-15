@@ -2,7 +2,8 @@
 
 Room codes for the Annex buildings: first digit = Annex number, second digit = floor, last two digits = room.
 Example: 9204 = Annex 9, 2nd floor, room 04. Floor 0 is the ground floor.
-Other buildings (D, C) have their own formats, which are not added yet: those codes only resolve to the building."""
+D building: DN03 = North side, room 03. DS03 = South side, room 03. DE204 = Extension, 2nd floor, room 04.
+C building has no room format yet: its codes only resolve to the building."""
 from __future__ import annotations
 
 import re
@@ -18,11 +19,14 @@ class Building:
     levels: int | None        # floors counting the ground floor as one; None = not told yet
     note: str = ""
     places: tuple[str, ...] = ()
+    formats: tuple[tuple[str, str], ...] = ()     # (example code, what it means)
 
 
 # levels: "D has 9 floors" and "Annex 9 is a 5 floor building" are counted with the ground floor included.
 BUILDINGS: tuple[Building, ...] = (
-    Building("D", "D Building", "D", "tower", 9),
+    Building("D", "D Building", "D", "tower", 9, "Has a North side, a South side and an Extension. Joined to Annex 9 by two bridges on the 2nd and 3rd floors.",
+             formats=(("DN03", "D building, North side, room 03"), ("DS03", "D building, South side, room 03"),
+                      ("DE204", "D building, Extension, 2nd floor, room 04"))),
     Building("C", "C Building (Administrative)", "C", "admin", None, "The round glass building. Administrative offices.", ("Library",)),
     Building("A1", "Annex 1", "1", "annex", 1, "Ground floor only."),
     Building("A2", "Annex 2", "2", "annex", 1, "Ground floor only."),
@@ -30,7 +34,9 @@ BUILDINGS: tuple[Building, ...] = (
     Building("A4", "Annex 4", "4", "annex", None),
     Building("A5", "Annex 5", "5", "annex", None),
     Building("A6", "Annex 6", "6", "annex", None),
-    Building("A9", "Annex 9", "9", "annex", 5, "New building."),
+    Building("A7", "Annex 7 (Architecture building)", "7", "annex", None, "The Architecture building."),
+    Building("A9", "Annex 9", "9", "tower", 5, "New building immediately left of D building, same shape as D. Joined to D by two bridges on the 2nd and 3rd floors.",
+             formats=(("9204", "Annex 9, 2nd floor, room 04"),)),
 )
 BY_ID = {b.id: b for b in BUILDINGS}
 
@@ -44,11 +50,12 @@ def floor_label(n: int) -> str:
 
 def building_dict(b: Building) -> dict:
     return {"id": b.id, "name": b.name, "short": b.short, "kind": b.kind, "levels": b.levels, "note": b.note,
-            "places": list(b.places),
+            "places": list(b.places), "formats": [{"code": c, "meaning": m} for c, m in b.formats],
             "floors": [{"n": i, "label": floor_label(i)} for i in range(b.levels)] if b.levels else []}
 
 
 _ANNEX = re.compile(r"^(\d)(\d)(\d{2})$")
+_DWING = re.compile(r"^D([NSE])([A-Z0-9]{2,5})$")
 
 
 def parse_room(code: str | None) -> dict | None:
@@ -70,6 +77,20 @@ def parse_room(code: str | None) -> dict | None:
             out["warning"] = f"{b.name} has floors up to {top} ({b.levels} floors with the ground floor). Check the room number."
         out["message"] = f"{b.name}, {floor_label(floor)}, room {room}."
         return out
+    d = _DWING.match(norm)
+    if d:
+        b = BY_ID["D"]
+        wing, rest = d.group(1), d.group(2)
+        side = {"N": "North side", "S": "South side", "E": "Extension"}[wing]
+        floor, room = None, rest
+        if wing == "E" and re.fullmatch(r"\d\d{2}", rest):
+            floor, room = int(rest[0]), rest[1:]
+        elif wing in "NS" and not re.fullmatch(r"\d{2}", rest):
+            room = rest
+        out = {"ok": True, "code": raw, "building": "D", "building_name": b.name, "wing": side, "floor": floor,
+               "floor_label": floor_label(floor) if floor is not None else None, "room": room, "warning": None}
+        out["message"] = f"{b.name}, {side}, {floor_label(floor)}, room {room}." if floor is not None else f"{b.name}, {side}, room {room}."
+        return out
     if norm.startswith("D") and len(norm) > 1:
         b = BY_ID["D"]
         return {"ok": True, "code": raw, "building": "D", "building_name": b.name, "floor": None, "floor_label": None, "room": None,
@@ -78,4 +99,4 @@ def parse_room(code: str | None) -> dict | None:
         b = BY_ID["C"]
         return {"ok": True, "code": raw, "building": "C", "building_name": b.name, "floor": None, "floor_label": None, "room": None,
                 "warning": None, "message": f"{b.name}. The floor and room format for C building is not added yet."}
-    return {"ok": False, "code": raw, "message": f"“{raw}” is not a room code this map understands yet. Annex rooms look like 9204 (Annex 9, 2nd floor, room 04)."}
+    return {"ok": False, "code": raw, "message": f"“{raw}” is not a room code this map understands yet. Try 9204 (Annex 9), DN03 (D north), DS03 (D south) or DE204 (D extension)."}
