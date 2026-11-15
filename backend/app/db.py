@@ -1,6 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
+import os
+
 from .config import DATABASE_URL
 
 _is_sqlite = DATABASE_URL.startswith("sqlite")
@@ -8,7 +10,7 @@ engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False} if _is_sqlite else {},
     pool_pre_ping=True,
-    **({} if _is_sqlite else {"pool_size": 10, "max_overflow": 20}),
+    **({} if _is_sqlite else {"pool_size": int(os.getenv("DB_POOL_SIZE", "10")), "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", "20"))}),
 )
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
