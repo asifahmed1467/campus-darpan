@@ -41,7 +41,7 @@ export default function RoomsPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <h1 className="text-4xl font-bold sm:text-5xl">{t("rooms.title")}</h1>
-      <p className="mt-2 max-w-[56ch] text-lg text-mute">Type a room number like 9204, DN03 or DE204 to see the building and floor, or tap a building on the map.</p>
+      <p className="mt-2 max-w-[56ch] text-lg text-mute">Type a room number like 9204, DS101 or DE204 to see the building and floor, or tap a building on the map.</p>
       <form onSubmit={submit} className="mt-6 flex max-w-xl gap-2">
         <label htmlFor="rq" className="sr-only">Room number</label>
         <input id="rq" className="field font-display !text-lg" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Room number, for example 9204" autoComplete="off" inputMode="text" />
@@ -63,7 +63,8 @@ export default function RoomsPage() {
         </section>
         {sel === "D" && b && (
           <DFloorPlan floor={floor} levels={b.levels ?? 9} extensionFloors={b.extension_floors ?? []} onPickFloor={setFloor}
-            highlight={(res?.ok && res.building === "D" ? (res.wing as DWing) ?? null : null)} />
+            highlight={(res?.ok && res.building === "D" ? (res.wing as DWing) ?? null : null)}
+            highlightRoom={res?.ok && res.building === "D" && res.wing !== "Extension" && res.room && /^\d+$/.test(res.room) ? parseInt(res.room, 10) : null} />
         )}
         </div>
 
@@ -101,8 +102,8 @@ export default function RoomsPage() {
             <h2 className="text-xl font-bold">How to read a room number</h2>
             <p className="mt-1 text-mute">{rule}</p>
             <p className="mt-2 font-display text-lg"><span className="font-bold text-brand">9</span><span className="font-bold text-go">2</span><span className="font-bold text-warn">04</span> <span className="text-mute">Annex 9, 2nd floor, room 04</span></p>
-            <p className="mt-2 font-display text-lg"><span className="font-bold text-brand">DN</span><span className="font-bold text-warn">03</span> <span className="text-mute">D building, North side, room 03</span></p>
-            <p className="font-display text-lg"><span className="font-bold text-brand">DS</span><span className="font-bold text-warn">03</span> <span className="text-mute">D building, South side, room 03</span></p>
+            <p className="mt-2 font-display text-lg"><span className="font-bold text-brand">DS</span><span className="font-bold text-go">1</span><span className="font-bold text-warn">01</span> <span className="text-mute">D South, 1st floor, room 01 (lab)</span></p>
+            <p className="font-display text-lg"><span className="font-bold text-brand">DN</span><span className="font-bold text-go">1</span><span className="font-bold text-warn">07</span> <span className="text-mute">D North, 1st floor, room 07 (lab)</span></p>
             <p className="font-display text-lg"><span className="font-bold text-brand">DE</span><span className="font-bold text-go">2</span><span className="font-bold text-warn">04</span> <span className="text-mute">D Extension, 2nd floor, room 04</span></p>
           </div>
         </aside>
