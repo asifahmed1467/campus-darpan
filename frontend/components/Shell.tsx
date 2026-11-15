@@ -38,10 +38,16 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const { lang, setLang, t } = useLang();
   const online = useOnline();
   const isAdmin = path.startsWith("/admin");
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 6);
+    on(); window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
   return (
     <>
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-inverse focus:px-3 focus:py-2 focus:text-white">Skip to content</a>
-      <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
+      <header className={`sticky top-0 z-40 border-b bg-paper/95 backdrop-blur transition-shadow duration-300 ${scrolled ? "border-line shadow-[0_6px_18px_-12px_rgb(var(--c-shadow)/.35)]" : "border-transparent"}`}>
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2.5">
           <Link href="/" className="flex items-center gap-2.5" aria-label="ক্যাম্পাসদর্পণ, home">
             <Mark size={36} />
@@ -66,17 +72,21 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      <main id="main" className="mx-auto max-w-6xl overflow-x-clip px-4 pb-6 pt-6 md:pb-12 md:pt-10">{children}</main>
+      <main id="main" key={path} className="page-in mx-auto max-w-6xl overflow-x-clip px-4 pb-6 pt-6 md:pb-12 md:pt-10">{children}</main>
       <footer className="mx-auto max-w-6xl px-4 pb-24 text-sm text-mute md:pb-10">
-        <b className="font-bn text-ink">ক্যাম্পাসদর্পণ</b> · 
-        A student project, not an official AIUB service. Schedules come from teachers' TSFs; check the door or the portal for last-minute changes.
+        <div className="border-t border-line pt-5">
+          <b className="font-bn text-ink">ক্যাম্পাসদর্পণ</b> · 
+          A student project, not an official AIUB service. Schedules come from teachers' TSFs; check the door or the portal for last-minute changes.
+          <p className="mt-3 font-display font-medium text-ink">© {new Date().getFullYear()} Asif Ahmed and Mahfuz Ahmed. All rights reserved.</p>
+        </div>
       </footer>
       <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-sheet pb-[env(safe-area-inset-bottom)] md:hidden">
         {NAV.map((n) => {
           const on = path.startsWith(n.href);
           return (
-            <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} className={`flex min-h-[60px] flex-col items-center justify-center gap-0.5 text-[13px] font-semibold ${on ? "text-brand" : "text-mute"}`}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={on ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round"><path d={n.icon} /></svg>
+            <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} className={`group relative flex min-h-[60px] flex-col items-center justify-center gap-0.5 text-[13px] font-semibold transition-colors ${on ? "text-brand" : "text-mute"}`}>
+              <span aria-hidden className={`absolute top-0 h-[3px] w-10 rounded-b bg-brand transition-opacity duration-300 ${on ? "opacity-100" : "opacity-0"}`} />
+              <svg className="transition-transform duration-200 group-active:scale-90" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={on ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round"><path d={n.icon} /></svg>
               {t(n.key)}
             </Link>
           );

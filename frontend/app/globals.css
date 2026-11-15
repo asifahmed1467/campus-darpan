@@ -46,6 +46,23 @@ a { text-underline-offset: 3px; }
 .btn:active { transform: scale(.97); }
 .chip { transition: transform 140ms ease, border-color 160ms ease; }
 .chip:hover { transform: translateY(-2px); }
+/* Calm extras: a soft page fade, scroll reveal, a faint hero glow and a gentle card lift. */
+@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
+.page-in { animation: page-in 260ms ease-out both; }
+.reveal { opacity: 0; transform: translateY(10px); transition: opacity 600ms ease, transform 600ms cubic-bezier(.2,.7,.2,1); }
+.reveal[data-seen="true"] { opacity: 1; transform: none; }
+.hero-glow { position: relative; isolation: isolate; }
+.hero-glow::before { content: ""; position: absolute; z-index: -1; inset: -2rem -3rem auto -3rem; height: 26rem; pointer-events: none;
+  background: radial-gradient(60% 60% at 25% 30%, rgb(var(--c-brand) / .10), transparent 70%); animation: glow-drift 14s ease-in-out infinite alternate; }
+@keyframes glow-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(3%, 6%, 0); } }
+.card-hover { transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
+.card-hover:hover { transform: translateY(-2px); border-color: rgb(var(--c-brand) / .5); box-shadow: 0 10px 24px -16px rgb(var(--c-shadow) / .45); }
+.field:focus, .field:focus-visible { box-shadow: 0 0 0 4px rgb(var(--c-focus) / .18); transition: box-shadow 160ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .page-in, .hero-glow::before { animation: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .card-hover { transition: none !important; transform: none !important; }
+}
 @media (prefers-reduced-motion: reduce) {
   .rise, .room-num, .pin, .dot-live, .lift, .btn, .chip { animation: none !important; transition: none !important; transform: none !important; }
   .needle, .toast { animation: none; }

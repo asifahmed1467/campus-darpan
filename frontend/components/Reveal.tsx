@@ -1,0 +1,16 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+/** Fades a block in once, the first time it scrolls into view. Without JS or with reduced motion it is simply visible. */
+export default function Reveal({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined" || matchMedia("(prefers-reduced-motion: reduce)").matches) { setSeen(true); return; }
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); io.disconnect(); } }, { rootMargin: "0px 0px -8% 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return <div ref={ref} data-seen={seen} style={{ transitionDelay: `${delay}ms` }} className={`reveal ${className}`}>{children}</div>;
+}

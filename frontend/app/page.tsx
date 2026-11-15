@@ -2,6 +2,8 @@
 import Link from "next/link";
 import FacultyRow, { RowSkeleton } from "@/components/FacultyRow";
 import { NoticeList } from "@/components/Notices";
+import CountUp from "@/components/CountUp";
+import Reveal from "@/components/Reveal";
 import SearchBox from "@/components/SearchBox";
 import { Mark, NAME_BN, TAGLINE_BN, TAGLINE_EN } from "@/components/Logo";
 import { api, dayName, fmtMin, minutesOf } from "@/lib/api";
@@ -23,11 +25,12 @@ export default function Home() {
     .sort((a, b) => Number(favs.has(b.id)) - Number(favs.has(a.id)) || RANK[a.status.status] - RANK[b.status.status] || a.name.localeCompare(b.name))
     .slice(0, 5);
   const now = fac.data?.now;
+  const freeNow = (fac.data?.items ?? []).filter((f) => f.has_tsf && f.status.status === "available").length;
 
   return (
     <div className="space-y-14">
       <section className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
-        <div className="min-w-0 pt-2 lg:pt-8">
+        <div className="hero-glow min-w-0 pt-2 lg:pt-8">
           <h1 className="rise max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl">{t("hero.title")}</h1>
           <p className="mt-5 max-w-[34ch] text-lg text-mute sm:text-xl">{t("hero.sub")}</p>
           <div className="mt-8"><SearchBox big /></div>
@@ -41,7 +44,9 @@ export default function Home() {
 
         <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
-            <h2 id="rn" className="text-2xl font-bold">{t("home.right_now")}</h2>
+            <h2 id="rn" className="flex items-center gap-3 text-2xl font-bold">{t("home.right_now")}
+              {freeNow > 0 && <span className="flex items-center gap-1.5 rounded-full bg-go/10 px-2.5 py-0.5 font-display text-sm font-semibold text-go"><span aria-hidden className="dot-live h-2 w-2 rounded-full bg-go" />{freeNow} free</span>}
+            </h2>
             {now && <p className="font-display text-lg font-semibold">{fmtMin(minutesOf(now))}, {dayName(now)}</p>}
           </div>
           {fac.loading && !fac.data ? <RowSkeleton n={4} /> : fac.error && !fac.data ? (
@@ -50,13 +55,13 @@ export default function Home() {
             <ul>{rows.map((f, i) => <FacultyRow key={f.id} f={f} compact idx={i} />)}</ul>
           ) : <p className="px-4 py-6 text-mute">No schedules have been added yet. An admin can upload the first TSF from the admin page.</p>}
           <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-[15px]">
-            <span className="text-mute">{fac.data ? `${fac.data.total} teachers listed` : ""}</span>
+            <span className="text-mute">{fac.data ? <><CountUp to={fac.data.total} /> teachers listed</> : ""}</span>
             <Link href="/faculty" className="font-display font-semibold text-brand underline">{t("home.all_faculty")}</Link>
           </div>
         </section>
       </section>
 
-      <section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
+      <Reveal><section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
         <div className="min-w-0">
           <div className="mb-2 flex items-baseline justify-between gap-4">
             <h2 className="text-3xl font-bold">{t("home.notices")}</h2>
@@ -66,7 +71,7 @@ export default function Home() {
             : notices.error && !notices.data ? <p className="py-4 text-busy">{notices.error}</p>
             : <NoticeList items={notices.data?.items ?? []} />}
         </div>
-        <aside aria-labelledby="up" className="h-fit rounded-2xl border border-line bg-sheet p-5">
+        <aside aria-labelledby="up" className="card-hover h-fit rounded-2xl border border-line bg-sheet p-5">
           <h2 id="up" className="text-2xl font-bold">{t("home.holidays")}</h2>
           {meta.data?.semester && <p className="mt-1 text-[15px] text-mute">{meta.data.semester} semester, classes {meta.data.semester_start && new Date(meta.data.semester_start + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })} to {meta.data.semester_end && new Date(meta.data.semester_end + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</p>}
           <ul className="mt-3 divide-y divide-line">
@@ -80,15 +85,15 @@ export default function Home() {
           </ul>
           <p className="mt-3 text-[15px] text-mute">Fridays and Saturdays are the weekend.</p>
         </aside>
-      </section>
-      <section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-inverse p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
+      </section></Reveal>
+      <Reveal><section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-inverse p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
         <Mark size={84} className="shrink-0" />
         <div className="min-w-0">
           <p className="font-bn text-4xl font-bold leading-tight sm:text-5xl">{NAME_BN}</p>
           <p className="mt-1 font-display text-xl font-medium text-white/80">{TAGLINE_EN}</p>
           <p className="mt-2 font-bn text-lg text-white/90">{TAGLINE_BN}</p>
         </div>
-      </section>
+      </section></Reveal>
     </div>
   );
 }
