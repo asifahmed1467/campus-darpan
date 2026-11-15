@@ -40,12 +40,12 @@ BUILDINGS: tuple[Building, ...] = (
     Building("A1", "Annex 1", "1", "annex", 1, "Ground floor only."),
     Building("A2", "Annex 2", "2", "annex", 1, "Ground floor only."),
     Building("A3", "Annex 3", "3", "annex", None),
-    Building("A4", "Annex 4", "4", "annex", None),
+    Building("A4", "Annex 4", "4", "annex", None, formats=(("41D10", "Annex 4, 1st floor, section D, room 10"),)),
     Building("A5", "Annex 5", "5", "annex", None),
     Building("A6", "Annex 6", "6", "annex", None),
     Building("A7", "Annex 7 (Architecture building)", "7", "annex", None, "The Architecture building."),
-    Building("A9", "Annex 9", "9", "tower", 5, "New building next to D building, same shape as D. Joined to D by two bridges on the 2nd and 3rd floors.",
-             formats=(("9204", "Annex 9, 2nd floor, room 04"),)),
+    Building("A9", "Annex 9", "9", "tower", 6, "New building next to D building, same shape as D. Joined to D by two bridges on the 2nd and 3rd floors.",
+             formats=(("9204", "Annex 9, 2nd floor, room 04"), ("9210E", "Annex 9, 2nd floor, room 10, seat E")))
 )
 BY_ID = {b.id: b for b in BUILDINGS}
 
@@ -64,7 +64,8 @@ def building_dict(b: Building) -> dict:
             "floors": [{"n": i, "label": floor_label(i)} for i in range(b.levels)] if b.levels else []}
 
 
-_ANNEX = re.compile(r"^(\d)(\d)(\d{2})$")
+_ANNEX = re.compile(r"^(\d)(\d)(\d{2})([A-Z])?$")
+_ANNEX_WING = re.compile(r"^(\d)(\d)([A-D])(\d{2})$")   # 41D10 = Annex 4, 1st floor, section D, room 10 (read from the faculty list; not confirmed by AIUB)
 _DWING = re.compile(r"^D([NSE])([A-Z0-9]{2,5})$")
 
 
@@ -74,9 +75,13 @@ def parse_room(code: str | None) -> dict | None:
         return None
     raw = code.strip()
     norm = re.sub(r"[\s\-_./]", "", raw).upper()
-    m = _ANNEX.match(norm)
-    if m:
-        annex, floor, room = int(m.group(1)), int(m.group(2)), m.group(3)
+    w = _ANNEX_WING.match(norm)
+    m = None if w else _ANNEX.match(norm)
+    if w or m:
+        if w:
+            annex, floor, room, seat, section = int(w.group(1)), int(w.group(2)), w.group(4), None, w.group(3)
+        else:
+            annex, floor, room, seat, section = int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), None
         b = BY_ID.get(f"A{annex}")
         if not b:
             return {"ok": False, "code": raw, "message": f"{raw}: Annex {annex} is not on the campus map yet."}
@@ -85,7 +90,12 @@ def parse_room(code: str | None) -> dict | None:
         if b.levels is not None and floor >= b.levels:
             top = b.levels - 1
             out["warning"] = f"{b.name} has floors up to {top} ({b.levels} floors with the ground floor). Check the room number."
-        out["message"] = f"{b.name}, {floor_label(floor)}, room {room}."
+        if section:
+            out["section"] = section
+        if seat:
+            out["seat"] = seat
+        extra = f", section {section}" if section else ""
+        out["message"] = f"{b.name}, {floor_label(floor)}{extra}, room {room}" + (f", seat {seat}." if seat else ".")
         return out
     d = _DWING.match(norm)
     if d:

@@ -226,7 +226,7 @@ def test_room_codes_decode(client):
     assert (r["building"], r["floor"], r["room"]) == ("A9", 2, "04") and r["message"] == "Annex 9, 2nd floor, room 04." and r["warning"] is None
     assert parse_room(" 9-2 04 ")["room"] == "04"                      # spaces and dashes are ignored
     assert parse_room("1005")["floor_label"] == "Ground floor"           # floor 0
-    assert parse_room("9805")["warning"].startswith("Annex 9 has floors up to 4")   # 5 floors counting ground
+    assert parse_room("9805")["warning"].startswith("Annex 9 has floors up to 5")   # ground + 5 floors (the faculty list has rooms on floor 5)
     assert parse_room("8101")["ok"] is False and "Annex 8" in parse_room("8101")["message"]
     assert parse_room("7101")["building"] == "A7"                        # Annex 7 = Architecture building
     d = parse_room("D-0302")
@@ -245,6 +245,10 @@ def test_room_codes_decode(client):
     assert up["room"] is None and up["floor"] == 5 and "not decided yet" in up["warning"] and up.get("kind") is None
     assert parse_room("DS909")["floor"] == 9 and by_floor_ok(parse_room("DS909"))
     assert parse_room("DNGA05")["room"] == "GA05" and parse_room("DNGA05")["wing"] == "North side"
+    seat = parse_room("9210e")                                            # a seat letter after the room: 9210E = room 10, seat E
+    assert seat["room"] == "10" and seat["seat"] == "E" and seat["floor"] == 2 and seat["warning"] is None
+    wing = parse_room("42C06")                                            # Annex 4 sections: 42C06 = 2nd floor, section C, room 06
+    assert wing["building"] == "A4" and wing["floor"] == 2 and wing["section"] == "C" and wing["room"] == "06"
     assert parse_room("hello")["ok"] is False and parse_room("") is None and parse_room(None) is None
 
 
@@ -254,7 +258,7 @@ def test_campus_and_room_endpoints(client):
     assert ids == ["D", "C", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A9"]
     by = {b["id"]: b for b in c["buildings"]}
     assert by["D"]["levels"] == 10 and len(by["D"]["floors"]) == 10 and by["D"]["floors"][0]["label"] == "Ground floor"
-    assert by["A9"]["levels"] == 5 and by["A1"]["levels"] == 1 and by["A3"]["levels"] is None and by["A3"]["floors"] == []
+    assert by["A9"]["levels"] == 6 and by["A1"]["levels"] == 1 and by["A3"]["levels"] is None and by["A3"]["floors"] == []
     assert by["C"]["places"] == []
     r = client.get("/api/rooms", params={"q": "9204"}).json()
     assert r["result"]["building"] == "A9" and r["message"].startswith("Annex 9, 2nd floor")
