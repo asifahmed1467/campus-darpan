@@ -77,7 +77,7 @@ def test_ask_faculty_by_voice_like_question(client):
 
 
 def test_ask_unknown_says_not_found_and_never_invents(client):
-    r = client.post("/api/ask", json={"question": "What is the scholarship criteria?"}).json()
+    r = client.post("/api/ask", json={"question": "What is the cafeteria menu today?"}).json()
     assert r["answered"] is False and r["sources"][0]["url"] == "https://www.aiub.edu/"
 
 
@@ -267,3 +267,25 @@ def test_faculty_profile_carries_decoded_room(client, auth):
     fid = client.get("/api/search/suggest", params={"q": "Room Decode"}).json()["items"][0]["id"]
     info = client.get(f"/api/faculty/{fid}").json()["room_info"]
     assert info["building"] == "A9" and info["floor"] == 2 and info["room"] == "04"
+
+
+def test_ask_sample_questions_are_answered_and_labelled(client):
+    from app.services.sample_faq import SAMPLES
+    from app.services.store import search_faq
+    assert len(SAMPLES) >= 20 and all(row[5] for row in SAMPLES)
+    for row in SAMPLES:                                     # every sample question finds its own answer
+        assert search_faq(row[1]) is row, row[1]
+    r = client.post("/api/ask", json={"question": "What CGPA do I need to graduate?"}).json()
+    assert r["mode"] == "faq" and r["sample"] is True and "2.50" in r["answer"] and r["answer"].startswith("Sample answer")
+    assert r["sources"][0]["url"].startswith("https://aiub.edu/")
+    r = client.post("/api/ask", json={"question": "how to add drop course"}).json()
+    assert r["mode"] == "faq" and "VUES" in r["answer"]
+    r = client.post("/api/ask", json={"question": "what does room 9204 mean"}).json()
+    assert r["mode"] == "faq" and "Annex 9" in r["answer"] and r["sources"][0]["url"].startswith("/rooms")
+    assert client.post("/api/ask", json={"question": "zzzz wombat spaceship"}).json()["answered"] is False
+
+
+def test_ask_samples_endpoint(client):
+    d = client.get("/api/ask/samples").json()
+    assert d["count"] >= 20 and sum(len(t["questions"]) for t in d["topics"]) == d["count"]
+    assert {t["topic"] for t in d["topics"]} >= {"About AIUB", "Admission", "Academics", "Registration", "Scholarships"}

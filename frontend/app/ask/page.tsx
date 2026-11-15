@@ -11,7 +11,8 @@ import { statusInfo } from "@/lib/status";
 import type { AskResult } from "@/lib/types";
 
 type Msg = { role: "me"; text: string } | { role: "bot"; res: AskResult; speak: boolean } | { role: "err"; text: string };
-const SUGGEST = ["Latest notices", "Scholarship criteria", "Add and drop rules"];
+const SUGGEST = ["Latest notices", "What scholarships does AIUB offer?", "How do I add or drop a course?", "What CGPA do I need to graduate?", "Where is the AIUB campus?"];
+interface Samples { topics: { topic: string; questions: string[] }[]; count: number }
 
 function AskInner() {
   const { t } = useLang();
@@ -21,9 +22,11 @@ function AskInner() {
   const [busy, setBusy] = useState(false);
   const [voiceMsg, setVoiceMsg] = useState("");
   const [auto, setAuto] = useState(false);
+  const [samples, setSamples] = useState<Samples | null>(null);
   const end = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
+  useEffect(() => { api<Samples>("/api/ask/samples").then(setSamples).catch(() => setSamples(null)); }, []);
   useEffect(() => { try { setAuto(localStorage.getItem("aiub_autospeak") === "1"); } catch { /* ignore */ } }, []);
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, busy]);
 
@@ -55,6 +58,19 @@ function AskInner() {
           <div>
             <p className="mb-2 text-mute">For a teacher, just type their name: “When is Nyme sir free?”. Or try:</p>
             <div className="flex flex-wrap gap-2">{SUGGEST.map((s) => <button key={s} className="chip" onClick={() => ask(s, false)}>{s}</button>)}</div>
+            {samples && (
+              <details className="mt-5 rounded-2xl border border-line bg-sheet p-4">
+                <summary className="cursor-pointer font-display text-lg font-semibold">All {samples.count} sample questions, by topic</summary>
+                <div className="mt-3 space-y-4">
+                  {samples.topics.map((g) => (
+                    <div key={g.topic}>
+                      <h2 className="font-display text-base font-bold text-brand">{g.topic}</h2>
+                      <ul className="mt-1.5 flex flex-wrap gap-2">{g.questions.map((s) => <li key={s}><button className="chip !text-left" onClick={() => ask(s, false)}>{s}</button></li>)}</ul>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
         )}
         {msgs.map((m, i) => m.role === "me" ? (

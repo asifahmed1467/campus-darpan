@@ -1,0 +1,106 @@
+"""Sample questions and answers for Ask AIUB.
+
+These are starter answers, written in our own words from AIUB's public pages (each links to where the facts came from) and from
+what this site knows about its own campus map. They are labelled "Sample" when shown. Anything an admin adds under
+Admin > Ask AIUB pages takes priority over these. Rules and dates change, so every answer tells students to check the source.
+"""
+from __future__ import annotations
+
+ACAD = "https://aiub.edu/academic-regulations"
+ADM = "https://aiub.edu/admission"
+
+# (topic, question, extra keywords, answer, source title, source url)
+SAMPLES: list[tuple[str, str, str, str, str, str]] = [
+    ("About AIUB", "When was AIUB founded?", "established history founder year renamed founded",
+     "AIUB is a private university in Dhaka. It was founded in 1994, took the name American International University-Bangladesh in 2001, and moved to its permanent campus at Kuratoli in 2017.",
+     "AIUB on Wikipedia", "https://en.wikipedia.org/wiki/American_International_University-Bangladesh"),
+    ("About AIUB", "Where is the AIUB campus?", "address location kuratoli kuril khilkhet dhaka map",
+     "The campus address is 408/1 (Old KA 66/1), Kuratoli, Kuril, Khilkhet, Dhaka 1229.",
+     "AIUB: International students page", "https://aiub.edu/admission/international-students"),
+    ("About AIUB", "What are the faculties of AIUB?", "faculty faculties departments fass fba fe fst schools",
+     "AIUB's four main faculties are Arts and Social Sciences (FASS), Business Administration (FBA), Engineering (FE), and Science and Technology (FST). Each offers undergraduate and graduate programs.",
+     "About AIUB (Times Higher Education)", "https://timeshighereducation.com/world-university-rankings/american-international-university-bangladesh"),
+    ("About AIUB", "What is the medium of instruction at AIUB?", "language english teaching",
+     "All academic programs at AIUB are taught in English.", "AIUB Academic Regulations", ACAD),
+    ("About AIUB", "What is the glass globe building on campus?", "round dome administrative landmark c building",
+     "The glass-covered globe in the middle of the campus is its best-known landmark. On this site's map it is the C building, the administrative building.",
+     "AIUB on Wikipedia", "https://en.wikipedia.org/wiki/American_International_University-Bangladesh"),
+    ("About AIUB", "What facilities does the AIUB campus have?", "gym auditorium moot court media studio virtual lab sports",
+     "Facilities listed for the campus include an auditorium, a media studio, a moot court, a fully equipped gym, and a large virtual lab setup.",
+     "About AIUB (Times Higher Education)", "https://timeshighereducation.com/world-university-rankings/american-international-university-bangladesh"),
+
+    ("Admission", "How do I apply for admission at AIUB?", "apply application admission portal online test",
+     "Applications and admission are completed through AIUB's online admission portal at admission.aiub.edu. Applicants sit the university's admission test. For problems you can email apply@aiub.edu.",
+     "AIUB Admission Circular", ADM),
+    ("Admission", "What are the admission requirements for undergraduate programs?", "eligibility requirements ssc hsc o level a level criteria gpa",
+     "Your academic results must meet the requirements of the program you choose. In general that means SSC and HSC, or O and A Levels or an equivalent, plus the admission test. Each program has its own conditions, so read the current admission circular.",
+     "AIUB Admission Circular", ADM),
+    ("Admission", "When do I get my AIUB student ID and email?", "student id email office 365 microsoft freshman",
+     "After admission and registration are complete, new students receive their AIUB student ID and an official AIUB student email on the Microsoft Office 365 Education platform.",
+     "AIUB Admission Circular", ADM),
+    ("Admission", "How can international students apply to AIUB?", "foreign abroad international offer letter overseas",
+     "International applicants submit the admission form at admission.aiub.edu. AIUB checks their previous education documents and, if they are eligible, issues an offer letter. The Information Department at the Sports Complex handles enquiries.",
+     "AIUB: International students", "https://aiub.edu/admission/international-students"),
+    ("Admission", "Can I transfer credits from another university?", "credit transfer waiver course transferring",
+     "Credit transfer or a course waiver is possible if you meet AIUB's conditions. One of them is a minimum CGPA of 3.50 (or equivalent) from a government-recognized university. The page lists the other requirements.",
+     "AIUB: Transfer of credits", "https://aiub.edu/academic-regulations/transfer-of-credits"),
+
+    ("Academics", "How many semesters are there in a year at AIUB?", "semester terms fall spring summer calendar year",
+     "From Fall 2025-26 the year has three semesters: Fall (September to December), Spring (January to May) and Summer (June to August). Summer registration is optional. LLB and BPharm have two semesters: Fall (August to December) and Spring (January to June).",
+     "AIUB Academic Regulations", ACAD),
+    ("Academics", "How many credit hours should I take each semester?", "credit load course load hours minimum regular full time",
+     "For undergraduate programs (except BPharm and LLB) the regular load is 12 credit hours, and 14 to 15 credit hours are expected to be considered for scholarships and awards. BPharm is 17 and LLB is 18. Graduate programs are 12, MBA is 9 (6 regular), and EMBA is 2 courses.",
+     "AIUB Academic Regulations", ACAD),
+    ("Academics", "What is the grading system at AIUB?", "grade points gpa scale a+ letter marks percentage",
+     "For students enrolled from Spring 2016-17, 90 to 100 is A+ (4.00), 85 to under 90 is A (3.75), 60 to under 65 is D+ (2.50), 50 to under 60 is D (2.25), and below 50 is F (0.00). The page has the full table, and earlier batches use an older scale.",
+     "AIUB: Grading system", "https://aiub.edu/academic-regulations/grading-system"),
+    ("Academics", "What CGPA do I need to graduate?", "minimum cgpa graduation requirement degree complete",
+     "You need a minimum CGPA of 2.50 on a 4.00 scale after completing all the requirements of your program.",
+     "AIUB: Graduation requirements", "https://aiub.edu/academic-regulations/graduation-requirements"),
+    ("Academics", "What CGPA is needed for Cum Laude, Magna Cum Laude and Summa Cum Laude?", "honors medal bronze silver gold latin honours",
+     "For undergraduates, Cum Laude (bronze medal) is a CGPA of 3.65 to 3.79, Magna Cum Laude (silver) is 3.80 to 3.94, and Summa Cum Laude (gold) is 3.95 to 4.00. You must also be a regular full-time student.",
+     "AIUB: Academic honors and awards", "https://www.aiub.edu/academic-regulations/graduation-academic-honors-and-awards"),
+    ("Academics", "How do I get on the Dean's List?", "dean list award semester eligibility",
+     "You become eligible after completing 24 credits. In the awarding semester you need the minimum credit load (14 or 15 hours for undergraduates), no course grade point below 3.25, and no F, W, UW or I grade there or before. It applies from the following regular semester.",
+     "AIUB: Dean's List", "https://aiub.edu/academic-regulations/deans-list"),
+    ("Academics", "What do the W, UW and I grades mean?", "withdrawal unofficial incomplete grade converted f",
+     "W means withdrawal, UW means unofficial withdrawal, and I means incomplete. The academic calendar says UW, I and blank grades are automatically converted to F after the semester, so resolve them before that date.",
+     "AIUB Academic Regulations", ACAD),
+
+    ("Registration", "How do I add or drop a course?", "add drop courses online vues portal section change",
+     "Add and drop is done online: log in to your VUES account, click ADD/DROP, select the courses, and click CONFIRM. Section changing is not part of it, and you must still meet the minimum load after dropping. The dates come in a notice each semester.",
+     "AIUB: Adding and dropping notice, Spring 2024-25", "https://www.aiub.edu/adding-dropping-notice-for-spring-2024-25"),
+    ("Registration", "What are the course drop rules and deadline?", "drop withdraw approval teacher dean probation deadline",
+     "Submit the drop request online through the AIUB portal. During the semester it needs the course teacher's approval. After the semester, and before the deadline, it needs the department head, director or dean. The deadline is at most four weeks after the semester ends, or as the academic calendar says, and dropping is restricted for students on academic probation.",
+     "AIUB Academic Regulations", ACAD),
+    ("Registration", "Where can I find the academic calendar?", "calendar dates exam midterm final schedule semester break",
+     "AIUB publishes the academic calendar on its website. It lists the first day of classes, exams, final registration, when grades are locked and released, and other deadlines. Ramadan class timing is noted separately.",
+     "AIUB Academic Calendar", "https://www.aiub.edu/academic-calendar"),
+    ("Registration", "How does final registration work?", "final registration flowchart pre registration notice procedure",
+     "Each faculty publishes a final registration notice and a flowchart on the AIUB website. Students follow the online procedure and the schedule in that notice to register their courses.",
+     "AIUB: FST final registration guidelines", "https://www.aiub.edu/fst-final-registration-instructions-and-guidelines--fall-2025-26"),
+
+    ("Scholarships", "What scholarships does AIUB offer?", "scholarship merit waiver tuition freshman golden gpa 5.00",
+     "AIUB offers merit-based scholarships for freshmen and academic scholarships for regular students. For the freshman merit scholarship the applicant needs GPA 5.00 (Golden) or GPA 5.00 in both SSC and HSC. The number of recipients depends on available slots.",
+     "AIUB: Scholarship and financial aid policy", "https://www.aiub.edu/admission/scholarships"),
+    ("Scholarships", "What financial aid and tuition waivers are available?", "financial aid need based sibling alumni freedom fighter employee waiver on campus jobs volunteer",
+     "AIUB lists these kinds of financial aid: general need-based tuition waiver, freedom fighter waiver, alumni waiver, corporate waiver, sibling waiver, AIUB employee and employee dependent waivers, on-campus jobs, and a volunteer scheme.",
+     "AIUB: Scholarship and financial aid policy", "https://www.aiub.edu/admission/scholarships"),
+    ("Scholarships", "Who do I contact about my scholarship or waiver?", "accounts office contact email phone update discount",
+     "For questions about updating a scholarship, discount or waiver, AIUB's notice gives accounts@aiub.edu and 01844515907, available 10 AM to 4 PM on weekdays.",
+     "AIUB notice for scholarship holders", "https://cs.aiub.edu/notice/13"),
+
+    ("Student life", "Does AIUB have student clubs?", "clubs societies activities extracurricular join data club",
+     "Yes. AIUB lists its student clubs by faculty on its On Campus pages, for example the AIUB Data Club under the Faculty of Business Administration.",
+     "AIUB: Clubs from the Faculty of Business Administration", "https://aiub.edu/oncampus/faculty-wise-clubs/clubs-from-faculty-of-business-administration"),
+
+    ("Using this site", "What does the room code 9204 mean?", "room code annex floor number decode format 9204",
+     "For Annex rooms the first digit is the Annex, the second is the floor and the last two are the room. So 9204 is Annex 9, 2nd floor, room 04.",
+     "Rooms on this site", "/rooms?code=9204"),
+    ("Using this site", "How do D building room codes work?", "d building ds dn de 101 107 204 lab north south extension",
+     "On the 1st to 3rd floors, D building codes are D, then N or S, then the floor and a two-digit room: DS101 is the South side, 1st floor, room 01 and DN107 is the North side, 1st floor, room 07. Rooms 01 to 06 are South and 07 to 12 are North, and they are labs. DE204 is the Extension, 2nd floor, room 04. The 4th to 9th floors are not decided yet.",
+     "Rooms on this site", "/rooms?code=DS101"),
+    ("Using this site", "How do I find when a teacher is free?", "teacher faculty consultation free available office hours sir madam",
+     "Type the teacher's name in Ask AIUB, for example “When is Nyme sir free?”, or open their page from the Faculty list. It shows whether they are free now, today's consultation hours, and the whole week.",
+     "Faculty on this site", "/faculty"),
+]

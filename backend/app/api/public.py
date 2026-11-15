@@ -18,7 +18,7 @@ from ..services.campus import BUILDINGS, building_dict, parse_room
 from ..services.free_time import compute_status, describe
 from ..services.notices import notice_dict
 from ..services.realtime import broadcaster, presence
-from ..services.store import FacultyView, Snapshot, find_faculty_in_text, search, search_chunks, store
+from ..services.store import FacultyView, Snapshot, find_faculty_in_text, search, search_chunks, search_faq, store
 from ..services.timeutil import DAYS, day_index, fmt_hhmm, fmt_min, now_local, to_local
 
 router = APIRouter(prefix="/api")
@@ -234,6 +234,10 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
             mode = "docs"
             result = {"answer": "From the AIUB website: " + hits[0]["text"][:600],
                       "sources": [{"title": h["title"], "url": h["url"]} for h in hits]}
+        elif (faq := search_faq(question)):
+            mode = "faq"
+            result = {"answer": "Sample answer (check the source to confirm, as rules and dates change): " + faq[3], "sample": True,
+                      "sources": [{"title": faq[4], "url": faq[5]}]}
         else:
             answered = False
             result = {"answer": "I couldn't find this in the AIUB pages I have so far. You can ask about a teacher "
@@ -245,6 +249,17 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
     except Exception:
         db.rollback()
     return {"mode": mode, "answered": answered, **result}
+
+
+@router.get("/ask/samples")
+def ask_samples(response: Response):
+    """Starter questions grouped by topic, so students can see what Ask AIUB can answer."""
+    from ..services.sample_faq import SAMPLES
+    response.headers["Cache-Control"] = "public, max-age=300"
+    topics: dict[str, list[str]] = {}
+    for topic, q, *_ in SAMPLES:
+        topics.setdefault(topic, []).append(q)
+    return {"topics": [{"topic": t, "questions": qs} for t, qs in topics.items()], "count": len(SAMPLES)}
 
 
 # ---------------- campus map and room codes ----------------

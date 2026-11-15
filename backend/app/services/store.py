@@ -229,3 +229,31 @@ def search_chunks(snap: Snapshot, question: str, k: int = 3):
             hits.append((overlap / (len(qt) ** 0.5), c))
     hits.sort(key=lambda x: -x[0])
     return [c for s, c in hits[:k] if s >= 1.0]
+
+
+# ---------------- sample questions and answers (Ask AIUB starter content) ----------------
+_FAQ_STOP = set("a an the of in on at to for is are was will do does did can how what which when where who why i me my you your it be get have has there about tell please aiub university and or with".split())
+_FAQ_INDEX: list[tuple[set[str], set[str], tuple]] | None = None
+
+
+def _faq_index():
+    global _FAQ_INDEX
+    if _FAQ_INDEX is None:
+        from .sample_faq import SAMPLES
+        _FAQ_INDEX = [(set(_tokens(row[1])) - _FAQ_STOP, set(_tokens(row[2])) - _FAQ_STOP, row) for row in SAMPLES]
+    return _FAQ_INDEX
+
+
+def search_faq(question: str):
+    """Best matching sample question, or None. A match needs the question's own words (or its keywords) to overlap well."""
+    qt = {w for w in _tokens(question) if w not in _FAQ_STOP and len(w) > 1}
+    if not qt:
+        return None
+    best, best_score = None, 0.0
+    for qwords, kwords, row in _faq_index():
+        direct = len(qt & qwords)
+        extra = len((qt & kwords) - qwords)
+        score = (direct * 1.0 + extra * 0.6) / (len(qt) ** 0.5)
+        if (direct + extra) >= (2 if len(qt) > 1 else 1) and score > best_score:
+            best, best_score = row, score
+    return best if best is not None and best_score >= 1.0 else None
