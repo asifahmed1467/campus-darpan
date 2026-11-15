@@ -6,6 +6,7 @@ import { useOnline } from "@/lib/hooks";
 import { useLang, type Key } from "@/lib/i18n";
 import { NoticeAlert } from "./Notices";
 import { Mark, NAME_BN, TAGLINE_EN } from "./Logo";
+import { playChime, setSoundOn, soundOn, unlockAudio } from "@/lib/sound";
 
 const NAV: { href: string; key: Key; icon: string }[] = [
   { href: "/faculty", key: "nav.faculty", icon: "M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" },
@@ -13,6 +14,26 @@ const NAV: { href: string; key: Key; icon: string }[] = [
   { href: "/ask", key: "nav.ask", icon: "M4 5h16v11H9l-5 4zM8 9h8M8 12h5" },
   { href: "/rooms", key: "nav.rooms", icon: "M4 21V5l8-2 8 2v16M9 21v-5h6v5M8 9h2M14 9h2" },
 ];
+
+function SoundToggle() {
+  const [on, setOn] = useState<boolean | null>(null);
+  useEffect(() => { setOn(soundOn()); }, []);
+  const flip = () => {
+    unlockAudio();
+    const next = !soundOn();
+    setSoundOn(next); setOn(next);
+    if (next) playChime();
+  };
+  return (
+    <button type="button" onClick={flip} className="chip !px-2.5" aria-pressed={on ?? undefined}
+      aria-label={on ? "Turn notice sound off" : "Turn notice sound on"} title={on ? "Notice sound on" : "Notice sound off"}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M12 3a6 6 0 00-6 6c0 5-2 6-2 7h16c0-1-2-2-2-7a6 6 0 00-6-6zM10 19a2 2 0 004 0" />
+        {on === false && <path d="M3 3l18 18" />}
+      </svg>
+    </button>
+  );
+}
 
 function ThemeToggle() {
   const [dark, setDark] = useState<boolean | null>(null);
@@ -65,6 +86,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <span aria-hidden className="h-2 w-2 rounded-full bg-go" /><b className="font-display">{online.toLocaleString()}</b> <span className="hidden sm:inline">{t("online")}</span>
               </span>
             )}
+            <SoundToggle />
             <ThemeToggle />
             <button className="chip font-display" onClick={() => setLang(lang === "en" ? "bn" : "en")} aria-label={lang === "en" ? "বাংলায় দেখুন" : "Switch to English"}>
               {lang === "en" ? "বাংলা" : "English"}

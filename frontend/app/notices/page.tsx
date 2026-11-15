@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { NoticeList } from "@/components/Notices";
-import PushButton from "@/components/PushButton";
 import { api } from "@/lib/api";
 import { useDebounced, useLive } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
@@ -48,8 +47,7 @@ export default function NoticesPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-4xl font-bold sm:text-5xl">{t("notices.title")}</h1>
-      <p className="mt-2 text-mute">Every notice links to the official page on aiub.edu. Turn on notifications to hear about new ones.</p>
-      <PushButton />
+      <p className="mt-2 text-mute">Every notice links to the official page on aiub.edu. Keep this page open and you will hear a soft chime when a new notice arrives. Use the bell at the top to turn the sound off.</p>
       <div className="mt-6"><label htmlFor="nq" className="sr-only">Search notices</label>
         <input id="nq" type="search" className="field font-display !text-lg" placeholder="Search notice titles" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>

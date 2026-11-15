@@ -29,8 +29,12 @@ a { text-underline-offset: 3px; }
 /* The one animated moment: each day-strip's "now" needle sweeps from the left edge to the current time. */
 @keyframes needle-in { from { left: 0%; opacity: 0; } 15% { opacity: 1; } to { left: var(--x); opacity: 1; } }
 .needle { left: var(--x); animation: needle-in 900ms cubic-bezier(.2,.7,.2,1) both; }
-@keyframes toast-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
-.toast { animation: toast-in 220ms ease-out both; }
+@keyframes toast-in { 0% { transform: translateY(24px) scale(.96); opacity: 0; } 65% { transform: translateY(-4px) scale(1.01); opacity: 1; } 100% { transform: none; opacity: 1; } }
+.toast { animation: toast-in 420ms cubic-bezier(.2,.8,.3,1) both; }
+@keyframes bell-ring { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); } 60% { transform: rotate(-8deg); } 75% { transform: rotate(4deg); } }
+.bell { transform-origin: 50% 8%; animation: bell-ring 900ms ease-in-out 250ms 2; }
+@keyframes toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.toast-timer { transform-origin: left; animation: toast-timer 9s linear forwards; }
 /* Gentle entrance: blocks rise in once, staggered by --i. Hover lifts answer the pointer. */
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .rise { animation: rise 520ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i, 0) * 70ms); }
@@ -65,7 +69,7 @@ a { text-underline-offset: 3px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .rise, .room-num, .pin, .dot-live, .lift, .btn, .chip { animation: none !important; transition: none !important; transform: none !important; }
-  .needle, .toast { animation: none; }
+  .needle, .toast, .bell, .toast-timer { animation: none; }
   html { scroll-behavior: auto; }
 }
 

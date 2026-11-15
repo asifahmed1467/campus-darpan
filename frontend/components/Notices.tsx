@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { API } from "@/lib/api";
+import { playChime, unlockAudio } from "@/lib/sound";
 import type { Notice } from "@/lib/types";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -46,6 +47,9 @@ export function NoticeAlert() {
   const [toast, setToast] = useState<Notice | null>(null);
   useEffect(() => {
     if (typeof EventSource === "undefined") return;
+    const unlock = () => unlockAudio();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
     const es = new EventSource(API + "/api/notices/stream");
     let timer: ReturnType<typeof setTimeout>;
     es.addEventListener("notice", (e) => {
@@ -53,18 +57,19 @@ export function NoticeAlert() {
         const n: Notice = JSON.parse((e as MessageEvent).data).notice;
         window.dispatchEvent(new CustomEvent("aiub:notice", { detail: n }));
         setToast(n);
+        playChime();
         clearTimeout(timer);
         timer = setTimeout(() => setToast(null), 9000);
         if ("Notification" in window && Notification.permission === "granted" && document.hidden) new Notification("New AIUB notice", { body: n.title, icon: "/icon.svg" });
       } catch { /* ignore malformed event */ }
     });
-    return () => { es.close(); clearTimeout(timer); };
+    return () => { es.close(); clearTimeout(timer); window.removeEventListener("pointerdown", unlock); window.removeEventListener("keydown", unlock); };
   }, []);
   if (!toast) return null;
   return (
-    <div role="status" aria-live="polite" className="toast fixed inset-x-3 bottom-20 z-50 mx-auto max-w-md rounded-xl border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))] md:bottom-6 md:left-auto md:right-6">
+    <div key={toast.id} role="status" aria-live="polite" className="toast relative overflow-hidden fixed inset-x-3 bottom-20 z-50 mx-auto max-w-md rounded-xl border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))] md:bottom-6 md:left-auto md:right-6">
       <div className="flex items-start gap-3">
-        <span aria-hidden className="mt-1 h-3 w-3 shrink-0 rounded-full bg-needle ring-2 ring-ink" />
+        <svg aria-hidden className="bell mt-0.5 shrink-0 text-needle" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="rgb(var(--c-ink))" strokeWidth="1.6" strokeLinejoin="round"><path d="M12 3a6 6 0 00-6 6c0 5-2 6-2 7h16c0-1-2-2-2-7a6 6 0 00-6-6z" /><path d="M10 19a2 2 0 004 0" fill="none" strokeLinecap="round" /></svg>
         <div className="min-w-0 flex-1">
           <p className="font-display font-semibold">New notice</p>
           <p className="text-[15px]">{toast.title}</p>
@@ -72,6 +77,7 @@ export function NoticeAlert() {
         </div>
         <button className="grid h-9 w-9 place-items-center rounded-full hover:bg-paper" aria-label="Dismiss" onClick={() => setToast(null)}>✕</button>
       </div>
+      <span aria-hidden className="toast-timer absolute inset-x-0 bottom-0 h-1 bg-needle" />
     </div>
   );
 }
