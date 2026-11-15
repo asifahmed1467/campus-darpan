@@ -34,13 +34,15 @@ const T = (x: number, y: number, t: string, size = 13, weight = 600, anchor: "st
 /** Room numbers by position, left to right, from the sketch. */
 const NORTH_TOP = [11, 9, 7], NORTH_BOTTOM = [12, 10, 8], SOUTH_TOP = [6, 4, 2], SOUTH_BOTTOM = [5, 3, 1];
 
-export default function DFloorPlan({ floor, levels, extensionFloors, highlight, highlightRoom, onPickFloor }: {
-  floor: number | null; levels: number; extensionFloors: number[]; highlight: DWing; highlightRoom: number | null; onPickFloor: (n: number | null) => void;
+export default function DFloorPlan({ floor, levels, extensionFloors, pendingFloors, groundNote, highlight, highlightRoom, onPickFloor }: {
+  floor: number | null; levels: number; extensionFloors: number[]; pendingFloors: number[]; groundNote: string; highlight: DWing; highlightRoom: number | null; onPickFloor: (n: number | null) => void;
 }) {
   const hasExt = floor === null ? true : extensionFloors.includes(floor);
   const extDim = floor !== null && !hasExt;
   const labs = floor !== null && LAB_FLOORS.includes(floor);
-  const floorName = floor === null ? "every floor" : floor === 0 ? "Ground floor" : `${floor}${floor === 1 ? "st" : floor === 2 ? "nd" : floor === 3 ? "rd" : "th"} floor`;
+  const ground = floor === 0;
+  const pending = floor !== null && pendingFloors.includes(floor);
+  const floorName = floor === null ? "1st to 3rd floor" : floor === 0 ? "Ground floor" : `${floor}${floor === 1 ? "st" : floor === 2 ? "nd" : floor === 3 ? "rd" : "th"} floor`;
   const code = (side: "N" | "S", n: number) => (labs ? `D${side}${floor}${String(n).padStart(2, "0")}` : String(n).padStart(2, "0"));
   const FHt = 36, base = 392;    // side view
   const rowN = (nums: number[], x0: number, x1: number, y: number, door: "top" | "bottom") => {
@@ -54,10 +56,25 @@ export default function DFloorPlan({ floor, levels, extensionFloors, highlight, 
   return (
     <figure className="rounded-2xl border border-line bg-paper p-3 sm:p-4">
       <figcaption className="mb-3">
-        <h3 className="text-xl font-bold">D building layout, {floorName}{labs ? ", labs only" : ""}</h3>
-        <p className="text-[15px] text-mute">On this plan North is on the left and South is on the right. Standing at the lift entrance and facing into the floor, your left hand is South and your right hand is North. From a hand sketch, not to scale.</p>
+        <h3 className="text-xl font-bold">D building layout, {floorName}{labs || floor === null ? ", labs only" : ""}</h3>
+        {(ground || pending) ? <p className="text-[15px] text-mute">Pick another floor in the side view to see its layout.</p> : <p className="text-[15px] text-mute">On this plan North is on the left and South is on the right. Standing at the lift entrance and facing into the floor, your left hand is South and your right hand is North. From a hand sketch, not to scale.</p>}
       </figcaption>
       <div className="grid gap-4 md:grid-cols-[1fr_13rem]">
+        {ground ? (
+          <div className="flex flex-col justify-center gap-3 rounded-xl border border-line bg-sheet p-5" role="status">
+            <p className="font-display text-xl font-semibold">{groundNote}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border-2 border-brand/40 bg-paper p-5 text-center"><p className="font-display text-2xl font-bold">Auditorium</p><p className="mt-1 text-mute">One auditorium</p></div>
+              <div className="rounded-xl border-2 border-go/50 bg-paper p-5 text-center"><p className="font-display text-2xl font-bold">Waiting lobby</p><p className="mt-1 text-mute">Next to the lifts and stairs</p></div>
+            </div>
+            <p className="text-[15px] text-mute">Where each one sits on the ground floor is not added yet.</p>
+          </div>
+        ) : pending ? (
+          <div className="flex flex-col justify-center gap-2 rounded-xl border-2 border-dashed border-edge/60 bg-sheet p-5" role="status">
+            <p className="font-display text-xl font-semibold">Room structure not added yet</p>
+            <p className="text-mute">The room structure of the 4th to 9th floors of D building has not been decided, so there are no room codes or layout to show for the {floorName}.</p>
+          </div>
+        ) : (
         <svg viewBox="0 0 640 520" className="w-full" role="img" aria-label="D building floor layout. The Extension and the lifts are at the top. The full floor is at the bottom with 12 rooms: North side rooms 07 to 12 on the left and South side rooms 01 to 06 on the right.">
           <defs>
             <linearGradient id="dnorth" x1="0" x2="1"><stop offset="0" stopColor={COL.north} stopOpacity="0.22" /><stop offset="1" stopColor={COL.north} stopOpacity="0.06" /></linearGradient>
@@ -116,6 +133,7 @@ export default function DFloorPlan({ floor, levels, extensionFloors, highlight, 
             {T(10, 114, "= North", 11.5, 700, "start", COL.north)}{T(180, 114, "South =", 11.5, 700, "end", COL.south)}
           </g>
         </svg>
+        )}
 
         {/* side view: pick a floor */}
         <div>
@@ -133,8 +151,8 @@ export default function DFloorPlan({ floor, levels, extensionFloors, highlight, 
               return (
                 <g key={n} className="cursor-pointer" role="button" tabIndex={0} aria-pressed={on} aria-label={`D building, floor ${n}`}
                   onClick={() => onPickFloor(on ? null : n)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPickFloor(on ? null : n); } }}>
-                  <rect x="72" y={y} width="72" height={FHt - 2} rx="2" fill={on ? "rgb(var(--c-go))" : "#ad5c47"} fillOpacity={on ? 1 : 0.9} stroke={on ? "#fff" : COL.edge} strokeOpacity={on ? 1 : 0.5} strokeWidth={on ? 2 : 1} />
-                  {T(108, y + FHt / 2 + 4, n === 0 ? "G" : String(n), 14, 700, "middle", "#fff")}
+                  <rect x="72" y={y} width="72" height={FHt - 2} rx="2" fill={on ? "rgb(var(--c-go))" : n === 0 ? "#8a7a70" : pendingFloors.includes(n) ? "#cdbdb3" : "#ad5c47"} fillOpacity={on ? 1 : 0.9} stroke={on ? "#fff" : COL.edge} strokeOpacity={on ? 1 : 0.5} strokeWidth={on ? 2 : 1} />
+                  {T(108, y + FHt / 2 + 4, n === 0 ? "G" : String(n), 14, 700, "middle", pendingFloors.includes(n) && !on ? "#5a4a42" : "#fff")}
                 </g>
               );
             })}
@@ -143,7 +161,7 @@ export default function DFloorPlan({ floor, levels, extensionFloors, highlight, 
             {extensionFloors.map((n) => <rect key={n} x="144" y={base - (n + 1) * FHt} width="44" height={FHt - 2} rx="2" fill="#c98a76" fillOpacity={floor === n ? 1 : 0.9} stroke={floor === n ? "rgb(var(--c-go))" : COL.edge} strokeOpacity={floor === n ? 1 : 0.5} strokeWidth={floor === n ? 2.5 : 1} />)}
             {T(166, base + 16, "Ext.", 12, 700)}
           </svg>
-          <p className="mt-1 text-[13.5px] leading-snug text-mute">G = ground floor. Ext. = Extension (1st to 3rd floors). Tap a floor to see it. Annex 9 joins D by bridges on the 2nd and 3rd floors.</p>
+          <p className="mt-1 text-[13.5px] leading-snug text-mute">G = ground floor (auditorium and waiting lobby). 1st to 3rd: labs. Pale floors (4th to 9th) are not decided yet. Ext. = Extension (1st to 3rd floors). Tap a floor to see it.</p>
         </div>
       </div>
     </figure>

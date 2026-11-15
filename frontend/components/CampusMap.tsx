@@ -3,7 +3,7 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 
 export interface CampusBuilding {
   id: string; name: string; short: string; kind: string; levels: number | null; note: string; places: string[];
-  floors: { n: number; label: string }[]; extension_floors?: number[]; formats?: { code: string; meaning: string }[];
+  floors: { n: number; label: string }[]; extension_floors?: number[]; pending_floors?: number[]; floor_notes?: Record<string, string>; formats?: { code: string; meaning: string }[];
 }
 
 /* ---------------------------------------------------------------------------------------------

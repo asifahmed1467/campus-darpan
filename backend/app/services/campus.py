@@ -24,14 +24,18 @@ class Building:
     formats: tuple[tuple[str, str], ...] = ()     # (example code, what it means)
     extension_floors: tuple[int, ...] = ()        # floors that have an Extension wing (D building)
     lab_floors: tuple[int, ...] = ()              # floors where the North and South side rooms are labs only (D building)
+    pending_floors: tuple[int, ...] = ()          # floors whose room structure is not decided yet
+    floor_notes: tuple[tuple[int, str], ...] = () # fixed notes for a floor, e.g. the ground floor
 
 
-# levels: "D has 9 floors" and "Annex 9 is a 5 floor building" are counted with the ground floor included.
+# levels count the ground floor as one. D building: ground floor plus the 1st to 9th floors = 10 levels (the 4th to 9th floors are named
+# by the user but their room structure is not decided yet). Annex 9 is a 5 floor building: ground plus 4 (to be confirmed).
 BUILDINGS: tuple[Building, ...] = (
-    Building("D", "D Building", "D", "tower", 9, "Has a North side, a South side and an Extension. The Extension exists only on the 1st, 2nd and 3rd floors. On the 1st to 3rd floors the North and South side rooms are labs only. Joined to Annex 9 by two bridges on the 2nd and 3rd floors.",
+    Building("D", "D Building", "D", "tower", 10, "Has a North side, a South side and an Extension. The Extension exists only on the 1st, 2nd and 3rd floors. On the 1st to 3rd floors the North and South side rooms are labs only. The ground floor has no classrooms (one auditorium and the waiting lobby). The room structure of the 4th to 9th floors is not decided yet. Joined to Annex 9 by two bridges on the 2nd and 3rd floors.",
              formats=(("DS101", "D building, South side, 1st floor, room 01 (lab)"), ("DN107", "D building, North side, 1st floor, room 07 (lab)"),
                       ("DE204", "D building, Extension, 2nd floor, room 04")),
-             extension_floors=(1, 2, 3), lab_floors=(1, 2, 3)),
+             extension_floors=(1, 2, 3), lab_floors=(1, 2, 3), pending_floors=(4, 5, 6, 7, 8, 9),
+             floor_notes=((0, "No classrooms on the ground floor. It has one auditorium and the waiting lobby."),)),
     Building("C", "C Building (Administrative)", "C", "admin", None, "The round glass building. Administrative offices."),
     Building("A1", "Annex 1", "1", "annex", 1, "Ground floor only."),
     Building("A2", "Annex 2", "2", "annex", 1, "Ground floor only."),
@@ -55,7 +59,8 @@ def floor_label(n: int) -> str:
 
 def building_dict(b: Building) -> dict:
     return {"id": b.id, "name": b.name, "short": b.short, "kind": b.kind, "levels": b.levels, "note": b.note,
-            "places": list(b.places), "extension_floors": list(b.extension_floors), "lab_floors": list(b.lab_floors), "formats": [{"code": c, "meaning": m} for c, m in b.formats],
+            "places": list(b.places), "extension_floors": list(b.extension_floors), "lab_floors": list(b.lab_floors), "pending_floors": list(b.pending_floors),
+            "floor_notes": {str(n): t for n, t in b.floor_notes}, "formats": [{"code": c, "meaning": m} for c, m in b.formats],
             "floors": [{"n": i, "label": floor_label(i)} for i in range(b.levels)] if b.levels else []}
 
 
@@ -96,7 +101,12 @@ def parse_room(code: str | None) -> dict | None:
             room = rest
         out = {"ok": True, "code": raw, "building": "D", "building_name": b.name, "wing": side, "floor": floor,
                "floor_label": floor_label(floor) if floor is not None else None, "room": room, "warning": None}
-        if wing in "NS" and floor is not None and floor in b.lab_floors:
+        notes = dict(b.floor_notes)
+        if floor is not None and floor in notes:
+            out["warning"] = notes[floor] + " There are no room codes on this floor."
+        elif floor is not None and floor in b.pending_floors:
+            out["warning"] = f"The room structure for the 4th to 9th floors of D building is not decided yet, so {raw} cannot be placed on a room."
+        elif wing in "NS" and floor is not None and floor in b.lab_floors:
             out["kind"] = "Lab"
             n = int(room)
             if not 1 <= n <= 12:
@@ -106,6 +116,10 @@ def parse_room(code: str | None) -> dict | None:
         if wing == "E" and floor is not None and floor not in b.extension_floors:
             out["warning"] = "The D building Extension exists only on the 1st, 2nd and 3rd floors. Check the room number."
         tag = " (lab)" if out.get("kind") == "Lab" else ""
+        if floor is not None and (floor in notes or floor in b.pending_floors):
+            out["room"] = None
+            out["message"] = f"{b.name}, {side}, {floor_label(floor)}."
+            return out
         out["message"] = f"{b.name}, {side}, {floor_label(floor)}, room {room}{tag}." if floor is not None else f"{b.name}, {side}, room {room}."
         return out
     if norm.startswith("D") and len(norm) > 1:

@@ -62,7 +62,7 @@ export default function RoomsPage() {
           <p className="px-2 pb-1 text-[15px] text-mute">A sketch of how the buildings sit, following the campus map. Not to scale. Heights follow the floor counts; dashed roofs mean the floor count is not added yet. Each building has its own colour.</p>
         </section>
         {sel === "D" && b && (
-          <DFloorPlan floor={floor} levels={b.levels ?? 9} extensionFloors={b.extension_floors ?? []} onPickFloor={setFloor}
+          <DFloorPlan floor={floor} levels={b.levels ?? 10} extensionFloors={b.extension_floors ?? []} pendingFloors={b.pending_floors ?? []} groundNote={b.floor_notes?.["0"] ?? ""} onPickFloor={setFloor}
             highlight={(res?.ok && res.building === "D" ? (res.wing as DWing) ?? null : null)}
             highlightRoom={res?.ok && res.building === "D" && res.wing !== "Extension" && res.room && /^\d+$/.test(res.room) ? parseInt(res.room, 10) : null} />
         )}
@@ -88,7 +88,7 @@ export default function RoomsPage() {
                   <p className="mt-3 font-display font-semibold">{b.levels} floor{b.levels! > 1 ? "s" : ""}</p>
                   <ol className="mt-2 flex flex-col-reverse gap-1.5">
                     {b.floors.map((f) => (
-                      <li key={f.n}><button className="chip w-full !justify-start" aria-pressed={floor === f.n} onClick={() => setFloor(floor === f.n ? null : f.n)}>{f.label}</button></li>
+                      <li key={f.n}><button className="chip w-full !justify-start" aria-pressed={floor === f.n} onClick={() => setFloor(floor === f.n ? null : f.n)}>{f.label}{b.id === "D" && <span className="ml-2 font-normal text-mute">{f.n === 0 ? "auditorium, waiting lobby" : (b.pending_floors ?? []).includes(f.n) ? "not decided yet" : "labs"}</span>}</button></li>
                     ))}
                   </ol>
                   <p className="mt-3 text-[15px] text-mute">Room lists per floor will be added with the room formats.</p>

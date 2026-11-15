@@ -216,6 +216,10 @@ def test_directory_import_keeps_same_named_people_apart_and_tidies_caps(client, 
     assert k["name"] == "Dr. Md. Anwarul Kabir"
 
 
+def by_floor_ok(r):
+    return r["ok"] and r["room"] is None
+
+
 def test_room_codes_decode(client):
     from app.services.campus import parse_room
     r = parse_room("9204")
@@ -236,6 +240,10 @@ def test_room_codes_decode(client):
     assert (a["wing"], a["floor"], a["room"], a["kind"], a["warning"]) == ("South side", 1, "01", "Lab", None)
     assert a["message"] == "D Building, South side, 1st floor, room 01 (lab)." and (b2["room"], b2["floor"], b2["warning"]) == ("07", 1, None)
     assert "probably DS102" in c["warning"] and parse_room("DS313")["warning"].startswith("D building floors 1 to 3 have rooms 01 to 12")
+    g, up = parse_room("DS001"), parse_room("DN507")
+    assert g["room"] is None and "No classrooms on the ground floor" in g["warning"]
+    assert up["room"] is None and up["floor"] == 5 and "not decided yet" in up["warning"] and up.get("kind") is None
+    assert parse_room("DS909")["floor"] == 9 and by_floor_ok(parse_room("DS909"))
     assert parse_room("DNGA05")["room"] == "GA05" and parse_room("DNGA05")["wing"] == "North side"
     assert parse_room("hello")["ok"] is False and parse_room("") is None and parse_room(None) is None
 
@@ -245,7 +253,7 @@ def test_campus_and_room_endpoints(client):
     ids = [b["id"] for b in c["buildings"]]
     assert ids == ["D", "C", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A9"]
     by = {b["id"]: b for b in c["buildings"]}
-    assert by["D"]["levels"] == 9 and len(by["D"]["floors"]) == 9 and by["D"]["floors"][0]["label"] == "Ground floor"
+    assert by["D"]["levels"] == 10 and len(by["D"]["floors"]) == 10 and by["D"]["floors"][0]["label"] == "Ground floor"
     assert by["A9"]["levels"] == 5 and by["A1"]["levels"] == 1 and by["A3"]["levels"] is None and by["A3"]["floors"] == []
     assert by["C"]["places"] == []
     r = client.get("/api/rooms", params={"q": "9204"}).json()
