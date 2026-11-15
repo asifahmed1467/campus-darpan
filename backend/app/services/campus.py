@@ -20,13 +20,15 @@ class Building:
     note: str = ""
     places: tuple[str, ...] = ()
     formats: tuple[tuple[str, str], ...] = ()     # (example code, what it means)
+    extension_floors: tuple[int, ...] = ()        # floors that have an Extension wing (D building)
 
 
 # levels: "D has 9 floors" and "Annex 9 is a 5 floor building" are counted with the ground floor included.
 BUILDINGS: tuple[Building, ...] = (
-    Building("D", "D Building", "D", "tower", 9, "Has a North side, a South side and an Extension. Joined to Annex 9 by two bridges on the 2nd and 3rd floors.",
+    Building("D", "D Building", "D", "tower", 9, "Has a North side, a South side and an Extension. The Extension exists only on the 1st, 2nd and 3rd floors. Joined to Annex 9 by two bridges on the 2nd and 3rd floors.",
              formats=(("DN03", "D building, North side, room 03"), ("DS03", "D building, South side, room 03"),
-                      ("DE204", "D building, Extension, 2nd floor, room 04"))),
+                      ("DE204", "D building, Extension, 2nd floor, room 04")),
+             extension_floors=(1, 2, 3)),
     Building("C", "C Building (Administrative)", "C", "admin", None, "The round glass building. Administrative offices."),
     Building("A1", "Annex 1", "1", "annex", 1, "Ground floor only."),
     Building("A2", "Annex 2", "2", "annex", 1, "Ground floor only."),
@@ -50,7 +52,7 @@ def floor_label(n: int) -> str:
 
 def building_dict(b: Building) -> dict:
     return {"id": b.id, "name": b.name, "short": b.short, "kind": b.kind, "levels": b.levels, "note": b.note,
-            "places": list(b.places), "formats": [{"code": c, "meaning": m} for c, m in b.formats],
+            "places": list(b.places), "extension_floors": list(b.extension_floors), "formats": [{"code": c, "meaning": m} for c, m in b.formats],
             "floors": [{"n": i, "label": floor_label(i)} for i in range(b.levels)] if b.levels else []}
 
 
@@ -89,6 +91,8 @@ def parse_room(code: str | None) -> dict | None:
             room = rest
         out = {"ok": True, "code": raw, "building": "D", "building_name": b.name, "wing": side, "floor": floor,
                "floor_label": floor_label(floor) if floor is not None else None, "room": room, "warning": None}
+        if wing == "E" and floor is not None and floor not in b.extension_floors:
+            out["warning"] = "The D building Extension exists only on the 1st, 2nd and 3rd floors. Check the room number."
         out["message"] = f"{b.name}, {side}, {floor_label(floor)}, room {room}." if floor is not None else f"{b.name}, {side}, room {room}."
         return out
     if norm.startswith("D") and len(norm) > 1:

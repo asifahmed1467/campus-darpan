@@ -231,6 +231,7 @@ def test_room_codes_decode(client):
     assert (n["wing"], n["room"], n["floor"]) == ("North side", "03", None)
     assert (so["wing"], so["room"]) == ("South side", "03")
     assert (e["wing"], e["floor"], e["room"]) == ("Extension", 2, "04") and e["message"] == "D Building, Extension, 2nd floor, room 04."
+    assert e["warning"] is None and parse_room("DE804")["warning"].startswith("The D building Extension exists only")
     assert parse_room("DNGA05")["room"] == "GA05" and parse_room("DNGA05")["wing"] == "North side"
     assert parse_room("hello")["ok"] is False and parse_room("") is None and parse_room(None) is None
 

@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import DFloorPlan, { type DWing } from "@/components/DFloorPlan";
 import CampusMap, { BUILDING_COLORS, type CampusBuilding } from "@/components/CampusMap";
 import { api } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
-interface RoomResult { ok: boolean; message: string; building?: string; building_name?: string; floor?: number | null; floor_label?: string | null; room?: string | null; warning?: string | null }
+interface RoomResult { ok: boolean; message: string; building?: string; building_name?: string; floor?: number | null; floor_label?: string | null; room?: string | null; warning?: string | null; wing?: string }
 
 export default function RoomsPage() {
   const { t } = useLang();
@@ -55,10 +56,16 @@ export default function RoomsPage() {
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_19rem]">
+        <div className="space-y-6">
         <section aria-label="Campus map" className="self-start rounded-2xl border border-line bg-paper p-2 sm:p-4">
           {buildings.length ? <CampusMap buildings={buildings} selected={sel} floor={floor} onSelect={pick} /> : <div className="skeleton h-72 rounded-xl" />}
           <p className="px-2 pb-1 text-[15px] text-mute">A sketch of how the buildings sit, following the campus map. Not to scale. Heights follow the floor counts; dashed roofs mean the floor count is not added yet. Each building has its own colour.</p>
         </section>
+        {sel === "D" && b && (
+          <DFloorPlan floor={floor} levels={b.levels ?? 9} extensionFloors={b.extension_floors ?? []} onPickFloor={setFloor}
+            highlight={(res?.ok && res.building === "D" ? (res.wing as DWing) ?? null : null)} />
+        )}
+        </div>
 
         <aside className="space-y-4">
           <div className="flex flex-wrap gap-2" role="group" aria-label="Buildings">

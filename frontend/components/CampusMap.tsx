@@ -3,7 +3,7 @@ import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
 
 export interface CampusBuilding {
   id: string; name: string; short: string; kind: string; levels: number | null; note: string; places: string[];
-  floors: { n: number; label: string }[]; formats?: { code: string; meaning: string }[];
+  floors: { n: number; label: string }[]; extension_floors?: number[]; formats?: { code: string; meaning: string }[];
 }
 
 /* ---------------------------------------------------------------------------------------------
@@ -209,7 +209,7 @@ export default function CampusMap({ buildings, selected, floor, onSelect }: {
         const roofIn = inset(r, 0.2);
         return (
           <g key={b.id}>
-            {b.id === "D" && [1, 2].map((fl) => {
+            {b.id === "D" && [2, 3].map((fl) => {
               // two bridges between Annex 9 and D, on the 2nd and 3rd floors
               const br: R = { u0: bridgeRight.u0 + 3.2, u1: bridgeRight.u1 - 3.2, v0: bridgeLeft.v1, v1: bridgeRight.v0 };
               return <g key={fl} style={{ opacity: dim }} aria-hidden><Prism r={br} z0={fl * FH + 1.5} z1={(fl + 1) * FH - 1.5} c={{ l: "#6d9bb2", r: "#8fc0d8", roof: "#c9e4f1" }} sw={0.8} />
