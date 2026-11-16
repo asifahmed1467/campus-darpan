@@ -97,7 +97,7 @@ _cache: dict[str, tuple[float, object]] = {}
 
 def _cached(key: str, ttl: float, fn):
     hit = _cache.get(key)
-    if hit and time.time() - hit[0] < ttl:
+    if hit and time.time() - hit[0] < (ttl if hit[1] is not None else 60):   # a failed fetch is retried after a minute
         return hit[1]
     try:
         val = fn()
@@ -158,9 +158,42 @@ def traffic_level(now_s: float, usual_s: float) -> str:
 traffic_state = {"status": "not_configured"}   # not_configured | ok | rejected | unavailable | resting (never holds the key)
 
 
+def _mapbox_trip(token: str, trip) -> dict:
+    """Live drive time from Mapbox's traffic-aware profile. The usual time is Mapbox's typical-traffic figure,
+    or the no-traffic drive time when that is missing."""
+    name, lat, lon = trip
+    coords = f"{lon},{lat};{AIUB_LON},{AIUB_LAT}"
+    r = httpx.get(f"https://api.mapbox.com/directions/v5/mapbox/driving-traffic/{coords}", timeout=8,
+                  params={"access_token": token, "overview": "false", "alternatives": "false"})
+    if r.status_code in (401, 403):
+        traffic_state["status"] = "rejected"
+    r.raise_for_status()
+    route = r.json()["routes"][0]
+    now_s = float(route["duration"])
+    usual_s = route.get("duration_typical")
+    if not usual_s:
+        r2 = httpx.get(f"https://api.mapbox.com/directions/v5/mapbox/driving/{coords}", timeout=8,
+                       params={"access_token": token, "overview": "false"})
+        r2.raise_for_status()
+        usual_s = r2.json()["routes"][0]["duration"]
+    usual_s = float(usual_s)
+    return {"road": f"{name} to AIUB", "level": traffic_level(now_s, usual_s), "minutes": round(now_s / 60),
+            "usual_min": round(usual_s / 60), "delay_min": max(0, round((now_s - usual_s) / 60)),
+            "km": round(route.get("distance", 0) / 1000, 1)}
+
+
+def traffic_source() -> str | None:
+    if os.getenv("MAPBOX_TOKEN", "").strip():
+        return "Mapbox"
+    if os.getenv("GOOGLE_MAPS_KEY", "").strip():
+        return "Google Maps"
+    return None
+
+
 def get_traffic(now: datetime | None = None) -> list[dict] | None:
+    token = os.getenv("MAPBOX_TOKEN", "").strip()
     key = os.getenv("GOOGLE_MAPS_KEY", "").strip()
-    if not key:
+    if not token and not key:
         traffic_state["status"] = "not_configured"
         return None
     if now is not None and not (TRAFFIC_HOURS[0] <= now.hour < TRAFFIC_HOURS[1]):
@@ -184,8 +217,9 @@ def get_traffic(now: datetime | None = None) -> list[dict] | None:
                 "km": round(route.get("distanceMeters", 0) / 1000, 1)}
 
     def fetch():
+        worker = (lambda t: _mapbox_trip(token, t)) if token else one
         with ThreadPoolExecutor(len(ROUTES)) as ex:
-            rows = [x for x in ex.map(lambda t: _safe(one, t), ROUTES) if x]
+            rows = [x for x in ex.map(lambda t: _safe(worker, t), ROUTES) if x]
         if not rows:
             if traffic_state["status"] != "rejected":
                 traffic_state["status"] = "unavailable"

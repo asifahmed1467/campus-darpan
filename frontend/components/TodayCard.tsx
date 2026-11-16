@@ -10,7 +10,7 @@ type Today = {
   holiday_today: string | null; next_holiday: { name: string; date: string; days: number } | null;
   dated: Line[]; new_notices: Line[]; weekend: boolean;
   weather: { text: string | null; now_temp: number | null; max_temp: number | null; rain: number | null } | null;
-  traffic: Road[] | null;
+  traffic: Road[] | null; traffic_source?: string | null;
 };
 
 const ROAD_TONE: Record<Road["level"], string> = {
@@ -100,7 +100,7 @@ export default function TodayCard() {
                 </li>
               ))}
             </ul>
-            <p className="mt-1 text-sm text-mute">Live drive times by car or CNG from Google Maps, updated every 30 minutes from 7 AM to 9 PM.</p>
+            <p className="mt-1 text-sm text-mute">Live drive times by car or CNG from {t.traffic_source ?? "the map service"}, updated every 30 minutes from 7 AM to 9 PM.</p>
           </Row>
         )}
         {t.new_notices.length > 0 && (
