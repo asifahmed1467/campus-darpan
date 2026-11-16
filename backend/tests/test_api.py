@@ -357,3 +357,12 @@ def test_d_building_office_codes_with_desks_and_ground_floor():
     r = parse_room("DE0702B")
     assert (r["wing"], r["floor"], r["room"], r["seat"]) == ("Extension", 7, "02", "B")
     assert parse_room("DS101")["floor"] == 1 and parse_room("DN0921")["room"] == "21"
+
+
+def test_voice_status_and_no_key():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    assert c.get("/api/voice/status").json() == {"server": False}
+    r = c.post("/api/voice/transcribe", files={"audio": ("a.webm", b"x" * 10, "audio/webm")}, data={"lang": "en"})
+    assert r.status_code == 503

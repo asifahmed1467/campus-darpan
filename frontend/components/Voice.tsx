@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
-import { canSpeak, listen, speak, stopSpeaking, voiceBlocker } from "@/lib/speech";
+import { canSpeak, listen, recordAndTranscribe, serverVoiceReady, speak, stopSpeaking, voiceBlocker } from "@/lib/speech";
 
 export function MicButton({ onText, onError, className = "" }: { onText: (t: string) => void; onError?: (m: string) => void; className?: string }) {
   const { lang, t } = useLang();
@@ -12,11 +12,19 @@ export function MicButton({ onText, onError, className = "" }: { onText: (t: str
   return (
     <button type="button" aria-pressed={on} aria-label={on ? t("search.listening") : t("search.mic")} title={t("search.mic")}
       onClick={() => {
-        if (on) { stop.current(); setOn(false); return; }
-        const blocked = voiceBlocker();
-        if (blocked) { onError?.(blocked); return; }
-        setOn(true);
-        stop.current = listen(lang, onText, () => setOn(false), (m) => onError?.(m));
+        if (on) { stop.current(); return; }    // second tap: stop and send what was recorded
+        setOn(true); onError?.("");
+        const done = () => setOn(false), err = (m: string) => onError?.(m);
+        // Server voice typing first (works in every browser); the browser's own recognition if the server can't.
+        let cancelled = false;
+        stop.current = () => { cancelled = true; setOn(false); };
+        serverVoiceReady().then((server) => {
+          if (cancelled) return;
+          if (server) { stop.current = recordAndTranscribe(lang, onText, done, err); return; }
+          const blocked = voiceBlocker();
+          if (blocked) { err(blocked); done(); return; }
+          stop.current = listen(lang, onText, done, err);
+        });
       }}
       className={`relative grid h-11 w-11 shrink-0 place-items-center rounded-full ${on ? "bg-busy text-white" : "bg-brand text-white hover:bg-inverse"} ${className}`}>
       {on && <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-busy/40 motion-reduce:hidden" />}

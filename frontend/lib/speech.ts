@@ -1,4 +1,5 @@
 "use client";
+import { API } from "./api";
 // Voice runs in the student's own browser (free, and no load on our server).
 
 type Rec = {
@@ -17,6 +18,87 @@ function ctor(): (new () => Rec) | null {
 
 export const canListen = () => ctor() !== null;
 export const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window;
+
+// ---- Server voice typing (works in every browser, Brave and Messenger included) --------------
+// The phone records a short clip; the server turns it into text with Whisper. Used whenever the server has it set up.
+let serverVoice: Promise<boolean> | null = null;
+export function serverVoiceReady(): Promise<boolean> {
+  serverVoice ??= fetch(`${API}/api/voice/status`).then((r) => r.json()).then((j) => !!j.server).catch(() => false);
+  return serverVoice;
+}
+
+function pickMime(): string {
+  const M = (window as unknown as { MediaRecorder?: typeof MediaRecorder }).MediaRecorder;
+  if (!M) return "";
+  for (const t of ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"]) if (M.isTypeSupported?.(t)) return t;
+  return "";
+}
+
+/** Record until the student stops talking (or 12 s), then send to the server. Returns a function that stops early. */
+export function recordAndTranscribe(lang: "en" | "bn", onText: (t: string) => void, onEnd: () => void, onError: (msg: string) => void): () => void {
+  let stopped = false, rec: MediaRecorder | null = null, stream: MediaStream | null = null, ctx: AudioContext | null = null;
+  let timer: ReturnType<typeof setTimeout> | undefined, raf = 0;
+  const cleanup = () => { clearTimeout(timer); cancelAnimationFrame(raf); stream?.getTracks().forEach((t) => t.stop()); ctx?.close().catch(() => {}); };
+  const stop = () => { if (stopped) return; stopped = true; try { if (rec && rec.state !== "inactive") rec.stop(); else { cleanup(); onEnd(); } } catch { cleanup(); onEnd(); } };
+
+  (async () => {
+    if (!navigator.mediaDevices?.getUserMedia || !(window as unknown as { MediaRecorder?: unknown }).MediaRecorder) {
+      onError("This browser can't record sound. Open the page in Chrome, or type your question."); onEnd(); return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch (e) {
+      const name = (e as { name?: string }).name;
+      onError(name === "NotAllowedError" ? "Microphone access is blocked. Allow the microphone for this site in your browser settings."
+        : name === "NotFoundError" ? "No microphone was found." : "Couldn't open the microphone. Try again.");
+      onEnd(); return;
+    }
+    if (stopped) { cleanup(); onEnd(); return; }
+    const mime = pickMime();
+    rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    const chunks: Blob[] = [];
+    rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    rec.onstop = async () => {
+      cleanup();
+      const type = rec?.mimeType || mime || "audio/webm";
+      const blob = new Blob(chunks, { type });
+      if (blob.size < 1500) { onError("I didn't hear anything. Tap the mic and try again."); onEnd(); return; }
+      const ext = type.includes("mp4") ? "m4a" : type.includes("ogg") ? "ogg" : "webm";
+      const form = new FormData(); form.append("audio", blob, `speech.${ext}`); form.append("lang", lang);
+      try {
+        const r = await fetch(`${API}/api/voice/transcribe`, { method: "POST", body: form });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) onError(j.detail || "Voice typing didn't work. Try again or type your question.");
+        else if (j.text) onText(String(j.text).trim());
+        else onError("I couldn't make out the words. Try again a little closer to the mic.");
+      } catch { onError("Voice typing needs an internet connection."); }
+      onEnd();
+    };
+    rec.start();
+    timer = setTimeout(stop, 12000);
+    // stop by itself after about 1.5 s of quiet once the student has started speaking
+    try {
+      ctx = new AudioContext();
+      const an = ctx.createAnalyser(); an.fftSize = 1024;
+      ctx.createMediaStreamSource(stream).connect(an);
+      const buf = new Uint8Array(an.fftSize);
+      let spoke = false, quietSince = 0;
+      const t0 = performance.now();
+      const tick = () => {
+        if (stopped) return;
+        an.getByteTimeDomainData(buf);
+        let sum = 0; for (const v of buf) sum += (v - 128) * (v - 128);
+        const level = Math.sqrt(sum / buf.length);
+        const now = performance.now();
+        if (level > 6) { spoke = true; quietSince = 0; } else if (spoke) { quietSince ||= now; if (now - quietSince > 1500) { stop(); return; } }
+        if (!spoke && now - t0 > 6000) { stop(); return; }   // nothing said at all
+        raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    } catch { /* no silence detection: the 12 s limit or a second tap stops it */ }
+  })();
+  return stop;
+}
 
 /** Browsers where voice typing cannot work, with a plain reason the student can act on. */
 export function voiceBlocker(): string | null {

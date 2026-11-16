@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-from .api import admin, admin_notices, inbound, public, push as push_api
+from .api import admin, admin_notices, inbound, public, push as push_api, voice as voice_api
 from . import config
 from .config import CORS_ORIGINS
 from .db import init_db
@@ -78,6 +78,7 @@ app.include_router(admin_notices.router)
 app.include_router(admin_notices.public)
 app.include_router(inbound.router)
 app.include_router(push_api.router)
+app.include_router(voice_api.router)
 
 
 _CACHEABLE = ("/api/search/suggest", "/api/faculty", "/api/notices", "/api/meta")
