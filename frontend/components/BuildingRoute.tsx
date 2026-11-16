@@ -74,7 +74,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     // materials, close to the photo: warm stone bands, dark glass, charcoal tower
     const stone = mat({ color: 0xd9d3c7, roughness: 0.85 });
     const stoneDark = mat({ color: 0x8d8a85, roughness: 0.8 });
-    const glassDark = mat({ color: 0x27303d, roughness: 0.12, metalness: 0.65 });
+    const glassDark = mat({ color: 0x4a5a6e, roughness: 0.1, metalness: 0.35, emissive: 0x16202c, emissiveIntensity: 0.4 });
     const tower = mat({ color: 0x3a3d43, roughness: 0.7 });
     const towerWin = mat({ color: 0x9fb1c4, roughness: 0.2, metalness: 0.4 });
     const slab = mat({ color: 0xcfcac0, roughness: 0.9 });
@@ -233,7 +233,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     const total = plan.reduce((a, p) => a + p.d, 0);
 
     // ---- camera: drag to orbit; it rises with the student
-    let ang = 0.28, tilt = 0.55, drag: { x: number; y: number } | null = null, camY = 1.2;
+    let ang = 0.42, tilt = 0.5, drag: { x: number; y: number } | null = null, camY = 4.5, camR = 30;
     const dom = R.domElement; dom.style.touchAction = "pan-y"; dom.style.cursor = "grab";
     const down = (e: PointerEvent) => { drag = { x: e.clientX, y: e.clientY }; dom.setPointerCapture(e.pointerId); dom.style.cursor = "grabbing"; };
     const move = (e: PointerEvent) => { if (!drag) return; ang -= (e.clientX - drag.x) * 0.008; tilt = Math.min(1.15, Math.max(0.2, tilt + (e.clientY - drag.y) * 0.004)); drag = { x: e.clientX, y: e.clientY }; };
@@ -276,11 +276,12 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       const lv = Math.round(Math.max(0, cab.position.y - 0.04) / FH), lvs = lv === 0 ? "G" : String(lv);
       if (lvs !== lastLvl) { lastLvl = lvs; setLvl(lvs); }
       // camera: a wide view of the whole building first, then it follows the student and looks down into the floor
-      const want = i < 2 ? 3.5 : Math.max(y, 0.5);
-      camY = lerp(camY, want, 0.05);
-      const r = el.clientWidth < 500 ? 17 : 15;
-      C.position.set(Math.sin(ang) * r, camY + 2.5 + tilt * 8, Math.cos(ang) * r);
-      C.lookAt(i >= 4 ? x * 0.5 : 0, camY - (i < 2 ? 1.6 : 0) + 0.2, 0);
+      const narrow = el.clientWidth < 500;
+      const want = i < 2 ? 4.5 : Math.max(y, 0.5);
+      camY = lerp(camY, want, 0.04);
+      camR = lerp(camR, i < 2 ? (narrow ? 34 : 28) : (narrow ? 20 : 16), 0.03);
+      C.position.set(Math.sin(ang) * camR, camY + 1.5 + tilt * camR * 0.45, Math.cos(ang) * camR);
+      C.lookAt(i >= 4 ? x * 0.5 : 0.4, camY - (i < 2 ? 0.5 : 0) + 0.2, 0);
       R.render(S, C);
     };
     raf = requestAnimationFrame(frameFn);
