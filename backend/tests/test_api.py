@@ -380,7 +380,7 @@ def test_ask_uses_ai_when_set_up(monkeypatch):
     monkeypatch.setattr(llm, "answer", fake)
     r = TestClient(app).post("/api/ask", json={"question": "When was AIUB founded?"}).json()
     assert r["mode"] == "ai" and r["ai"] and r["answered"] and r["answer"] == "AIUB was founded in 1994 [1]."
-    assert seen["n"] >= 2 and len(r["sources"]) == 1
+    assert seen["n"] >= 2 and len(r["sources"]) == 1 and r["general"] is False
     # a teacher question still uses the exact schedule, not the AI
     r = TestClient(app).post("/api/ask", json={"question": "When is Nyme Ahmed free?"}).json()
     assert r["mode"] == "faculty"

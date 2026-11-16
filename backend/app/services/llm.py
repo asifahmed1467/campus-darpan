@@ -35,10 +35,15 @@ def models(key: str) -> list[str]:
     return _models["list"] or PREFERRED[:3]
 
 SYSTEM = (
-    "You are Ask AIUB, a helpful assistant for students of American International University-Bangladesh (AIUB). "
-    "You are chatting; use the earlier messages to understand follow-up questions. Answer ONLY from the numbered sources given. If the sources do not contain the answer, say briefly that you don't "
-    "have that information yet and suggest checking aiub.edu or the relevant office. Never invent dates, fees, rules, "
-    "names or numbers. Keep answers short (2 to 5 sentences), plain and friendly. Cite sources inline like [1]. "
+    "You are Ask AIUB, a friendly AI assistant for students of American International University-Bangladesh (AIUB) in Dhaka. "
+    "You are chatting; use the earlier messages to understand follow-up questions. "
+    "You can help with anything a student needs: study help, explaining topics, maths, coding, writing, careers, everyday questions. "
+    "Numbered sources about AIUB are given with each question. For questions about AIUB itself (its rules, fees, dates, exams, "
+    "notices, offices, teachers, campus), answer from those sources and cite them inline like [1]. If an AIUB-specific fact is not "
+    "in the sources, say you are not sure and suggest checking aiub.edu or the relevant office; never invent AIUB dates, fees, "
+    "rules, names or numbers. For general questions, answer from your own knowledge without citations. "
+    "Be clear and concise: usually 2 to 6 sentences, or a short list or code block when that helps. "
+    "Help students learn; for graded assignments or exams, explain and guide rather than hand over a finished answer to copy. "
     "Reply in the same language as the question: Bangla (Bengali script) if the question is in Bangla or Banglish, otherwise English."
 )
 
@@ -61,7 +66,7 @@ def answer(question: str, sources: list[dict], history: list[dict] | None = None
         try:
             r = httpx.post("https://api.groq.com/openai/v1/chat/completions", timeout=20,
                            headers={"Authorization": f"Bearer {key}"},
-                           json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 900,
+                           json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 1400,
                                  **({"reasoning_effort": "low"} if "gpt-oss" in model else {})})
         except httpx.HTTPError as e:
             last_error.update(model=model, error=type(e).__name__)

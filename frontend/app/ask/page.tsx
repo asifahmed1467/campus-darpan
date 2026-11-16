@@ -11,7 +11,7 @@ import { statusInfo } from "@/lib/status";
 import type { AskResult } from "@/lib/types";
 
 type Msg = { role: "me"; text: string } | { role: "bot"; res: AskResult; speak: boolean } | { role: "err"; text: string };
-const SUGGEST = ["When is Nyme sir free?", "Any exams today?", "How do I add or drop a course?", "আমি কিভাবে স্কলারশিপ পাব?"];
+const SUGGEST = ["When is Nyme sir free?", "Any exams today?", "Explain recursion simply", "আমি কিভাবে স্কলারশিপ পাব?"];
 
 function AskInner() {
   const { t } = useLang();
@@ -53,7 +53,7 @@ function AskInner() {
 
       <div className="mt-6 space-y-5" aria-live="polite">
         <div className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
-          <p className="text-lg">Hi! I&apos;m Ask AIUB. Ask me anything about AIUB in English or বাংলা: a teacher&apos;s free time or room, exams, notices, holidays, admission, courses or rules. You can type or tap the mic, and ask follow-up questions too.</p>
+          <p className="text-lg">Hi! I&apos;m Ask AIUB, your AI assistant. Ask me anything in English or বাংলা: a teacher&apos;s free time or room, exams, notices and AIUB rules, or help with studies, coding, writing and more. You can type or tap the mic, and ask follow-up questions too.</p>
           {msgs.length === 0 && (
             <div className="mt-3 flex flex-wrap gap-2">{SUGGEST.map((s) => <button key={s} className="chip" onClick={() => ask(s, false)}>{s}</button>)}</div>
           )}
@@ -64,7 +64,7 @@ function AskInner() {
           <div key={i} role="alert" className="rounded-2xl border-2 border-busy bg-sheet px-4 py-3 text-busy">{m.text}</div>
         ) : (
           <div key={i} className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
-            {m.res.ai && <p className="mb-1.5 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 font-display text-xs font-bold text-brand">AI answer from AIUB sources · check the source before you rely on it</p>}
+            {m.res.ai && <p className="mb-1.5 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 font-display text-xs font-bold text-brand">{m.res.general ? "AI answer · it can make mistakes" : "AI answer from AIUB sources · check the source"}</p>}
             <p className="whitespace-pre-line text-lg">{m.res.answer}</p>
             {m.res.faculty && (
               <Link href={`/faculty/${m.res.faculty.id}`} className="mt-3 block rounded-xl border border-line bg-paper p-3 hover:border-brand">
@@ -100,7 +100,7 @@ function AskInner() {
       <form onSubmit={(e) => { e.preventDefault(); ask(q, false); }} className="sticky bottom-[68px] z-20 mt-6 bg-paper pb-3 pt-2 md:bottom-0">
         <div className="flex items-center gap-2 rounded-2xl border-2 border-edge bg-sheet py-1.5 pl-4 pr-1.5 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
           <label htmlFor="ask" className="sr-only">{t("ask.placeholder")}</label>
-          <input id="ask" className="min-w-0 flex-1 bg-transparent py-2 font-display text-lg outline-none placeholder:text-mute focus-visible:outline-none" value={q} maxLength={300} autoComplete="off"
+          <input id="ask" className="min-w-0 flex-1 bg-transparent py-2 font-display text-lg outline-none placeholder:text-mute focus-visible:outline-none" value={q} maxLength={1000} autoComplete="off"
             onChange={(e) => setQ(e.target.value)} placeholder={t("ask.placeholder")} enterKeyHint="send" />
           <MicButton onText={(text) => { setVoiceMsg(""); ask(text, true); }} onError={setVoiceMsg} />
           <button className="btn btn-primary" type="submit" disabled={busy || !q.trim()}>{t("ask.send")}</button>

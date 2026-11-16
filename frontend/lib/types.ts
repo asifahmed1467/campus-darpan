@@ -52,6 +52,7 @@ export interface Meta {
 export interface AskResult {
   sample?: boolean;
   ai?: boolean;
+  general?: boolean;
   mode: string; answered: boolean; answer: string; faculty?: Faculty;
   sources: { title: string; url: string }[];
 }

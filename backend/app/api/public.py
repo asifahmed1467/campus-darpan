@@ -237,7 +237,7 @@ class Turn(BaseModel):
 
 
 class Ask(BaseModel):
-    question: str = Field(min_length=2, max_length=300)
+    question: str = Field(min_length=2, max_length=1000)
     at: str | None = None
     history: list[Turn] = Field(default_factory=list, max_length=8)   # the last few chat turns, for follow-up questions
 
@@ -319,10 +319,9 @@ def _ask_ai(db: Session, snap, question: str, now, history: list[dict] | None = 
     if not out:
         return None
     used = out["used"] or []
-    cites = [{"title": sources[i]["title"], "url": sources[i]["url"]} for i in used] or \
-            [{"title": "AIUB website", "url": "https://www.aiub.edu/"}]
+    cites = [{"title": sources[i]["title"], "url": sources[i]["url"]} for i in used]   # empty for general-knowledge answers
     text = re.sub(r"\s*\[(\d+)\]", lambda m: f" [{used.index(int(m.group(1)) - 1) + 1}]" if int(m.group(1)) - 1 in used else "", out["answer"])
-    return {"answer": text, "ai": True, "sources": cites, "answered": not llm.says_unknown(text)}
+    return {"answer": text, "ai": True, "general": not cites, "sources": cites, "answered": not llm.says_unknown(text)}
 
 
 @router.get("/ask/samples")
