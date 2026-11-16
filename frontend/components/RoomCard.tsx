@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Profile } from "@/lib/types";
+import RouteButton from "./RouteButton";
 
 const firstName = (n: string) => n.replace(/^(dr|prof|mr|ms|mrs|md)\.?\s+/i, "").split(/\s+/)[0];
 
@@ -32,6 +33,7 @@ export function RoomCard({ p }: { p: Profile }) {
           <p className="mt-3 text-lg text-white/85">Classes in <span className="font-display font-bold">{classRooms.join(", ")}</span></p>
         )}
       </div>
+      {ri && <div className="order-last col-span-2 sm:col-span-3"><RouteButton info={ri} tone="dark" /></div>}
       {p.room && ri?.ok && (
         <Link href={`/rooms?code=${encodeURIComponent(p.room)}`} className="btn col-span-2 !min-h-[52px] w-full bg-white !px-5 text-lg text-brand hover:bg-needle sm:col-span-1 sm:w-auto">Show on map</Link>
       )}

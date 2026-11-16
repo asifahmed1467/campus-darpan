@@ -23,7 +23,7 @@ export interface Faculty {
   id: number; name: string; email: string | null; faculty_code: string | null; department: string | null;
   designation: string | null; room: string | null; building: string | null; photo_url: string | null;
   profile_url: string | null; has_tsf: boolean; today: TodayBlock[]; status: Status; message: string;
-  room_info?: { ok: boolean; building_name?: string; wing?: string | null; floor_label?: string | null; floor?: number | null; room?: string | null } | null;
+  room_info?: { ok: boolean; code?: string; building?: string; building_name?: string; wing?: string | null; floor_label?: string | null; floor?: number | null; room?: string | null } | null;
 }
 
 export interface WeekSlot {

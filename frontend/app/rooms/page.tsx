@@ -5,8 +5,9 @@ import DFloorPlan, { type DWing } from "@/components/DFloorPlan";
 import CampusMap, { BUILDING_COLORS, type CampusBuilding } from "@/components/CampusMap";
 import { api } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
+import RouteButton from "@/components/RouteButton";
 
-interface RoomResult { ok: boolean; message: string; building?: string; building_name?: string; floor?: number | null; floor_label?: string | null; room?: string | null; warning?: string | null; wing?: string }
+interface RoomResult { ok: boolean; code?: string; message: string; building?: string; building_name?: string; floor?: number | null; floor_label?: string | null; room?: string | null; warning?: string | null; wing?: string }
 
 export default function RoomsPage() {
   const { t } = useLang();
@@ -49,9 +50,10 @@ export default function RoomsPage() {
       </form>
       {err && <p role="alert" className="mt-3 text-busy">{err}</p>}
       {res && (
-        <div role="status" className={`mt-4 max-w-xl rounded-xl border-2 p-4 ${res.ok ? "border-go" : "border-line"} bg-sheet`}>
+        <div role="status" className={`mt-4 max-w-3xl rounded-xl border-2 p-4 ${res.ok ? "border-go" : "border-line"} bg-sheet`}>
           <p className="font-display text-xl font-semibold">{res.message}</p>
           {res.warning && <p className="mt-1 text-warn">{res.warning}</p>}
+          <div className="mt-3"><RouteButton info={res} /></div>
         </div>
       )}
 
