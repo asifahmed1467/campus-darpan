@@ -120,7 +120,6 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
         const g = box(W, FH - 0.12, D, ghost, 0, cy, 0, false); g.castShadow = false;
       }
     }
-    if (floor === FLOORS - 1) { box(W + 0.3, 0.25, 0.08, concrete, 0, FLOORS * FH + 0.12, D / 2 + 0.1); for (const x of [-3, 2.5]) box(1.1, 0.4, 0.9, steel, x, FLOORS * FH + 0.26, -0.3); }
 
     // ---- the student's floor: tiled corridor, rooms with doors along the back
     box(W - 0.2, 0.02, D - 0.2, tile, 0, tgtY + 0.07, 0, false);
@@ -237,7 +236,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       // camera
       camY = lerp(camY, Math.max(y, 0.4), 0.05);
       const r = 12.5;
-      C.position.set(Math.sin(ang) * r * Math.cos(tilt * 0.6), camY + 2 + tilt * 7, Math.cos(ang) * r);
+      C.position.set(Math.sin(ang) * r * Math.cos(tilt * 0.6), camY + 2.5 + tilt * 8, Math.cos(ang) * r);
       C.lookAt(x * 0.35, camY + 0.3, 0);
       R.render(S, C);
     };
