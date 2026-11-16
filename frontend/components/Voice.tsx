@@ -1,20 +1,20 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
-import { canListen, canSpeak, listen, speak, stopSpeaking } from "@/lib/speech";
+import { canSpeak, listen, speak, stopSpeaking, voiceBlocker } from "@/lib/speech";
 
 export function MicButton({ onText, onError, className = "" }: { onText: (t: string) => void; onError?: (m: string) => void; className?: string }) {
   const { lang, t } = useLang();
   const [on, setOn] = useState(false);
   const stop = useRef<() => void>(() => {});
-  const [ok, setOk] = useState(true);
-  useEffect(() => { setOk(canListen()); return () => stop.current(); }, []);
-
-  if (!ok) return null; // browsers without speech recognition simply don't get the button
+  useEffect(() => () => stop.current(), []);
+  // The button always shows. Where voice typing can't work (Brave, Messenger, Firefox), tapping it explains what to do instead.
   return (
     <button type="button" aria-pressed={on} aria-label={on ? t("search.listening") : t("search.mic")} title={t("search.mic")}
       onClick={() => {
         if (on) { stop.current(); setOn(false); return; }
+        const blocked = voiceBlocker();
+        if (blocked) { onError?.(blocked); return; }
         setOn(true);
         stop.current = listen(lang, onText, () => setOn(false), (m) => onError?.(m));
       }}

@@ -18,9 +18,24 @@ function ctor(): (new () => Rec) | null {
 export const canListen = () => ctor() !== null;
 export const canSpeak = () => typeof window !== "undefined" && "speechSynthesis" in window;
 
+/** Browsers where voice typing cannot work, with a plain reason the student can act on. */
+export function voiceBlocker(): string | null {
+  if (typeof window === "undefined") return null;
+  const ua = navigator.userAgent;
+  if (/FBAN|FBAV|FB_IAB|Messenger|Instagram|Line\/|WhatsApp/i.test(ua))
+    return "Voice doesn't work inside Messenger or Facebook. Tap ⋯ and choose Open in Chrome (or your browser), then try the mic.";
+  if ((navigator as unknown as { brave?: unknown }).brave)
+    return "Brave blocks voice typing. Open this page in Chrome or Edge to use the mic, or type your question.";
+  if (!ctor()) return /iPhone|iPad/i.test(ua)
+    ? "Voice typing needs Safari with Siri turned on (Settings → Siri). Or type your question."
+    : "Voice typing isn't supported in this browser. Open this page in Chrome or Edge, or type your question.";
+  return null;
+}
+
 export function listen(lang: "en" | "bn", onText: (t: string) => void, onEnd: () => void, onError: (msg: string) => void): () => void {
   const C = ctor();
-  if (!C) { onError("Voice input isn't supported in this browser. Try Chrome."); onEnd(); return () => {}; }
+  const blocked = voiceBlocker();
+  if (!C || blocked) { onError(blocked ?? "Voice typing isn't supported in this browser. Try Chrome."); onEnd(); return () => {}; }
   const r = new C();
   r.lang = lang === "bn" ? "bn-BD" : "en-US";
   r.interimResults = false; r.maxAlternatives = 1; r.continuous = false;
@@ -28,7 +43,10 @@ export function listen(lang: "en" | "bn", onText: (t: string) => void, onEnd: ()
   r.onerror = (e) => {
     onError(e.error === "not-allowed" || e.error === "service-not-allowed" ? "Microphone access is blocked. Allow it in the browser's site settings."
       : e.error === "no-speech" ? "I didn't hear anything. Tap the mic and try again."
-      : e.error === "network" ? "Voice input needs an internet connection." : "Voice input stopped. Try again.");
+      : e.error === "network" ? "Voice typing couldn't reach the speech service. This happens in Brave and some other browsers; open the page in Chrome or Edge, or type your question."
+      : e.error === "audio-capture" ? "No microphone was found. Check that your mic is connected and allowed."
+      : e.error === "language-not-supported" ? "This browser can't listen in Bangla. Switch the site to English, or open it in Chrome."
+      : "Voice input stopped. Try again.");
   };
   r.onend = onEnd;
   try { r.start(); } catch { onEnd(); }
