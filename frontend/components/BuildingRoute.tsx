@@ -246,7 +246,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     // x-ray: while the lift rides, the walls and floors below turn see-through so the lift at the back is visible
     const xray = [stone, stoneDark, glassDark, slab, tower, towerWin, planter];
-    xray.forEach((m) => { m.transparent = true; });
+    xray.forEach((m) => { m.transparent = true; m.needsUpdate = true; });
     const setXray = (o: number) => { for (const m of xray) { m.opacity = o; m.depthWrite = o > 0.9; } };
     const setFade = (o: number) => { for (const m of fadeMats) { m.opacity = o; m.depthWrite = o > 0.6; } upper.visible = o > 0.02; };
     const t0 = performance.now();
