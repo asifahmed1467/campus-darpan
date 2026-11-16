@@ -363,7 +363,7 @@ def test_voice_status_and_no_key():
     from fastapi.testclient import TestClient
     from app.main import app
     c = TestClient(app)
-    assert c.get("/api/voice/status").json() == {"server": False}
+    assert c.get("/api/voice/status").json()["server"] is False
     r = c.post("/api/voice/transcribe", files={"audio": ("a.webm", b"x" * 10, "audio/webm")}, data={"lang": "en"})
     assert r.status_code == 503
 
@@ -391,3 +391,12 @@ def test_ask_uses_ai_when_set_up(monkeypatch):
     monkeypatch.setattr(llm, "answer", lambda q, s, h=None: None)
     r = TestClient(app).post("/api/ask", json={"question": "When was AIUB founded?"}).json()
     assert r["mode"] in ("faq", "docs")
+
+
+
+def test_question_words_do_not_match_teachers_by_email():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    r = TestClient(app).post("/api/ask", json={"question": "and who do I email if there is a problem?"}).json()
+    assert r["mode"] != "faculty"
+    assert TestClient(app).post("/api/ask", json={"question": "When is Nyme sir free?"}).json()["mode"] == "faculty"

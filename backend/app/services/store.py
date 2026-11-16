@@ -226,15 +226,24 @@ free available availability consultation consulting office hour hours time where
 please tell what who how next now today tomorrow does do he she his her their teacher faculty lecturer""".split())
 
 
+def _name_hit(f, words: list[str]) -> bool:
+    """True when one of the question's words is (the start of) a word in the teacher's NAME,
+    so "who do I email about a problem?" no longer matches a teacher through their email or department."""
+    parts = [p for p in _tokens(f.name) if len(p) >= 3]
+    return any(len(w) >= 3 and any(p.startswith(w) or (len(p) >= 4 and w.startswith(p)) for p in parts) for w in words)
+
+
 def find_faculty_in_text(snap: Snapshot, text: str):
     words = [w for w in _tokens(text) if w not in _STOP]
     if not words:
         return None
     res = search(snap, " ".join(words), limit=1)
+    if res and not _name_hit(res[0][1], words):
+        res = []
     if not res and len(words) > 1:  # try each word on its own, longest first
         for w in sorted(words, key=len, reverse=True):
             res = search(snap, w, limit=1)
-            if res and res[0][0] >= 90:
+            if res and res[0][0] >= 90 and _name_hit(res[0][1], [w]):
                 break
             res = []
     return res[0][1] if res and res[0][0] >= 90 else None

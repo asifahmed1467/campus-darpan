@@ -9,6 +9,8 @@ import re
 
 import httpx
 
+last_error: dict = {}      # the latest failure (status and a short message, never the key), shown on /api/voice/status
+
 MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]   # better first; the small one has a much larger free allowance
 
 SYSTEM = (
@@ -39,10 +41,13 @@ def answer(question: str, sources: list[dict], history: list[dict] | None = None
             r = httpx.post("https://api.groq.com/openai/v1/chat/completions", timeout=20,
                            headers={"Authorization": f"Bearer {key}"},
                            json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 350})
-        except httpx.HTTPError:
+        except httpx.HTTPError as e:
+            last_error.update(model=model, error=type(e).__name__)
             continue
-        if r.status_code == 429 or r.status_code >= 500:
-            continue           # busy or down: try the next model
+        if r.status_code >= 400:
+            last_error.update(model=model, status=r.status_code, detail=r.text[:200].replace(key, "***"))
+        if r.status_code == 429 or r.status_code >= 500 or r.status_code in (400, 404):
+            continue           # busy, down, or this model not available: try the next model
         if r.status_code >= 400:
             return None
         text = (r.json()["choices"][0]["message"]["content"] or "").strip()
