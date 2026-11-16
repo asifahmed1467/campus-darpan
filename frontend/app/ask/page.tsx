@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import DayStrip from "@/components/DayStrip";
+import RichText from "@/components/RichText";
 import { StatusLabel } from "@/components/FacultyRow";
 import { MicButton, SpeakButton } from "@/components/Voice";
 import { api, minutesOf } from "@/lib/api";
@@ -65,7 +66,7 @@ function AskInner() {
         ) : (
           <div key={i} className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
             {m.res.ai && <p className="mb-1.5 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 font-display text-xs font-bold text-brand">{m.res.general ? "AI answer · it can make mistakes" : "AI answer from AIUB sources · check the source"}</p>}
-            <p className="whitespace-pre-line text-lg">{m.res.answer}</p>
+            <RichText text={m.res.answer} className="text-lg" />
             {m.res.faculty && (
               <Link href={`/faculty/${m.res.faculty.id}`} className="mt-3 block rounded-xl border border-line bg-paper p-3 hover:border-brand">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
