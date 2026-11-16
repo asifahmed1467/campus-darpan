@@ -159,6 +159,37 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
         const dome = new THREE.Mesh(new THREE.SphereGeometry(r * 0.95, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), m({ color: 0x8fc3e6, roughness: 0.08, metalness: 0.4, opacity: 0.85 }));
         dome.position.set(x, h, z); group.add(dome); trash.push(dome.geometry);
         hits.push(cyl, dome); cyl.userData.id = dome.userData.id = b.id;
+      } else if (b.id === "D") {
+        // D Building as in the photo: warm stone bands and dark glass window strips on every floor, darker top floors,
+        // a planted terrace ledge on the field side, and the tall charcoal tower at the North end.
+        const stone = m({ color: 0xd9d3c7, roughness: 0.85 }), stoneDark = m({ color: 0x8d8a85, roughness: 0.8 });
+        const glass = m({ color: 0x4a5a6e, roughness: 0.1, metalness: 0.35, emissive: 0x16202c, emissiveIntensity: 0.4 });
+        const towerM = m({ color: 0x3a3d43, roughness: 0.7 }), towerWin = m({ color: 0x9fb1c4, roughness: 0.2 });
+        const leaf = m({ color: dark ? 0x2f6a3e : 0x4d8f46, roughness: 1 }), pot = m({ color: 0x6f6a62, roughness: 0.9 });
+        const towerD = Math.min(3.2, d * 0.16), bodyD = d - towerD;          // tower at the North (front, road) end
+        const bz = z - towerD / 2;                                           // centre of the main block
+        const part = (mm: THREE.Material, ww: number, hh: number, dd: number, xx: number, yy: number, zz: number) => {
+          const me = new THREE.Mesh(BOX, mm); me.scale.set(ww, hh, dd); me.position.set(xx, yy, zz); me.castShadow = me.receiveShadow = true; group.add(me); return me;
+        };
+        for (let f = 0; f < levels; f++) {
+          const y = f * FH, band = f >= levels - 2 ? stoneDark : stone;
+          const inset = f >= 7 ? 0.45 : 0;                                    // upper floors step back on the field side
+          part(band, w - inset, FH * 0.45, bodyD, x + inset / 2, y + FH * 0.225, bz);
+          part(glass, w - inset - 0.12, FH * 0.5, bodyD - 0.12, x + inset / 2, y + FH * 0.7, bz);
+        }
+        part(stone, w + 0.2, 0.18, bodyD + 0.2, x, h + 0.09, bz);            // roof slab
+        for (let k = 0; k < 6; k++) {                                         // planted ledge on the 7th floor, field side
+          const zz = bz - bodyD / 2 + 1.2 + k * ((bodyD - 2.4) / 5);
+          part(pot, 0.5, 0.25, 0.9, x - w / 2 + 0.25, 7 * FH + 0.12, zz);
+          part(leaf, 0.55, 0.45, 0.8, x - w / 2 + 0.25, 7 * FH + 0.45, zz);
+        }
+        const tz = z + d / 2 - towerD / 2, th = h + 1.4 * FH;
+        part(towerM, w * 0.85, th, towerD, x, th / 2, tz);
+        for (let f = 0; f < levels + 1; f++) part(towerWin, 0.05, FH * 0.32, towerD * 0.3, x - w * 0.425 - 0.03, f * FH + FH * 0.55, tz);
+        // one invisible box for tapping
+        const pick = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+        pick.scale.set(w, th, d); pick.position.set(x, th / 2, z); pick.userData.id = b.id; group.add(pick); hits.push(pick);
+        trash.push(pick.material as THREE.Material);
       } else {
         const tex = facadeTexture(col.r, col.win, levels);
         const texSide = tex.clone(); texSide.needsUpdate = true; texSide.repeat.set(Math.max(1, Math.round(d / 4)), 1); tex.repeat.set(Math.max(1, Math.round(w / 4)), 1);
