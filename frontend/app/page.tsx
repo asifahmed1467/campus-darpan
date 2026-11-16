@@ -30,10 +30,10 @@ export default function Home() {
 
   return (
     <div className="space-y-14">
-      <section className="grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
-        <div className="hero-glow min-w-0 pt-2 lg:pt-8">
+      <section className="relative z-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        <div className="hero-glow relative z-20 min-w-0 pt-2 lg:pt-8">
           <h1 className="max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl" aria-label={t("hero.title")}>
-            {t("hero.title").split(" ").map((w, i) => <span key={i} aria-hidden className="word mr-[.25em]" style={{ ["--w" as string]: i }}>{w}</span>)}
+            {t("hero.title").split(" ").map((w, i, all) => <span key={i} aria-hidden className={`word mr-[.25em] ${i >= all.length - 2 ? "mark-word" : ""}`} style={{ ["--w" as string]: i }}>{w}</span>)}
           </h1>
           <p className="mt-5 max-w-[34ch] text-lg text-mute sm:text-xl">{t("hero.sub")}</p>
           <div className="mt-8"><SearchBox big /></div>
@@ -45,7 +45,7 @@ export default function Home() {
           </div>
         </div>
 
-        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise float-card min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
+        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise float-card relative z-10 min-w-0 rounded-2xl border-2 border-edge bg-sheet p-2 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="flex items-center gap-3 text-2xl font-bold">{t("home.right_now")}
               {freeNow > 0 && <span className="flex items-center gap-1.5 rounded-full bg-go/10 px-2.5 py-0.5 font-display text-sm font-semibold text-go"><span aria-hidden className="dot-live h-2 w-2 rounded-full bg-go" />{freeNow} free</span>}

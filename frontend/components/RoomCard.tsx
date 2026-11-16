@@ -19,7 +19,7 @@ export function RoomCard({ p }: { p: Profile }) {
           <>
             <p className="room-num font-display break-words text-4xl font-extrabold leading-[1.05] tracking-tight min-[400px]:text-5xl sm:text-6xl lg:text-7xl">{code}</p>
             {ri?.ok && (ri.building_name || ri.floor_label) && (
-              <p className="mt-2 text-xl font-semibold text-white/90">{[ri.building_name, ri.floor_label].filter(Boolean).join(", ")}</p>
+              <p className="mt-2 text-xl font-semibold text-white/90">{[ri.building_name, ri.wing, ri.floor_label].filter(Boolean).join(", ")}</p>
             )}
           </>
         ) : (

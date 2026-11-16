@@ -104,6 +104,31 @@ header .chip:active { transform: scale(.92); }
 /* Section headings draw an amber underline as they arrive */
 .draw-line::after { content: ""; display: block; height: 4px; width: 3.2rem; margin-top: .5rem; border-radius: 2px; background: rgb(var(--c-needle)); transform: scaleX(0); transform-origin: left; transition: transform 700ms cubic-bezier(.2,.7,.2,1) 300ms; }
 .reveal[data-seen="true"] .draw-line::after, .draw-line.on::after { transform: scaleX(1); }
+/* Search suggestions drop open, rows follow one by one */
+@keyframes suggest-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } to { opacity: 1; transform: none; } }
+.suggest-in { animation: suggest-in 220ms cubic-bezier(.2,.8,.3,1) both; transform-origin: top; }
+.suggest-row { animation: slide-in 300ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--s, 0) * 35ms); }
+/* Headline: an amber highlighter sweeps under the last words */
+.mark-word { background: linear-gradient(rgb(var(--c-needle) / .45), rgb(var(--c-needle) / .45)) 0 88% / 0% 28% no-repeat; animation: word-in 640ms cubic-bezier(.2,.7,.2,1) both, mark 700ms cubic-bezier(.3,.7,.2,1) forwards; animation-delay: calc(120ms + var(--w, 0) * 90ms), calc(700ms + var(--w, 0) * 140ms); }
+@keyframes mark { to { background-size: 100% 28%; } }
+/* Teacher initials pop and tilt on hover; rows get a sliding accent bar */
+.avatar { transition: transform 350ms cubic-bezier(.3,1.6,.5,1), background-color 200ms ease; }
+.lift:hover .avatar, .lift:focus-visible .avatar { transform: rotate(-6deg) scale(1.1); background: rgb(var(--c-brand)); }
+.lift { position: relative; }
+.lift::before { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 3px; border-radius: 3px; background: rgb(var(--c-needle)); transform: scaleY(0); transition: transform 260ms cubic-bezier(.2,.7,.2,1); }
+.lift:hover::before, .lift:focus-visible::before { transform: scaleY(1); }
+/* Room badges shine once when hovered */
+main a span.bg-inverse { position: relative; overflow: hidden; }
+main a span.bg-inverse::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / .35) 50%, transparent 65%); transform: translateX(-120%); }
+main a:hover span.bg-inverse::after { transition: transform 700ms ease; transform: translateX(120%); }
+/* Theme button spins when tapped; bottom nav icon bounces when chosen */
+.spin-tap svg { transition: transform 500ms cubic-bezier(.3,1.4,.5,1); }
+.spin-tap:active svg { transform: rotate(180deg) scale(.85); }
+@keyframes nav-bounce { 0% { transform: translateY(0); } 40% { transform: translateY(-5px); } 70% { transform: translateY(1px); } 100% { transform: none; } }
+nav a[aria-current="page"] svg { animation: nav-bounce 450ms cubic-bezier(.3,1.4,.5,1); }
+/* Cards and big numbers: a soft scale-in when revealed */
+.reveal { transform: translateY(16px) scale(.985); }
+.reveal[data-seen="true"] { transform: none; }
 /* Primary buttons get a soft light sweep on hover */
 .btn-primary { position: relative; overflow: hidden; }
 .btn-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .22) 50%, transparent 70%); transform: translateX(-120%); transition: transform 600ms ease; }
@@ -111,9 +136,11 @@ header .chip:active { transform: scale(.92); }
 .caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 1px; vertical-align: -.15em; background: rgb(var(--c-ink)); animation: caret 1s steps(1) infinite; }
 @keyframes caret { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
-  .ticker-track, .float-card, .hero-glow::after, .word, .caret, .page-in > *, .page-in > * > *:not(.reveal), .page-in li:not([role]) { animation: none !important; }
+  .suggest-in, .suggest-row, .mark-word, nav a[aria-current="page"] svg, .ticker-track, .float-card, .hero-glow::after, .word, .caret, .page-in > *, .page-in > * > *:not(.reveal), .page-in li:not([role]) { animation: none !important; }
   .scroll-bar { display: none; }
   .ticker-track { overflow-x: auto; }
+  .mark-word { background-size: 100% 28%; }
+  .avatar, .lift::before, .spin-tap svg { transition: none !important; }
   .draw-line::after { transform: scaleX(1) !important; transition: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {

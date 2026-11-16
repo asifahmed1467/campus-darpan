@@ -112,13 +112,14 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
 
       {showList && (
         <ul id={`${id}-list`} role="listbox" aria-label="Matching teachers"
-          className="absolute left-0 right-0 top-[calc(100%-1.25rem)] z-30 max-h-[70vh] overflow-auto rounded-xl border-2 border-edge bg-sheet shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
+          className="suggest-in absolute left-0 right-0 top-[calc(100%-1.25rem)] z-50 max-h-[70vh] overflow-auto rounded-xl border-2 border-edge bg-sheet shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
           {items.map((s, i) => {
             const info = suggestionLine(s);
             return (
               <li key={s.id} id={`${id}-o${i}`} role="option" aria-selected={i === active}
                 onMouseEnter={() => setActive(i)} onMouseDown={(e) => { e.preventDefault(); go(i); }}
-                className={`flex cursor-pointer items-center justify-between gap-3 border-t border-line px-4 py-3 first:border-t-0 ${i === active ? "bg-paper" : ""}`}>
+                style={{ ["--s" as string]: Math.min(i, 8) }}
+                className={`suggest-row flex cursor-pointer items-center justify-between gap-3 border-t border-line px-4 py-3 first:border-t-0 ${i === active ? "bg-paper" : ""}`}>
                 <div className="min-w-0">
                   <div className="truncate font-display text-lg font-semibold"><Highlight text={s.name} q={q} /></div>
                   <div className="truncate text-[15px] text-mute">{[s.faculty_code, s.department, s.room && `Room ${s.room}`].filter(Boolean).join(", ")}</div>

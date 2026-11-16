@@ -307,3 +307,13 @@ def test_faculty_is_worked_out_from_department():
     assert faculty_for("Pharmacy") == "FHLS"
     assert faculty_for("Natural Science [Physics]") == "FST"
     assert faculty_for("") is None and faculty_for(None) is None
+
+
+def test_d_building_four_digit_codes():
+    from app.services.campus import parse_room
+    r = parse_room("DN0921")
+    assert r["ok"] and r["floor"] == 9 and r["room"] == "21" and r["wing"] == "North side" and not r["warning"]
+    assert "North side, 9th floor, room 21" in r["message"]
+    r = parse_room("DS0412")
+    assert r["floor"] == 4 and r["wing"] == "South side" and "4th floor" in r["message"]
+    assert parse_room("DN107")["floor"] == 1   # the three-digit lab codes still work

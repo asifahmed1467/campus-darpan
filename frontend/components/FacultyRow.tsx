@@ -45,7 +45,7 @@ export default function FacultyRow({ f, compact = false, idx = 0 }: { f: Faculty
     <li className="rise relative border-t border-line first:border-t-0" style={{ ["--i" as string]: Math.min(idx, 10) }}>
       <Link href={`/faculty/${f.id}`} className="lift block rounded-lg py-4 pl-3 pr-14 hover:bg-sheet focus-visible:bg-sheet sm:pl-4">
         <div className="flex items-start gap-3">
-          <span aria-hidden className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-inverse font-display text-sm font-bold text-white">{initials(f.name)}</span>
+          <span aria-hidden className="avatar mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-inverse font-display text-sm font-bold text-white">{initials(f.name)}</span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5">
               <span className="font-display text-lg font-semibold leading-tight">{f.name}{f.room && <span className="ml-2 align-middle"><RoomBadge room={f.room} building={f.building} /></span>}</span>

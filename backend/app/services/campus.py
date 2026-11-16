@@ -103,7 +103,10 @@ def parse_room(code: str | None) -> dict | None:
         wing, rest = d.group(1), d.group(2)
         side = {"N": "North side", "S": "South side", "E": "Extension"}[wing]
         floor, room = None, rest
-        if wing == "E" and re.fullmatch(r"\d\d{2}", rest):
+        office = wing in "NS" and re.fullmatch(r"\d{4}", rest) is not None   # DN0921 = North side, 9th floor, room 21 (two-digit floor)
+        if office:
+            floor, room = int(rest[:2]), rest[2:]
+        elif wing == "E" and re.fullmatch(r"\d\d{2}", rest):
             floor, room = int(rest[0]), rest[1:]
         elif wing in "NS" and re.fullmatch(r"\d{3}", rest):
             floor, room = int(rest[0]), rest[1:]
@@ -112,6 +115,11 @@ def parse_room(code: str | None) -> dict | None:
         out = {"ok": True, "code": raw, "building": "D", "building_name": b.name, "wing": side, "floor": floor,
                "floor_label": floor_label(floor) if floor is not None else None, "room": room, "warning": None}
         notes = dict(b.floor_notes)
+        if office:
+            out["message"] = f"{b.name}, {side}, {floor_label(floor)}, room {room}."
+            if not 0 <= floor < b.levels:
+                out["warning"] = f"D building has floors up to the {floor_label(b.levels - 1)}. Check the room number."
+            return out
         if floor is not None and floor in notes:
             out["warning"] = notes[floor] + " There are no room codes on this floor."
         elif floor is not None and floor in b.pending_floors:
