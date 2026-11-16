@@ -233,7 +233,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     const total = plan.reduce((a, p) => a + p.d, 0);
 
     // ---- camera: drag to orbit; it rises with the student
-    let ang = 0.42, tilt = 0.5, drag: { x: number; y: number } | null = null, camY = 4.5, camR = 30;
+    let ang = 0.42, tilt = 0.5, drag: { x: number; y: number } | null = null, camY = 4.5, camR = 30, camLift = 15;
     const dom = R.domElement; dom.style.touchAction = "pan-y"; dom.style.cursor = "grab";
     const down = (e: PointerEvent) => { drag = { x: e.clientX, y: e.clientY }; dom.setPointerCapture(e.pointerId); dom.style.cursor = "grabbing"; };
     const move = (e: PointerEvent) => { if (!drag) return; ang -= (e.clientX - drag.x) * 0.008; tilt = Math.min(1.15, Math.max(0.2, tilt + (e.clientY - drag.y) * 0.004)); drag = { x: e.clientX, y: e.clientY }; };
@@ -279,8 +279,11 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       const narrow = el.clientWidth < 500;
       const want = i < 2 ? 4.5 : Math.max(y, 0.5);
       camY = lerp(camY, want, 0.04);
-      camR = lerp(camR, i < 2 ? (narrow ? 34 : 28) : (narrow ? 20 : 16), 0.03);
-      C.position.set(Math.sin(ang) * camR, camY + 1.5 + tilt * camR * 0.45, Math.cos(ang) * camR);
+      const inFloor = i >= 3;
+      camR = lerp(camR, !inFloor ? (narrow ? 34 : 28) : (narrow ? 15 : 12), 0.045);
+      const lift = !inFloor ? 1.5 + tilt * camR * 0.45 : camR * (0.55 + tilt * 0.6);
+      camLift = lerp(camLift, lift, 0.045);
+      C.position.set(Math.sin(ang) * camR, camY + camLift, Math.cos(ang) * camR);
       C.lookAt(i >= 4 ? x * 0.5 : 0.4, camY - (i < 2 ? 0.5 : 0) + 0.2, 0);
       R.render(S, C);
     };
