@@ -170,6 +170,7 @@ def get_traffic() -> list[dict] | None:
         name, lat, lon = road
         r = httpx.get("https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json", timeout=5,
                       params={"point": f"{lat},{lon}", "unit": "KMPH", "key": key})
+        traffic_state["code"] = r.status_code
         if r.status_code in (401, 403):
             traffic_state["status"] = "rejected"
         r.raise_for_status()
@@ -195,5 +196,6 @@ def get_traffic() -> list[dict] | None:
 def _safe(fn, arg):
     try:
         return fn(arg)
-    except Exception:
+    except Exception as e:
+        traffic_state["error"] = type(e).__name__
         return None

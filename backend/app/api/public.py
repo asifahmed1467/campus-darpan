@@ -157,6 +157,7 @@ def today_brief(at: str | None = None, db: Session = Depends(get_db)):
         "weekend": now.weekday() in (4, 5),   # Friday and Saturday
         "weather": today_svc.get_weather(now), "traffic": today_svc.get_traffic(),
         "traffic_status": today_svc.traffic_state["status"],
+        "traffic_debug": {k: v for k, v in today_svc.traffic_state.items() if k in ("code", "error")},
     }
     _today_cache.clear()
     _today_cache[d] = (time.time(), out)
