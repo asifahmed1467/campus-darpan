@@ -3,15 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 /**
- * A 3D walk-through for a D Building room: walk in, take the lift (front centre of the building),
- * step out at the right floor, turn left for the South side or right for the North side, and walk to the door.
+ * A 3D walk-through for a D Building room: walk in through the front door, cross to the lift at the back,
+ * ride up, step out into the corridor, turn towards the South or North side, and walk to the door.
  * Room positions along the corridor are an illustration (numbers count outward from the lift), not a surveyed floor plan.
  */
 type Props = { side: "N" | "S"; floor: number; room: string; lab?: boolean };
 
 const FH = 1.0;              // floor height
 const W = 10.4, D = 3.2;      // building width (x) and depth (z)
-const LIFT_Z = 1.15;          // lift shaft sits at the front centre
+const LIFT_Z = -1.18;         // lift shaft sits at the back, between the South and North rooms
 const CORR_Z = -0.25;         // corridor line in front of the rooms
 const ROOM_Z = -1.12;         // room fronts along the back
 const FLOORS = 10;            // ground + 1st to 9th
@@ -112,7 +112,8 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
         for (const x of colXs) for (const z of [-D / 2, D / 2]) box(0.16, FH - 0.12, 0.16, concrete, x, cy, z);
         // glass curtain wall with mullions (front glass is cut away on the student's floor so you can see in)
         const sidesGlass: [number, number, number, number, number][] = [[W, FH - 0.12, 0.02, 0, -D / 2], [0.02, FH - 0.12, D, -W / 2, 0], [0.02, FH - 0.12, D, W / 2, 0]];
-        if (f !== floor) sidesGlass.push([W, FH - 0.12, 0.02, 0, D / 2]);
+        if (f !== floor && f === 0) { sidesGlass.push([W / 2 - 0.7, FH - 0.12, 0.02, -(W / 4 + 0.35), D / 2], [W / 2 - 0.7, FH - 0.12, 0.02, W / 4 + 0.35, D / 2]); }
+        else if (f !== floor) sidesGlass.push([W, FH - 0.12, 0.02, 0, D / 2]);
         for (const [w, h, d, x, z] of sidesGlass) { const g = box(w, h, d, glass, x, cy, z, false); g.castShadow = false; }
         for (let k = 0; k <= 14; k++) { const x = -W / 2 + (k * W) / 14; if (f !== floor) box(0.03, FH - 0.12, 0.05, frame, x, cy, D / 2, false); box(0.03, FH - 0.12, 0.05, frame, x, cy, -D / 2, false); }
         box(W, 0.04, 0.06, frame, 0, y + FH * 0.92, D / 2, false);
@@ -170,17 +171,17 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     person.scale.setScalar(1.25);
 
     // ---- route line on the floor
-    const pts = [new THREE.Vector3(0, tgtY + 0.1, LIFT_Z - 0.45), new THREE.Vector3(0, tgtY + 0.1, CORR_Z), new THREE.Vector3(targetX, tgtY + 0.1, CORR_Z), new THREE.Vector3(targetX, tgtY + 0.1, ROOM_Z + 0.5)];
+    const pts = [new THREE.Vector3(0, tgtY + 0.1, LIFT_Z + 0.45), new THREE.Vector3(0, tgtY + 0.1, CORR_Z), new THREE.Vector3(targetX, tgtY + 0.1, CORR_Z), new THREE.Vector3(targetX, tgtY + 0.1, ROOM_Z + 0.5)];
     const route = new THREE.Line(geo(new THREE.BufferGeometry().setFromPoints(pts)), new THREE.LineDashedMaterial({ color: 0xf2b01e, dashSize: 0.14, gapSize: 0.08 }));
     route.computeLineDistances(); S.add(route);
 
     // ---- timeline
-    const turn = side === "S" ? "left" : "right", wingName = side === "S" ? "South" : "North";
+    const turn = side === "S" ? "right" : "left", wingName = side === "S" ? "South" : "North";
     const plan = [
-      { d: 2.2, a: [0, 0.08, D / 2 + 2.6], b: [0, 0.08, LIFT_Z + 0.75], txt: "Walk in through the main door", walk: true },
-      { d: 0.8, a: [0, 0.08, LIFT_Z + 0.75], b: [0, 0.08, LIFT_Z], txt: "Step into the lift", walk: true, open: "f" },
-      { d: Math.max(1, floor * 0.45), a: [0, 0.08, LIFT_Z], b: [0, tgtY + 0.08, LIFT_Z], txt: `Ride the lift to the ${ord(floor)}`, lift: true },
-      { d: 0.9, a: [0, tgtY + 0.08, LIFT_Z], b: [0, tgtY + 0.08, CORR_Z], txt: "Step out of the lift", walk: true, open: "b" },
+      { d: 2.6, a: [0, 0.08, D / 2 + 2.6], b: [0, 0.08, LIFT_Z + 0.8], txt: "Walk in through the main door to the lift at the back", walk: true },
+      { d: 0.8, a: [0, 0.08, LIFT_Z + 0.8], b: [0, 0.08, LIFT_Z], txt: "Step into the lift", walk: true, open: "f" },
+      { d: Math.max(1, floor * 0.45), a: [0, 0.08, LIFT_Z], b: [0, tgtY + 0.08, LIFT_Z], txt: `Ride the lift to the ${ord(floor)}`, lift: true, spin: true },
+      { d: 0.9, a: [0, tgtY + 0.08, LIFT_Z], b: [0, tgtY + 0.08, CORR_Z], txt: "Step out of the lift into the corridor", walk: true },
       { d: 0.7, a: [0, tgtY + 0.08, CORR_Z], b: [0, tgtY + 0.08, CORR_Z], txt: `Turn ${turn} for the ${wingName} side`, turn: true },
       { d: Math.max(1, Math.abs(targetX) * 0.5), a: [0, tgtY + 0.08, CORR_Z], b: [targetX, tgtY + 0.08, CORR_Z], txt: `Walk along the ${wingName} side`, walk: true },
       { d: 0.7, a: [targetX, tgtY + 0.08, CORR_Z], b: [targetX, tgtY + 0.08, ROOM_Z + 0.48], txt: `Room ${room} is right here`, walk: true },
@@ -210,7 +211,8 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       person.position.set(x, y, z);
       // facing
       const dx = p.b[0] - p.a[0], dz = p.b[2] - p.a[2];
-      if (p.turn) person.rotation.y = lerp(Math.PI, side === "S" ? -Math.PI / 2 : Math.PI / 2, k);
+      if (p.turn) person.rotation.y = lerp(0, side === "S" ? -Math.PI / 2 : Math.PI / 2, k);
+      else if (p.spin) person.rotation.y = lerp(Math.PI, 0, Math.min(1, k * 2));
       else if (Math.abs(dx) + Math.abs(dz) > 0.01) person.rotation.y = Math.atan2(dx, dz);
       // walking legs and a little bob
       const walking = p.walk && k < 1;
@@ -220,8 +222,8 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       // lift cabin follows during the ride, doors slide open on the side being used
       const liftY = i < 2 ? 0.06 : i === 2 ? y - 0.02 : tgtY + 0.06;
       cab.position.y = liftY;
-      const openF = i === 0 ? ease(Math.min(1, t / p.d)) : i === 1 ? 1 - Math.max(0, (k - 0.7) / 0.3) : 0;
-      const openB = i === 3 ? (k < 0.6 ? 1 : 1 - (k - 0.6) / 0.4) : i === 2 && k > 0.85 ? (k - 0.85) / 0.15 : 0;
+      const openF = i === 0 ? Math.max(0, (k - 0.6) / 0.4) : i === 1 ? 1 - Math.max(0, (k - 0.7) / 0.3) : i === 2 && k > 0.85 ? (k - 0.85) / 0.15 : i === 3 ? (k < 0.6 ? 1 : 1 - (k - 0.6) / 0.4) : 0;
+      const openB = 0;
       doors[0].position.x = -0.095 - openF * 0.17; doors[1].position.x = 0.095 + openF * 0.17;
       doors[2].position.x = -0.095 - openB * 0.17; doors[3].position.x = 0.095 + openB * 0.17;
       // the pin bobs and the ring pulses
@@ -264,7 +266,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       </div>
       <div ref={host} className="relative w-full bg-[linear-gradient(rgb(var(--c-paper)),rgb(var(--c-track)))]" />
       <p className="px-4 py-2.5 text-sm text-mute">
-        Drag to look around. When you step out of the lift, the South side is on your left and the North side on your right.
+        Drag to look around. The lift is at the back of the building. When you step out of it, the South side is on your right and the North side on your left.
         Room positions on the corridor are a sketch, not the exact plan.
       </p>
     </div>
