@@ -3,6 +3,7 @@ import Link from "next/link";
 import FacultyRow, { RowSkeleton } from "@/components/FacultyRow";
 import { NoticeList } from "@/components/Notices";
 import NoticeTicker from "@/components/NoticeTicker";
+import TodayCard from "@/components/TodayCard";
 import CountUp from "@/components/CountUp";
 import Reveal from "@/components/Reveal";
 import SearchBox from "@/components/SearchBox";
@@ -63,6 +64,8 @@ export default function Home() {
           </div>
         </section>
       </section>
+
+      <Reveal><TodayCard /></Reveal>
 
       <NoticeTicker items={notices.data?.items ?? []} />
 

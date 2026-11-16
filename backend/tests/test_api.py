@@ -317,3 +317,27 @@ def test_d_building_four_digit_codes():
     r = parse_room("DS0412")
     assert r["floor"] == 4 and r["wing"] == "South side" and "4th floor" in r["message"]
     assert parse_room("DN107")["floor"] == 1   # the three-digit lab codes still work
+
+
+def test_today_helpers():
+    from datetime import date, datetime
+    from app.services import today as T
+    d = date(2026, 11, 16)
+    assert T.title_dates("Seat Plan of Mid-Term Exams of Fall 2026-27, [Except LLB & B PHARM] Day 7 : Nov 16, 2026 ( Monday )") == [d]
+    assert T.title_dates("Holiday Notice: National Revolution and Solidarity Day Saturday 07 Nov 2026") == [date(2026, 11, 7)]
+    dated, fresh = T.notice_lines([
+        {"title": "Seat Plan of Mid-Term Exams of Fall 2026-27, [Except LLB & B PHARM] Day 7 : Nov 16, 2026 ( Monday )", "url": "u1", "date": date(2026, 11, 15)},
+        {"title": "Seat Plan for Final-Term Exams of Fall 2025-26 [ Only for LLB and BPharm ] ,Day 3 : Nov 17, 2026", "url": "u2", "date": date(2026, 11, 16)},
+        {"title": "BBA Set B Exam For Mid-term of Fall 2026-27", "url": "u3", "date": date(2026, 11, 15)},
+        {"title": "Old notice", "url": "u4", "date": date(2026, 11, 1)},
+    ], d)
+    assert dated[0]["text"] == "Mid-term exams, day 7 today (all except LLB and B Pharm)"
+    assert dated[1]["text"] == "Final-term exams, day 3 tomorrow (LLB and B Pharm only)"
+    assert [f["url"] for f in fresh] == ["u3"]
+    assert T.semester_week(date(2026, 9, 6), date(2026, 12, 20), d) == {"week": 11, "of": 16}
+    hourly = {"time": [f"2026-11-16T{h:02d}:00" for h in range(24)],
+              "precipitation_probability": [70 if h == 14 else 5 for h in range(24)], "temperature_2m": [28.0] * 24}
+    w = T.weather_summary(hourly, datetime(2026, 11, 16, 9, 0))
+    assert "2 PM" in w["text"] and w["rain"] == 70
+    assert T.traffic_level(10, 40, False) == "heavy" and T.traffic_level(25, 40, False) == "slow" and T.traffic_level(38, 40, False) == "smooth"
+    assert T.get_traffic() is None   # no key set, so no traffic section

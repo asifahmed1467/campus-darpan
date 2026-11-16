@@ -19,6 +19,7 @@ from ..services.free_time import compute_status, describe
 from ..services.notices import notice_dict
 from ..services.realtime import broadcaster, presence
 from ..services.store import FacultyView, Snapshot, find_faculty_in_text, search, search_chunks, search_faq, store
+from ..services import today as today_svc
 from ..services.timeutil import DAYS, day_index, fmt_hhmm, fmt_min, now_local, to_local
 
 router = APIRouter(prefix="/api")
@@ -132,6 +133,36 @@ _notice_cache: dict[tuple, tuple[float, dict]] = {}
 
 def clear_notice_cache():
     _notice_cache.clear()
+
+
+@router.get("/today")
+def today_brief(at: str | None = None, db: Session = Depends(get_db)):
+    """AIUB Today: exam days and dated notices (from titles), new notices, holidays, semester week, weather, traffic."""
+    now = _now(at)
+    d = now.date()
+    hit = _today_cache.get(d)
+    if hit and time.time() - hit[0] < 120 and not at:
+        return hit[1]
+    snap = store.get(db)
+    rows = db.scalars(select(Notice).order_by(Notice.published_date.desc().nullslast(), Notice.id.desc()).limit(40)).all()
+    dated, fresh = today_svc.notice_lines([{"title": n.title, "url": n.url, "date": n.published_date} for n in rows], d)
+    hol_today = snap.holidays.get(d)
+    nxt = sorted((k, v) for k, v in snap.holidays.items() if k > d)[:1]
+    out = {
+        "date": d.isoformat(), "weekday": now.strftime("%A"),
+        "week": today_svc.semester_week(snap.sem_start, snap.sem_end, d), "semester": snap.sem_name,
+        "holiday_today": hol_today,
+        "next_holiday": {"name": nxt[0][1], "date": nxt[0][0].isoformat(), "days": (nxt[0][0] - d).days} if nxt else None,
+        "dated": dated, "new_notices": fresh,
+        "weekend": now.weekday() in (4, 5),   # Friday and Saturday
+        "weather": today_svc.get_weather(now), "traffic": today_svc.get_traffic(),
+    }
+    _today_cache.clear()
+    _today_cache[d] = (time.time(), out)
+    return out
+
+
+_today_cache: dict = {}
 
 
 @router.get("/notices")
