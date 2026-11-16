@@ -157,15 +157,21 @@ def traffic_level(cur: float, free: float, closed: bool) -> str:
     return "smooth" if ratio >= 0.75 else "slow" if ratio >= 0.5 else "heavy"
 
 
+traffic_state = {"status": "not_configured"}   # not_configured | ok | rejected | unavailable (never holds the key)
+
+
 def get_traffic() -> list[dict] | None:
     key = os.getenv("TOMTOM_KEY", "").strip()
     if not key:
+        traffic_state["status"] = "not_configured"
         return None
 
     def one(road):
         name, lat, lon = road
         r = httpx.get("https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json", timeout=5,
                       params={"point": f"{lat},{lon}", "unit": "KMPH", "key": key})
+        if r.status_code in (401, 403):
+            traffic_state["status"] = "rejected"
         r.raise_for_status()
         d = r.json()["flowSegmentData"]
         cur, free = d.get("currentSpeed", 0), d.get("freeFlowSpeed", 0)
@@ -176,10 +182,14 @@ def get_traffic() -> list[dict] | None:
         with ThreadPoolExecutor(len(ROADS)) as ex:
             rows = [x for x in ex.map(lambda rd: _safe(one, rd), ROADS) if x]
         if not rows:
+            if traffic_state["status"] != "rejected":
+                traffic_state["status"] = "unavailable"
             raise RuntimeError("no traffic data")
+        traffic_state["status"] = "ok"
         order = {"closed": 0, "heavy": 1, "slow": 2, "smooth": 3}
         return sorted(rows, key=lambda x: order[x["level"]])
-    return _cached("traffic", 600, fetch)
+    rows = _cached("traffic", 600 if traffic_state["status"] == "ok" else 90, fetch)
+    return rows
 
 
 def _safe(fn, arg):
