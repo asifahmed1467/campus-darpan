@@ -15,6 +15,8 @@ from datetime import date, datetime, timedelta
 
 import httpx
 
+from .timeutil import TZ as TZ_DHAKA
+
 AIUB_LAT, AIUB_LON = 23.8222, 90.4273
 
 # Common trips to AIUB (Kuratoli). Live drive times come from Google Maps (Routes API) when GOOGLE_MAPS_KEY is set.
@@ -139,13 +141,39 @@ def weather_summary(hourly: dict, now: datetime) -> dict | None:
     return out
 
 
+def metno_to_hourly(data: dict) -> dict:
+    """MET Norway's forecast (UTC, rain in mm) shaped like Open-Meteo's hourly data (Dhaka time, rain chance in %)."""
+    times, rain, temp = [], [], []
+    for row in data.get("properties", {}).get("timeseries", [])[:48]:
+        t = datetime.fromisoformat(row["time"].replace("Z", "+00:00")) + timedelta(hours=6)   # Dhaka is UTC+6
+        d = row.get("data", {})
+        mm = (d.get("next_1_hours", {}).get("details", {}) or {}).get("precipitation_amount")
+        times.append(t.strftime("%Y-%m-%dT%H:00"))
+        temp.append(d.get("instant", {}).get("details", {}).get("air_temperature"))
+        rain.append(None if mm is None else 80 if mm >= 1 else 60 if mm >= 0.4 else 35 if mm > 0 else 0)
+    return {"time": times, "precipitation_probability": rain, "temperature_2m": temp}
+
+
+weather_state = {"source": None}
+
+
 def get_weather(now: datetime) -> dict | None:
     def fetch():
-        r = httpx.get("https://api.open-meteo.com/v1/forecast", timeout=6, params={
-            "latitude": AIUB_LAT, "longitude": AIUB_LON, "hourly": "precipitation_probability,temperature_2m",
-            "timezone": "Asia/Dhaka", "forecast_days": 2})
-        r.raise_for_status()
-        return r.json().get("hourly", {})
+        try:
+            r = httpx.get("https://api.open-meteo.com/v1/forecast", timeout=6, params={
+                "latitude": AIUB_LAT, "longitude": AIUB_LON, "hourly": "precipitation_probability,temperature_2m",
+                "timezone": "Asia/Dhaka", "forecast_days": 2})
+            r.raise_for_status()
+            weather_state["source"] = "Open-Meteo"
+            return r.json()["hourly"]
+        except Exception:
+            # backup: MET Norway (free; asks for an identifying User-Agent)
+            r = httpx.get("https://api.met.no/weatherapi/locationforecast/2.0/compact", timeout=6,
+                          params={"lat": round(AIUB_LAT, 4), "lon": round(AIUB_LON, 4)},
+                          headers={"User-Agent": "CampusDarpan/1.0 https://campus-darpan.vercel.app"})
+            r.raise_for_status()
+            weather_state["source"] = "MET Norway"
+            return metno_to_hourly(r.json())
     hourly = _cached("weather", 1800, fetch)
     return weather_summary(hourly, now) if hourly else None
 
@@ -225,6 +253,7 @@ def get_traffic(now: datetime | None = None) -> list[dict] | None:
                 traffic_state["status"] = "unavailable"
             raise RuntimeError("no traffic data")
         traffic_state["status"] = "ok"
+        traffic_state["at"] = datetime.now(TZ_DHAKA).strftime("%-I:%M %p")   # when these drive times were measured
         return rows
     return _cached("traffic", TRAFFIC_TTL if traffic_state["status"] == "ok" else 300, fetch)
 
