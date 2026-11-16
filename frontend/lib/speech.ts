@@ -204,10 +204,10 @@ function sentences(t: string): string[] {
   const out: string[] = [];
   for (const p of parts.map((x) => x.trim()).filter(Boolean)) {
     // keep chunks short so no browser cuts a long utterance off
-    if (p.length <= 160) { out.push(p); continue; }
+    if (p.length <= 180) { out.push(p); continue; }
     let cur = "";
     for (const w of p.split(/(?<=,)\s+|\s+/)) {
-      if ((cur + " " + w).length > 160 && cur) { out.push(cur.trim()); cur = w; } else cur += " " + w;
+      if ((cur + " " + w).length > 180 && cur) { out.push(cur.trim()); cur = w; } else cur += " " + w;
     }
     if (cur.trim()) out.push(cur.trim());
   }
@@ -216,14 +216,56 @@ function sentences(t: string): string[] {
 
 let token = 0;
 
+let audio: HTMLAudioElement | null = null;
+
+/** English: the natural Orpheus voice from our server, one short sentence group at a time (the next one loads while
+ *  this one plays). If the server voice fails at any point, the rest is read by the phone's own voice. */
+async function speakNatural(chunks: string[], my: number, onEnd?: () => void, fallback?: (from: number) => void) {
+  const fetchClip = (t: string) => fetch(`${API}/api/voice/speak`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: t.slice(0, 200) }) })
+    .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))));
+  let next: Promise<Blob> | null = fetchClip(chunks[0]);
+  for (let i = 0; i < chunks.length; i++) {
+    if (my !== token) return;
+    let blob: Blob;
+    try { blob = await next!; } catch { if (my === token) fallback?.(i); return; }
+    next = i + 1 < chunks.length ? fetchClip(chunks[i + 1]) : null;
+    next?.catch(() => {});
+    if (my !== token) return;
+    const url = URL.createObjectURL(blob);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        audio = new Audio(url);
+        audio.onended = () => resolve();
+        audio.onerror = () => reject(new Error("play"));
+        audio.play().catch(reject);
+      });
+    } catch { URL.revokeObjectURL(url); if (my === token) fallback?.(i); return; }
+    URL.revokeObjectURL(url);
+  }
+  if (my === token) onEnd?.();
+}
+
 export function speak(text: string, onEnd?: () => void) {
-  if (!canSpeak()) { onEnd?.(); return; }
-  const synth = window.speechSynthesis;
-  synth.cancel();
   const my = ++token;
+  if (audio) { audio.pause(); audio = null; }
+  if (canSpeak()) window.speechSynthesis.cancel();
   const lang: "en" | "bn" = hasBangla(text) ? "bn" : "en";
   const chunks = sentences(normalizeForSpeech(text, lang));
   if (!chunks.length) { onEnd?.(); return; }
+  if (lang === "en") {
+    serverVoiceReady().then((ok) => {
+      if (my !== token) return;
+      if (ok) speakNatural(chunks, my, onEnd, (from) => speakBrowser(chunks.slice(from), my, lang, onEnd));
+      else speakBrowser(chunks, my, lang, onEnd);
+    });
+    return;
+  }
+  speakBrowser(chunks, my, lang, onEnd);
+}
+
+function speakBrowser(chunks: string[], my: number, lang: "en" | "bn", onEnd?: () => void) {
+  if (!canSpeak() || !chunks.length) { onEnd?.(); return; }
+  const synth = window.speechSynthesis;
 
   const run = () => {
     if (my !== token) return;
@@ -254,4 +296,4 @@ export function speak(text: string, onEnd?: () => void) {
   }
 }
 
-export function stopSpeaking() { token++; if (canSpeak()) window.speechSynthesis.cancel(); }
+export function stopSpeaking() { token++; if (audio) { audio.pause(); audio = null; } if (canSpeak()) window.speechSynthesis.cancel(); }

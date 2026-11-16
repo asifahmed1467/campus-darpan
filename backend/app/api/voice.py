@@ -6,7 +6,12 @@ import time
 from collections import defaultdict, deque
 
 import httpx
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+import hashlib
+import re
+from collections import OrderedDict
+
+from fastapi import APIRouter, File, Form, HTTPException, Request, Response, UploadFile
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 
@@ -18,7 +23,7 @@ def _key() -> str:
     return os.getenv("GROQ_API_KEY", "").strip()
 
 
-def _limit(ip: str, per_min: int = 8):
+def _limit(ip: str, per_min: int = 8):  # noqa: D401
     q, now = _hits[ip], time.time()
     while q and now - q[0] > 60:
         q.popleft()
@@ -30,7 +35,8 @@ def _limit(ip: str, per_min: int = 8):
 @router.get("/status")
 def status():
     from ..services import llm
-    return {"server": bool(_key()), "ai_models": llm._models["list"] or None, "ai_last_error": llm.last_error or None}
+    return {"server": bool(_key()), "ai_models": llm._models["list"] or None, "ai_last_error": llm.last_error or None,
+            "tts_last_error": tts_state or None}
 
 
 @router.post("/transcribe")
@@ -64,3 +70,42 @@ async def transcribe(request: Request, audio: UploadFile = File(...), lang: str 
         raise HTTPException(502, "The speech service could not read that recording. Try again.")
     text = (r.json().get("text") or "").strip()
     return {"text": text}
+
+
+# ---- Natural voice for English answers: Orpheus on Groq (same key). Bangla keeps the phone's own voice. ----
+TTS_MODEL, TTS_VOICE = "canopylabs/orpheus-v1-english", "hannah"
+_tts_cache: "OrderedDict[str, bytes]" = OrderedDict()   # the same sentences are asked for often; keep the last 300
+tts_state: dict = {}
+
+
+class Speak(BaseModel):
+    text: str = Field(min_length=1, max_length=200)     # Orpheus takes up to 200 characters per request
+
+
+@router.post("/speak")
+async def speak(body: Speak, request: Request):
+    key = _key()
+    if not key:
+        raise HTTPException(503, "Natural voice is not set up.")
+    text = body.text.strip()
+    if re.search(r"[\u0980-\u09FF]", text):
+        raise HTTPException(400, "Natural voice is English only.")
+    h = hashlib.sha1(text.encode()).hexdigest()
+    if h in _tts_cache:
+        _tts_cache.move_to_end(h)
+        return Response(_tts_cache[h], media_type="audio/wav", headers={"Cache-Control": "public, max-age=86400"})
+    _limit("tts:" + request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip(), 40)
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            r = await client.post("https://api.groq.com/openai/v1/audio/speech", headers={"Authorization": f"Bearer {key}"},
+                                  json={"model": TTS_MODEL, "voice": TTS_VOICE, "input": text, "response_format": "wav"})
+    except httpx.HTTPError:
+        raise HTTPException(502, "The voice service did not answer.")
+    if r.status_code >= 400:
+        tts_state.update(status=r.status_code, detail=r.text[:200].replace(key, "***"))
+        raise HTTPException(502 if r.status_code != 429 else 429, "The natural voice is not available right now.")
+    tts_state.clear()
+    _tts_cache[h] = r.content
+    if len(_tts_cache) > 300:
+        _tts_cache.popitem(last=False)
+    return Response(r.content, media_type="audio/wav", headers={"Cache-Control": "public, max-age=86400"})
