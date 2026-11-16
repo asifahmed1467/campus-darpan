@@ -298,6 +298,8 @@ def _ask_ai(db: Session, snap, question: str, now, history: list[dict] | None = 
     # a follow-up like "and the fees?" is searched together with the student's previous question
     last_user = next((h["text"] for h in reversed(history or []) if h["role"] == "user"), "")
     lookup = f"{last_user} {question}" if last_user and len(question.split()) < 8 else question
+    if llm.has_bangla(lookup):
+        lookup = f"{llm.english_search_words(lookup) or ''} {lookup}".strip()
     for h in search_chunks(snap, lookup, k=3):
         sources.append({"title": h["title"], "url": h["url"], "text": h["text"]})
     for row in faq_candidates(lookup, k=5):

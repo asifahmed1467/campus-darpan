@@ -16,7 +16,7 @@ last_error: dict = {}      # the latest failure (status and a short message, nev
 # whatever of these Groq offers today (checked once an hour), with any other chat model as a last resort.
 PREFERRED = ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "meta-llama/llama-4-maverick-17b-128e-instruct",
              "qwen/qwen3-32b", "meta-llama/llama-4-scout-17b-16e-instruct", "openai/gpt-oss-20b", "llama-3.1-8b-instant"]
-_SKIP = re.compile(r"whisper|guard|tts|playai|orpheus|prompt|compound|distil|safeguard", re.I)
+_SKIP = re.compile(r"whisper|guard|tts|playai|orpheus|prompt|compound|distil|safeguard|allam", re.I)
 _models: dict = {"at": 0.0, "list": []}
 
 
@@ -76,6 +76,7 @@ def answer(question: str, sources: list[dict], history: list[dict] | None = None
             return None
         text = (r.json()["choices"][0]["message"]["content"] or "").strip()
         text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()   # some models show their reasoning first
+        text = re.sub(r"[【\[]\s*(\d+)\s*(?:†[^】\]]*)?[】\]]", r"[\1]", text)          # 【1】 or [1†source] -> [1]
         if not text:
             return None
         used = sorted({int(n) - 1 for n in re.findall(r"\[(\d+)\]", text) if 0 < int(n) <= len(sources)})
@@ -86,3 +87,30 @@ def answer(question: str, sources: list[dict], history: list[dict] | None = None
 def says_unknown(text: str) -> bool:
     return bool(re.search(r"(don't|do not|doesn't|does not) have (that|this|enough) information|not (in|covered by) the sources|"
                           r"আমার কাছে (এই|সে) তথ্য নেই|তথ্য নেই", text, re.I))
+
+
+def has_bangla(text: str) -> bool:
+    return bool(re.search(r"[\u0980-\u09FF]", text))
+
+
+def english_search_words(question: str) -> str | None:
+    """For a Bangla question: a few English keywords to look the answer up with (our AIUB facts are in English)."""
+    key = os.getenv("GROQ_API_KEY", "").strip()
+    if not key:
+        return None
+    for model in models(key)[:2]:
+        try:
+            r = httpx.post("https://api.groq.com/openai/v1/chat/completions", timeout=10,
+                           headers={"Authorization": f"Bearer {key}"},
+                           json={"model": model, "temperature": 0, "max_tokens": 300,
+                                 **({"reasoning_effort": "low"} if "gpt-oss" in model else {}),
+                                 "messages": [{"role": "system", "content": "Translate the student's question about AIUB university into a short English search query (at most 12 words). Reply with the query only."},
+                                              {"role": "user", "content": question}]})
+            if r.status_code >= 400:
+                continue
+            out = re.sub(r"<think>.*?</think>", "", r.json()["choices"][0]["message"]["content"] or "", flags=re.S).strip()
+            if out:
+                return out[:200]
+        except Exception:
+            continue
+    return None
