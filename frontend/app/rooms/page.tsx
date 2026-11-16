@@ -6,6 +6,9 @@ import CampusMap, { BUILDING_COLORS, type CampusBuilding } from "@/components/Ca
 import { api } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import RouteButton from "@/components/RouteButton";
+import dynamic from "next/dynamic";
+
+const Campus3D = dynamic(() => import("@/components/Campus3D"), { ssr: false, loading: () => <div className="skeleton h-[400px] rounded-xl" aria-label="Loading the 3D campus" /> });
 
 interface RoomResult { ok: boolean; code?: string; message: string; building?: string; building_name?: string; floor?: number | null; floor_label?: string | null; room?: string | null; warning?: string | null; wing?: string; seat?: string | null }
 
@@ -35,7 +38,8 @@ export default function RoomsPage() {
     } catch (x) { setErr((x as Error).message); }
   };
   const submit = (e: React.FormEvent) => { e.preventDefault(); lookup(q); };
-  const pick = (id: string) => { setSel(id); setFloor(null); setRes(null); };
+  const pick = (id: string) => { setSel(id || null); setFloor(null); setRes(null); };
+  const [flat, setFlat] = useState(false);
 
   const b = useMemo(() => buildings.find((x) => x.id === sel) ?? null, [buildings, sel]);
 
@@ -60,8 +64,14 @@ export default function RoomsPage() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_19rem]">
         <div className="space-y-6">
         <section aria-label="Campus map" className="self-start rounded-2xl border border-line bg-paper p-2 sm:p-4">
-          {buildings.length ? <CampusMap buildings={buildings} selected={sel} floor={floor} onSelect={pick} /> : <div className="skeleton h-72 rounded-xl" />}
-          <p className="px-2 pb-1 text-[15px] text-mute">A sketch of how the buildings sit, following the campus map. Not to scale. Heights follow the floor counts; dashed roofs mean the floor count is not added yet. Each building has its own colour.</p>
+          <div className="mb-2 flex justify-end gap-2 px-1">
+            <button type="button" className="chip" aria-pressed={!flat} onClick={() => setFlat(false)}>3D view</button>
+            <button type="button" className="chip" aria-pressed={flat} onClick={() => setFlat(true)}>Flat map</button>
+          </div>
+          {!buildings.length ? <div className="skeleton h-72 rounded-xl" />
+            : flat ? <CampusMap buildings={buildings} selected={sel} floor={floor} onSelect={pick} />
+            : <Campus3D buildings={buildings} selected={sel} floor={floor} onSelect={pick} />}
+          <p className="px-2 pb-1 text-[15px] text-mute">A sketch of how the buildings sit, following the campus map. Not to scale. Drag to turn the 3D view; tap a building to fly to it and see the walk from the main gate. Heights follow the floor counts.</p>
         </section>
         {sel === "D" && b && (
           <DFloorPlan floor={floor} levels={b.levels ?? 10} extensionFloors={b.extension_floors ?? []} pendingFloors={b.pending_floors ?? []} groundNote={b.floor_notes?.["0"] ?? ""} onPickFloor={setFloor}

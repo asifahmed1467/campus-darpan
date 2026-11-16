@@ -11,8 +11,8 @@ export interface CampusBuilding {
    back edge, t = 1 its front edge). A building is { s0, s1, t0, t1 }. This is a schematic of how the
    buildings sit next to each other, not a surveyed plan. To move something, change the numbers here.
    --------------------------------------------------------------------------------------------- */
-type Box = { s0: number; s1: number; t0: number; t1: number };
-const PLAN: Record<string, Box> = {
+export type Box = { s0: number; s1: number; t0: number; t1: number };
+export const PLAN: Record<string, Box> = {
   D:  { s0: 1.50, s1: 1.72, t0: -0.45, t1: 0.55 },     // tall slab at the right end
   A9: { s0: 1.50, s1: 1.72, t0: -1.85, t1: -0.85 },    // same shape as D, in line with it on its back side
   C:  { s0: 0.96, s1: 1.20, t0: -1.52, t1: -1.09 },    // round building (a circle in plan)
@@ -24,11 +24,11 @@ const PLAN: Record<string, Box> = {
   A3: { s0: -0.52, s1: -0.32, t0: -0.88, t1: -0.08 },
   A7: { s0: -1.62, s1: -1.30, t0: -1.95, t1: -0.45 },  // architecture building, far left
 };
-const FIELD: Box = { s0: 0, s1: 1, t0: 0, t1: 1 };
-const PARKING: Box = { s0: 0.90, s1: 1.38, t0: -2.32, t1: -1.66 };
-const LAWN: Box = { s0: 0.42, s1: 0.82, t0: -1.05, t1: -0.68 };
+export const FIELD: Box = { s0: 0, s1: 1, t0: 0, t1: 1 };
+export const PARKING: Box = { s0: 0.90, s1: 1.38, t0: -2.32, t1: -1.66 };
+export const LAWN: Box = { s0: 0.42, s1: 0.82, t0: -1.05, t1: -0.68 };
 const PLATE: Box = { s0: -1.95, s1: 2.6, t0: -2.65, t1: 1.3 };
-const TREES: [number, number][] = [[0.78, -2.05], [0.8, -1.7], [1.6, -2.1], [1.62, -1.4], [1.9, -1.2], [0.3, -1.3], [0.28, -1.1], [0.9, -0.8],
+export const TREES: [number, number][] = [[0.78, -2.05], [0.8, -1.7], [1.6, -2.1], [1.62, -1.4], [1.9, -1.2], [0.3, -1.3], [0.28, -1.1], [0.9, -0.8],
   [1.3, -0.9], [1.45, -1.0], [-0.3, -1.1], [-0.42, -0.1], [0.5, 1.0], [1.0, 1.0], [1.4, 1.02], [1.9, 0.75], [2.3, 0.8], [2.35, -1.2],
   [-0.5, 0.2], [-1.0, 0.1], [-1.0, -1.4], [0.2, -0.62], [1.85, -0.7], [2.3, -0.9], [-1.4, 0.3], [-0.2, -1.9], [1.8, -2.2]];
 
