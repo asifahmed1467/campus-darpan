@@ -9,7 +9,7 @@ import * as THREE from "three";
  * the South and North halves. The student walks in, rides up (the floors above fade away), steps out, turns towards
  * the South or North side and walks to the door. Room positions are a sketch counted outward from the lift, not a surveyed plan.
  */
-type Props = { side: "N" | "S"; floor: number; room: string; lab?: boolean };
+type Props = { side: "N" | "S"; floor: number; room: string; lab?: boolean; desk?: string | null };
 
 const FH = 1.0;               // floor height
 const W = 12, D = 5;          // footprint: width along the corridor (x), depth (z)
@@ -35,7 +35,7 @@ function label(text: string, color: string, bg: string, w = 256) {
   return s;
 }
 
-export default function BuildingRoute({ side, floor, room, lab = false }: Props) {
+export default function BuildingRoute({ side, floor, room, lab = false, desk = null }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState("Getting ready");
   const [lvl, setLvl] = useState("G");
@@ -219,19 +219,28 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     ring.position.set(tx, fy + 0.08, doorZ);
 
     // ---- timeline
-    const turn = side === "S" ? "right" : "left", wing = side === "S" ? "South" : "North";
+    const turn = floor === 0 ? (side === "S" ? "left" : "right") : (side === "S" ? "right" : "left"), wing = side === "S" ? "South" : "North";
     const rowName = tRow < 0 ? "on the lift side of the corridor" : "on the window side of the corridor";
     type Seg = { d: number; a: number[]; b: number[]; txt: string; walk?: boolean; ride?: boolean; turn?: boolean };
-    const plan: Seg[] = [
+    const deskTxt = desk ? `, desk ${desk}` : "";
+    const plan: Seg[] = floor === 0 ? [
+      // ground floor: no lift. Tiny placeholder steps keep the step numbers the same as the lift route.
+      { d: 2.8, a: [0, 0.08, D / 2 + 3.2], b: [0, 0.08, corrZ], txt: "Walk in through the main door", walk: true },
+      { d: 0.01, a: [0, 0.08, corrZ], b: [0, 0.08, corrZ], txt: "You are on the ground floor" },
+      { d: 0.01, a: [0, 0.08, corrZ], b: [0, 0.08, corrZ], txt: "You are on the ground floor" },
+      { d: 0.3, a: [0, 0.08, corrZ], b: [0, 0.08, corrZ], txt: "You are on the ground floor, no lift needed" },
+    ] : [
       { d: 2.8, a: [0, 0.08, D / 2 + 3.2], b: [0, 0.08, LIFT_Z + 0.9], txt: "Walk in through the main door to the lift at the back", walk: true },
       { d: 0.8, a: [0, 0.08, LIFT_Z + 0.9], b: [0, 0.08, LIFT_Z], txt: "Step into the lift", walk: true },
       { d: Math.max(1.2, floor * 0.45), a: [0, 0.08, LIFT_Z], b: [0, fy + 0.08, LIFT_Z], txt: `Ride the lift to the ${ord(floor)}`, ride: true },
       { d: 1.0, a: [0, fy + 0.08, LIFT_Z], b: [0, fy + 0.08, corrZ], txt: "Step out into the corridor", walk: true },
+    ];
+    plan.push(
       { d: 0.7, a: [0, fy + 0.08, corrZ], b: [0, fy + 0.08, corrZ], txt: `Turn ${turn} for the ${wing} side`, turn: true },
       { d: Math.max(1.2, Math.abs(tx) * 0.45), a: [0, fy + 0.08, corrZ], b: [tx, fy + 0.08, corrZ], txt: `Walk along the ${wing} side`, walk: true },
-      { d: 0.6, a: [tx, fy + 0.08, corrZ], b: [tx, fy + 0.08, doorZ], txt: `Room ${room} is here, ${rowName}`, walk: true },
-    ];
-    const final = `D Building, ${wing} side, ${ord(floor)}, room ${room}`;
+      { d: 0.6, a: [tx, fy + 0.08, corrZ], b: [tx, fy + 0.08, doorZ], txt: `Room ${room}${deskTxt} is here, ${rowName}`, walk: true },
+    );
+    const final = `D Building, ${wing} side, ${ord(floor)}, room ${room}${deskTxt}`;
     const total = plan.reduce((a, p) => a + p.d, 0);
 
     // ---- camera: drag to orbit; it rises with the student
@@ -268,7 +277,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       const x = lerp(p.a[0], p.b[0], k), y = lerp(p.a[1], p.b[1], k), z = lerp(p.a[2], p.b[2], k);
       person.position.set(x, y, z);
       const dx = p.b[0] - p.a[0], dz = p.b[2] - p.a[2];
-      if (p.turn) person.rotation.y = lerp(0, side === "S" ? -Math.PI / 2 : Math.PI / 2, k);
+      if (p.turn) person.rotation.y = floor === 0 ? lerp(Math.PI, side === "S" ? Math.PI * 1.5 : Math.PI / 2, k) : lerp(0, side === "S" ? -Math.PI / 2 : Math.PI / 2, k);
       else if (p.ride) person.rotation.y = lerp(Math.PI, 0, Math.min(1, k * 2));
       else if (Math.abs(dx) + Math.abs(dz) > 0.01) person.rotation.y = Math.atan2(dx, dz);
       const walking = p.walk && k < 1, sw = walking ? Math.sin(now / 90) * 0.6 : 0;
@@ -315,7 +324,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       trash.forEach((d) => d.dispose());
       R.dispose(); dom.remove();
     };
-  }, [side, floor, room, lab, run]);
+  }, [side, floor, room, lab, desk, run]);
 
   return (
     <div className="mt-4 overflow-hidden rounded-2xl border-2 border-edge bg-sheet">

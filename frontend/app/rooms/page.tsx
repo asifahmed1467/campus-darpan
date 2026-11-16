@@ -7,7 +7,7 @@ import { api } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import RouteButton from "@/components/RouteButton";
 
-interface RoomResult { ok: boolean; code?: string; message: string; building?: string; building_name?: string; floor?: number | null; floor_label?: string | null; room?: string | null; warning?: string | null; wing?: string }
+interface RoomResult { ok: boolean; code?: string; message: string; building?: string; building_name?: string; floor?: number | null; floor_label?: string | null; room?: string | null; warning?: string | null; wing?: string; seat?: string | null }
 
 export default function RoomsPage() {
   const { t } = useLang();

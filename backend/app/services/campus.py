@@ -102,10 +102,18 @@ def parse_room(code: str | None) -> dict | None:
         b = BY_ID["D"]
         wing, rest = d.group(1), d.group(2)
         side = {"N": "North side", "S": "South side", "E": "Extension"}[wing]
-        floor, room = None, rest
-        office = wing in "NS" and re.fullmatch(r"\d{4}", rest) is not None   # DN0921 = North side, 9th floor, room 21 (two-digit floor)
-        if office:
-            floor, room = int(rest[:2]), rest[2:]
+        floor, room, seat, section = None, rest, None, None
+        # Office codes from the faculty list:
+        #   DN0921  = North side, 9th floor, room 21          (two-digit floor, two-digit room)
+        #   DS0401A = South side, 4th floor, room 01, seat A  (shared room with lettered desks; also DE0702B in the Extension)
+        #   DNG03   = North side, ground floor, room 03;  DNGA01 = North side, ground floor, section A, room 01
+        om = re.fullmatch(r"(\d{2})(\d{2})([A-Z])?", rest)
+        gm = re.fullmatch(r"G(A)?(\d{2})([A-Z])?", rest)
+        office = om is not None or (gm is not None and wing in "NS")
+        if om:
+            floor, room, seat = int(om.group(1)), om.group(2), om.group(3)
+        elif gm and wing in "NS":
+            floor, room, section, seat = 0, gm.group(2), gm.group(1), gm.group(3)
         elif wing == "E" and re.fullmatch(r"\d\d{2}", rest):
             floor, room = int(rest[0]), rest[1:]
         elif wing in "NS" and re.fullmatch(r"\d{3}", rest):
@@ -116,7 +124,12 @@ def parse_room(code: str | None) -> dict | None:
                "floor_label": floor_label(floor) if floor is not None else None, "room": room, "warning": None}
         notes = dict(b.floor_notes)
         if office:
-            out["message"] = f"{b.name}, {side}, {floor_label(floor)}, room {room}."
+            if seat:
+                out["seat"] = seat
+            if section:
+                out["section"] = section
+            out["message"] = (f"{b.name}, {side}, {floor_label(floor)}" + (f", section {section}" if section else "")
+                              + f", room {room}" + (f", desk {seat}." if seat else "."))
             if not 0 <= floor < b.levels:
                 out["warning"] = f"D building has floors up to the {floor_label(b.levels - 1)}. Check the room number."
             return out

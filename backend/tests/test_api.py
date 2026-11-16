@@ -341,3 +341,19 @@ def test_today_helpers():
     assert "2 PM" in w["text"] and w["rain"] == 70
     assert T.traffic_level(2400, 1200) == "heavy" and T.traffic_level(1700, 1200) == "slow" and T.traffic_level(1300, 1200) == "smooth"
     assert T.get_traffic() is None   # no key set, so no traffic section
+
+
+def test_d_building_office_codes_with_desks_and_ground_floor():
+    from app.services.campus import parse_room
+    r = parse_room("DS0401A")
+    assert (r["wing"], r["floor"], r["room"], r["seat"]) == ("South side", 4, "01", "A") and not r["warning"]
+    assert r["message"] == "D Building, South side, 4th floor, room 01, desk A."
+    r = parse_room("DN0927E")
+    assert (r["floor"], r["room"], r["seat"]) == (9, "27", "E")
+    r = parse_room("DNG09")
+    assert (r["floor"], r["room"]) == (0, "09") and not r["warning"]
+    r = parse_room("DNGA11")
+    assert (r["floor"], r["room"], r["section"]) == (0, "11", "A")
+    r = parse_room("DE0702B")
+    assert (r["wing"], r["floor"], r["room"], r["seat"]) == ("Extension", 7, "02", "B")
+    assert parse_room("DS101")["floor"] == 1 and parse_room("DN0921")["room"] == "21"

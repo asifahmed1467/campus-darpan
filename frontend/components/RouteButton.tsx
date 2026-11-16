@@ -7,7 +7,7 @@ const BuildingRoute = dynamic(() => import("./BuildingRoute"), {
   loading: () => <div className="skeleton mt-4 h-[360px] rounded-2xl" aria-label="Loading the 3D route" />,
 });
 
-type Info = { ok?: boolean; building?: string; wing?: string | null; floor?: number | null; room?: string | null; code?: string };
+type Info = { ok?: boolean; building?: string; wing?: string | null; floor?: number | null; room?: string | null; code?: string; seat?: string | null };
 
 /** "Show me the way" for D Building North/South rooms: opens the 3D walk from the main door to the room. */
 export function canRoute(i?: Info | null): boolean {
@@ -25,7 +25,7 @@ export default function RouteButton({ info, tone = "light" }: { info: Info; tone
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M13 4a1 1 0 1 0 2 0a1 1 0 1 0-2 0M7 21l3-4M16 21l-2-4l-3-3l1-6M6 12l2-3l4-1l3 3l3 1" /></svg>
         {open ? "Hide the route" : "Show me the way"}
       </button>
-      {open && <div className="text-ink"><BuildingRoute side={info.wing === "South side" ? "S" : "N"} floor={info.floor as number} room={info.room as string} lab={lab} /></div>}
+      {open && <div className="text-ink"><BuildingRoute side={info.wing === "South side" ? "S" : "N"} floor={info.floor as number} room={info.room as string} lab={lab} desk={info.seat ?? null} /></div>}
     </div>
   );
 }
