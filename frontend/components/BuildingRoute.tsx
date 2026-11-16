@@ -49,7 +49,7 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     const height = () => (el.clientWidth < 500 ? 380 : 480);
 
     const R = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    R.setPixelRatio(Math.min(devicePixelRatio, 2)); R.setSize(el.clientWidth, height());
+    R.setPixelRatio(Math.min(devicePixelRatio, 1.5)); R.setSize(el.clientWidth, height());
     R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
     R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace;
     R.domElement.setAttribute("aria-hidden", "true");
@@ -250,10 +250,18 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     const setXray = (o: number) => { for (const m of xray) { m.opacity = o; m.depthWrite = o > 0.9; } };
     const setFade = (o: number) => { for (const m of fadeMats) { m.opacity = o; m.depthWrite = o > 0.6; } upper.visible = o > 0.02; };
     const t0 = performance.now();
-    let raf = 0, lastStep = "", lastLvl = "";
+    let raf = 0, lastStep = "", lastLvl = "", lastDraw = 0, lastTouch = 0, onScreen = true;
+    // Save the device: draw only while the canvas is on screen and the tab is open; once the walk is over, slow to a few frames a second.
+    const io = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }); io.observe(el);
+    const touch = () => { lastTouch = performance.now(); };
+    dom.addEventListener("pointermove", touch); dom.addEventListener("pointerdown", touch);
 
     const frameFn = (now: number) => {
       raf = requestAnimationFrame(frameFn);
+      if (!onScreen || document.hidden) return;
+      const finished = reduce || (now - t0) / 1000 > total + 2.5;
+      if (finished && now - lastTouch > 1500 && now - lastDraw < 250) return;   // idle: about 4 frames a second
+      lastDraw = now;
       let t = reduce ? total + 1 : (now - t0) / 1000, i = 0;
       while (i < plan.length - 1 && t > plan[i].d) { t -= plan[i].d; i++; }
       const p = plan[i], k = ease(Math.min(1, t / p.d));
@@ -300,7 +308,8 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     const onResize = () => { R.setSize(el.clientWidth, height()); C.aspect = el.clientWidth / height(); C.updateProjectionMatrix(); };
     addEventListener("resize", onResize);
     return () => {
-      cancelAnimationFrame(raf); removeEventListener("resize", onResize);
+      cancelAnimationFrame(raf); removeEventListener("resize", onResize); io.disconnect();
+      dom.removeEventListener("pointermove", touch); dom.removeEventListener("pointerdown", touch);
       dom.removeEventListener("pointerdown", down); dom.removeEventListener("pointermove", move); dom.removeEventListener("pointerup", upFn); dom.removeEventListener("pointercancel", upFn);
       S.traverse((o) => { if (o instanceof THREE.Sprite) { o.material.map?.dispose(); o.material.dispose(); } });
       trash.forEach((d) => d.dispose());
