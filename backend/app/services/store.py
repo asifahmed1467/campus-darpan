@@ -266,6 +266,20 @@ def _faq_index():
     return _FAQ_INDEX
 
 
+def faq_candidates(question: str, k: int = 5):
+    """The k sample answers that share the most words with the question (looser than search_faq; used as AI context)."""
+    qt = {w for w in _tokens(question) if w not in _FAQ_STOP and len(w) > 1}
+    if not qt:
+        return []
+    scored = []
+    for qwords, kwords, row in _faq_index():
+        sc = len(qt & qwords) + 0.6 * len((qt & kwords) - qwords)
+        if sc > 0:
+            scored.append((sc, row))
+    scored.sort(key=lambda x: -x[0])
+    return [row for _, row in scored[:k]]
+
+
 def search_faq(question: str):
     """Best matching sample question, or None. A match needs the question's own words (or its keywords) to overlap well."""
     qt = {w for w in _tokens(question) if w not in _FAQ_STOP and len(w) > 1}

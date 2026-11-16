@@ -79,7 +79,8 @@ function AskInner() {
           <div key={i} role="alert" className="rounded-2xl border-2 border-busy bg-sheet px-4 py-3 text-busy">{m.text}</div>
         ) : (
           <div key={i} className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
-            <p className="text-lg">{m.res.answer}</p>
+            {m.res.ai && <p className="mb-1.5 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 font-display text-xs font-bold text-brand">AI answer from AIUB sources · check the source before you rely on it</p>}
+            <p className="whitespace-pre-line text-lg">{m.res.answer}</p>
             {m.res.faculty && (
               <Link href={`/faculty/${m.res.faculty.id}`} className="mt-3 block rounded-xl border border-line bg-paper p-3 hover:border-brand">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">

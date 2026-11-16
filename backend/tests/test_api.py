@@ -366,3 +366,25 @@ def test_voice_status_and_no_key():
     assert c.get("/api/voice/status").json() == {"server": False}
     r = c.post("/api/voice/transcribe", files={"audio": ("a.webm", b"x" * 10, "audio/webm")}, data={"lang": "en"})
     assert r.status_code == 503
+
+
+def test_ask_uses_ai_when_set_up(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.services import llm
+    seen = {}
+    monkeypatch.setattr(llm, "enabled", lambda: True)
+    def fake(question, sources):
+        seen["n"] = len(sources)
+        return {"answer": "AIUB was founded in 1994 [2].", "used": [1], "model": "test"}
+    monkeypatch.setattr(llm, "answer", fake)
+    r = TestClient(app).post("/api/ask", json={"question": "When was AIUB founded?"}).json()
+    assert r["mode"] == "ai" and r["ai"] and r["answered"] and r["answer"] == "AIUB was founded in 1994 [1]."
+    assert seen["n"] >= 2 and len(r["sources"]) == 1
+    # a teacher question still uses the exact schedule, not the AI
+    r = TestClient(app).post("/api/ask", json={"question": "When is Nyme Ahmed free?"}).json()
+    assert r["mode"] == "faculty"
+    # if the AI fails, the old answer is used
+    monkeypatch.setattr(llm, "answer", lambda q, s: None)
+    r = TestClient(app).post("/api/ask", json={"question": "When was AIUB founded?"}).json()
+    assert r["mode"] in ("faq", "docs")

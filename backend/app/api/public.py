@@ -18,8 +18,8 @@ from ..services.campus import BUILDINGS, building_dict, parse_room
 from ..services.free_time import compute_status, describe
 from ..services.notices import notice_dict
 from ..services.realtime import broadcaster, presence
-from ..services.store import FacultyView, Snapshot, find_faculty_in_text, search, search_chunks, search_faq, store
-from ..services import today as today_svc
+from ..services.store import FacultyView, Snapshot, find_faculty_in_text, search, search_chunks, search_faq, faq_candidates, store
+from ..services import llm, today as today_svc
 from ..services.timeutil import DAYS, day_index, fmt_hhmm, fmt_min, now_local, to_local
 
 router = APIRouter(prefix="/api")
@@ -255,6 +255,8 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
         mode = "faculty"
         result = {"answer": msg, "faculty": _card(snap, f, now),
                   "sources": [{"title": f"{f.name}: faculty schedule on this site", "url": f"/faculty/{f.id}"}]}
+    elif llm.enabled() and (ai := _ask_ai(db, snap, question, now)):
+        mode, answered, result = "ai", ai.pop("answered"), ai
     elif re.search(r"\b(notice|circular|announcement|latest news)\b", question, re.I):
         rows = db.scalars(select(Notice).order_by(Notice.id.desc()).limit(3)).all()
         mode = "notices"
@@ -282,6 +284,34 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
     except Exception:
         db.rollback()
     return {"mode": mode, "answered": answered, **result}
+
+
+def _ask_ai(db: Session, snap, question: str, now) -> dict | None:
+    """Gather what the site knows that may answer the question, and let the AI write a short cited answer."""
+    sources: list[dict] = []
+    for h in search_chunks(snap, question, k=3):
+        sources.append({"title": h["title"], "url": h["url"], "text": h["text"]})
+    for row in faq_candidates(question, k=5):
+        sources.append({"title": row[4], "url": row[5], "text": f"{row[1]} {row[3]}"})
+    rows = db.scalars(select(Notice).order_by(Notice.published_date.desc().nullslast(), Notice.id.desc()).limit(8)).all()
+    if rows:
+        sources.append({"title": "Latest AIUB notices (titles)", "url": "/notices",
+                        "text": "\n".join(f"- {n.published_date or ''} {n.title}" for n in rows)})
+    cal = [f"Today is {now.strftime('%A, %d %B %Y')}."]
+    if snap.sem_name:
+        cal.append(f"Current semester: {snap.sem_name} ({snap.sem_start} to {snap.sem_end}).")
+    up = sorted((d, n) for d, n in snap.holidays.items() if d >= now.date())[:6]
+    if up:
+        cal.append("Upcoming holidays: " + "; ".join(f"{d.strftime('%a %d %b %Y')}: {n}" for d, n in up) + ".")
+    sources.append({"title": "AIUB academic calendar on this site", "url": "/", "text": " ".join(cal)})
+    out = llm.answer(question, sources)
+    if not out:
+        return None
+    used = out["used"] or []
+    cites = [{"title": sources[i]["title"], "url": sources[i]["url"]} for i in used] or \
+            [{"title": "AIUB website", "url": "https://www.aiub.edu/"}]
+    text = re.sub(r"\s*\[(\d+)\]", lambda m: f" [{used.index(int(m.group(1)) - 1) + 1}]" if int(m.group(1)) - 1 in used else "", out["answer"])
+    return {"answer": text, "ai": True, "sources": cites, "answered": not llm.says_unknown(text)}
 
 
 @router.get("/ask/samples")

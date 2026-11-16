@@ -1,0 +1,56 @@
+"""Ask AIUB answers written by an AI model on Groq (free tier), grounded only in facts this site already holds.
+
+The model gets a short numbered list of sources (sample answers, AIUB page text the admin added, recent notice titles,
+the academic calendar) and must answer from them alone, citing [1], [2]... If it cannot, it says so.
+Needs GROQ_API_KEY. Any failure returns None and the caller uses the plain non-AI answer.
+"""
+import os
+import re
+
+import httpx
+
+MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]   # better first; the small one has a much larger free allowance
+
+SYSTEM = (
+    "You are Ask AIUB, a helpful assistant for students of American International University-Bangladesh (AIUB). "
+    "Answer ONLY from the numbered sources given. If the sources do not contain the answer, say briefly that you don't "
+    "have that information yet and suggest checking aiub.edu or the relevant office. Never invent dates, fees, rules, "
+    "names or numbers. Keep answers short (2 to 5 sentences), plain and friendly. Cite sources inline like [1]. "
+    "Reply in the same language as the question: Bangla (Bengali script) if the question is in Bangla or Banglish, otherwise English."
+)
+
+
+def enabled() -> bool:
+    return bool(os.getenv("GROQ_API_KEY", "").strip())
+
+
+def answer(question: str, sources: list[dict]) -> dict | None:
+    """sources: [{title, url, text}]. Returns {answer, used: [indexes], model} or None."""
+    key = os.getenv("GROQ_API_KEY", "").strip()
+    if not key or not sources:
+        return None
+    block = "\n\n".join(f"[{i + 1}] {s['title']}\n{s['text'][:900]}" for i, s in enumerate(sources[:8]))
+    messages = [{"role": "system", "content": SYSTEM},
+                {"role": "user", "content": f"Sources:\n{block}\n\nStudent's question: {question}"}]
+    for model in MODELS:
+        try:
+            r = httpx.post("https://api.groq.com/openai/v1/chat/completions", timeout=20,
+                           headers={"Authorization": f"Bearer {key}"},
+                           json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 350})
+        except httpx.HTTPError:
+            continue
+        if r.status_code == 429 or r.status_code >= 500:
+            continue           # busy or down: try the next model
+        if r.status_code >= 400:
+            return None
+        text = (r.json()["choices"][0]["message"]["content"] or "").strip()
+        if not text:
+            return None
+        used = sorted({int(n) - 1 for n in re.findall(r"\[(\d+)\]", text) if 0 < int(n) <= len(sources)})
+        return {"answer": text, "used": used, "model": model}
+    return None
+
+
+def says_unknown(text: str) -> bool:
+    return bool(re.search(r"(don't|do not|doesn't|does not) have (that|this|enough) information|not (in|covered by) the sources|"
+                          r"আমার কাছে (এই|সে) তথ্য নেই|তথ্য নেই", text, re.I))
