@@ -244,7 +244,7 @@ def test_room_codes_decode(client):
     assert g["room"] is None and "No classrooms on the ground floor" in g["warning"]
     assert up["room"] is None and up["floor"] == 5 and "not decided yet" in up["warning"] and up.get("kind") is None
     assert parse_room("DS909")["floor"] == 9 and by_floor_ok(parse_room("DS909"))
-    assert parse_room("DNGA05")["room"] == "GA05" and parse_room("DNGA05")["wing"] == "North side"
+    g = parse_room("DNGA05"); assert (g["room"], g["section"], g["floor"], g["wing"]) == ("05", "A", 0, "North side")   # ground floor, section A
     seat = parse_room("9210e")                                            # a seat letter after the room: 9210E = room 10, seat E
     assert seat["room"] == "10" and seat["seat"] == "E" and seat["floor"] == 2 and seat["warning"] is None
     wing = parse_room("42C06")                                            # Annex 4 sections: 42C06 = 2nd floor, section C, room 06
