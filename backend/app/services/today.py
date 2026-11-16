@@ -168,9 +168,11 @@ def get_traffic() -> list[dict] | None:
 
     def one(road):
         name, lat, lon = road
-        r = httpx.get("https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json", timeout=5,
-                      params={"point": f"{lat},{lon}", "unit": "KMPH", "key": key})
+        url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/14/json?point={lat},{lon}&unit=KMPH&key={key}"
+        r = httpx.get(url, timeout=6)
         traffic_state["code"] = r.status_code
+        if r.status_code >= 400:
+            traffic_state["detail"] = r.text[:200].replace(key, "***")
         if r.status_code in (401, 403):
             traffic_state["status"] = "rejected"
         r.raise_for_status()
