@@ -194,7 +194,9 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
     put(S, shaftMat, 0.9, FLOORS * FH, 0.9, 0, (FLOORS * FH) / 2, LIFT_Z, false);
     for (const x of [-0.45, 0.45]) for (const z of [LIFT_Z - 0.45, LIFT_Z + 0.45]) put(S, steel, 0.04, FLOORS * FH, 0.04, x, (FLOORS * FH) / 2, z, false);
     const cab = new THREE.Group(); S.add(cab);
-    put(cab, mat({ color: 0xaeb6c2, roughness: 0.35, metalness: 0.7, transparent: true, opacity: 0.5 }), 0.8, 0.8, 0.8, 0, 0.42, 0, false);
+    put(cab, mat({ color: 0xf2b01e, roughness: 0.35, metalness: 0.3, emissive: 0xf2b01e, emissiveIntensity: 0.55, transparent: true, opacity: 0.85 }), 0.84, 0.84, 0.84, 0, 0.44, 0, false);
+    const cabLight = new THREE.PointLight(0xffd27a, 3, 4); cabLight.position.set(0, 0.6, 0.6); cab.add(cabLight);
+    const liftTag = label("Lift", "#ffffff", "#B7790F", 160); liftTag.position.set(0, 1.25, 0); cab.add(liftTag);
     const doors = [-1, 1].map((s) => put(cab, steel, 0.2, 0.76, 0.02, s * 0.1, 0.42, 0.41, false));
     cab.position.set(0, 0.04, LIFT_Z);
 
@@ -242,6 +244,10 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
 
     const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+    // x-ray: while the lift rides, the walls and floors below turn see-through so the lift at the back is visible
+    const xray = [stone, stoneDark, glassDark, slab, tower, towerWin, planter];
+    xray.forEach((m) => { m.transparent = true; });
+    const setXray = (o: number) => { for (const m of xray) { m.opacity = o; m.depthWrite = o > 0.9; } };
     const setFade = (o: number) => { for (const m of fadeMats) { m.opacity = o; m.depthWrite = o > 0.6; } upper.visible = o > 0.02; };
     const t0 = performance.now();
     let raf = 0, lastStep = "", lastLvl = "";
@@ -267,6 +273,8 @@ export default function BuildingRoute({ side, floor, room, lab = false }: Props)
       // open up the building: the floors above fade during the ride and the student's floor appears
       setFade(i < 2 ? 1 : i === 2 ? Math.max(0, 1 - k * 1.4) : 0);
       inside.visible = i >= 2;
+      setXray(i === 0 ? 1 - Math.max(0, (k - 0.7) / 0.3) * 0.78 : i <= 2 ? 0.22 : i === 3 ? 0.22 + k * 0.78 : 1);
+      liftTag.visible = i >= 1 && i <= 2;
       // destination cues
       pinG.position.y = fy + 1.25 + Math.sin(now / 300) * 0.06; pinG.rotation.y = now / 900;
       const pulse = (now / 1200) % 1; ring.scale.setScalar(1 + pulse * 1.6); ringMat.opacity = 0.8 * (1 - pulse);
