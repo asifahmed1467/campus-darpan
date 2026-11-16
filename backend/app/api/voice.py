@@ -30,7 +30,7 @@ def _limit(ip: str, per_min: int = 8):
 @router.get("/status")
 def status():
     from ..services import llm
-    return {"server": bool(_key()), "ai_last_error": llm.last_error or None}
+    return {"server": bool(_key()), "ai_models": llm._models["list"] or None, "ai_last_error": llm.last_error or None}
 
 
 @router.post("/transcribe")

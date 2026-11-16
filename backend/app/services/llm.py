@@ -6,12 +6,33 @@ Needs GROQ_API_KEY. Any failure returns None and the caller uses the plain non-A
 """
 import os
 import re
+import time
 
 import httpx
 
 last_error: dict = {}      # the latest failure (status and a short message, never the key), shown on /api/voice/status
 
-MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]   # better first; the small one has a much larger free allowance
+# Preferred chat models, best first. Groq retires models from time to time, so the list actually used is
+# whatever of these Groq offers today (checked once an hour), with any other chat model as a last resort.
+PREFERRED = ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "meta-llama/llama-4-maverick-17b-128e-instruct",
+             "qwen/qwen3-32b", "meta-llama/llama-4-scout-17b-16e-instruct", "openai/gpt-oss-20b", "llama-3.1-8b-instant"]
+_SKIP = re.compile(r"whisper|guard|tts|playai|orpheus|prompt|compound|distil|safeguard", re.I)
+_models: dict = {"at": 0.0, "list": []}
+
+
+def models(key: str) -> list[str]:
+    if _models["list"] and time.time() - _models["at"] < 3600:
+        return _models["list"]
+    try:
+        r = httpx.get("https://api.groq.com/openai/v1/models", timeout=8, headers={"Authorization": f"Bearer {key}"})
+        r.raise_for_status()
+        have = {m["id"] for m in r.json().get("data", []) if m.get("active", True)}
+        chosen = [m for m in PREFERRED if m in have] + sorted(m for m in have if m not in PREFERRED and not _SKIP.search(m))
+        if chosen:
+            _models.update(at=time.time(), list=chosen[:4])
+    except Exception:
+        pass
+    return _models["list"] or PREFERRED[:3]
 
 SYSTEM = (
     "You are Ask AIUB, a helpful assistant for students of American International University-Bangladesh (AIUB). "
@@ -36,7 +57,7 @@ def answer(question: str, sources: list[dict], history: list[dict] | None = None
     for h in (history or [])[-6:]:      # earlier turns, so follow-up questions make sense
         messages.append({"role": h["role"], "content": h["text"][:800]})
     messages.append({"role": "user", "content": f"Sources:\n{block}\n\nStudent's question: {question}"})
-    for model in MODELS:
+    for model in models(key):
         try:
             r = httpx.post("https://api.groq.com/openai/v1/chat/completions", timeout=20,
                            headers={"Authorization": f"Bearer {key}"},
@@ -46,11 +67,14 @@ def answer(question: str, sources: list[dict], history: list[dict] | None = None
             continue
         if r.status_code >= 400:
             last_error.update(model=model, status=r.status_code, detail=r.text[:200].replace(key, "***"))
+        if r.status_code == 404:
+            _models.update(at=0.0)    # a model went away: refresh the list next time
         if r.status_code == 429 or r.status_code >= 500 or r.status_code in (400, 404):
             continue           # busy, down, or this model not available: try the next model
         if r.status_code >= 400:
             return None
         text = (r.json()["choices"][0]["message"]["content"] or "").strip()
+        text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()   # some models show their reasoning first
         if not text:
             return None
         used = sorted({int(n) - 1 for n in re.findall(r"\[(\d+)\]", text) if 0 < int(n) <= len(sources)})
