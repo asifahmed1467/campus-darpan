@@ -11,8 +11,7 @@ import { statusInfo } from "@/lib/status";
 import type { AskResult } from "@/lib/types";
 
 type Msg = { role: "me"; text: string } | { role: "bot"; res: AskResult; speak: boolean } | { role: "err"; text: string };
-const SUGGEST = ["Latest notices", "What scholarships does AIUB offer?", "How do I add or drop a course?", "What CGPA do I need to graduate?", "Where is the AIUB campus?"];
-interface Samples { topics: { topic: string; questions: string[] }[]; count: number }
+const SUGGEST = ["When is Nyme sir free?", "Any exams today?", "How do I add or drop a course?", "আমি কিভাবে স্কলারশিপ পাব?"];
 
 function AskInner() {
   const { t } = useLang();
@@ -22,11 +21,9 @@ function AskInner() {
   const [busy, setBusy] = useState(false);
   const [voiceMsg, setVoiceMsg] = useState("");
   const [auto, setAuto] = useState(false);
-  const [samples, setSamples] = useState<Samples | null>(null);
   const end = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
-  useEffect(() => { api<Samples>("/api/ask/samples").then(setSamples).catch(() => setSamples(null)); }, []);
   useEffect(() => { try { setAuto(localStorage.getItem("aiub_autospeak") === "1"); } catch { /* ignore */ } }, []);
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs, busy]);
 
@@ -36,12 +33,13 @@ function AskInner() {
     setMsgs((m) => [...m, { role: "me", text: question }]);
     setQ(""); setBusy(true);
     try {
-      const res = await api<AskResult>("/api/ask", { method: "POST", json: { question, at: new URLSearchParams(window.location.search).get("at") || undefined } });
+      const history = msgs.flatMap((m) => m.role === "me" ? [{ role: "user", text: m.text }] : m.role === "bot" ? [{ role: "assistant", text: m.res.answer }] : []).slice(-6);
+      const res = await api<AskResult>("/api/ask", { method: "POST", json: { question, history, at: new URLSearchParams(window.location.search).get("at") || undefined } });
       setMsgs((m) => [...m, { role: "bot", res, speak }]);
     } catch (e) {
       setMsgs((m) => [...m, { role: "err", text: (e as Error).message }]);
     } finally { setBusy(false); }
-  }, [busy]);
+  }, [busy, msgs]);
 
   useEffect(() => {
     const first = sp.get("q");
@@ -51,28 +49,15 @@ function AskInner() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col">
       <h1 className="text-4xl font-bold sm:text-5xl">{t("ask.title")}</h1>
-      <p className="mt-2 text-mute">Ask when a teacher is free, where their room is, or what AIUB's pages say. Every answer shows where it came from.</p>
+      <p className="mt-2 text-mute">Chat about anything at AIUB. Every answer shows where it came from.</p>
 
       <div className="mt-6 space-y-5" aria-live="polite">
-        {msgs.length === 0 && (
-          <div>
-            <p className="mb-2 text-mute">For a teacher, just type their name: “When is Nyme sir free?”. Or try:</p>
-            <div className="flex flex-wrap gap-2">{SUGGEST.map((s) => <button key={s} className="chip" onClick={() => ask(s, false)}>{s}</button>)}</div>
-            {samples && (
-              <details className="mt-5 rounded-2xl border border-line bg-sheet p-4">
-                <summary className="cursor-pointer font-display text-lg font-semibold">All {samples.count} sample questions, by topic</summary>
-                <div className="mt-3 space-y-4">
-                  {samples.topics.map((g) => (
-                    <div key={g.topic}>
-                      <h2 className="font-display text-base font-bold text-brand">{g.topic}</h2>
-                      <ul className="mt-1.5 flex flex-wrap gap-2">{g.questions.map((s) => <li key={s}><button className="chip !text-left" onClick={() => ask(s, false)}>{s}</button></li>)}</ul>
-                    </div>
-                  ))}
-                </div>
-              </details>
-            )}
-          </div>
-        )}
+        <div className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
+          <p className="text-lg">Hi! I&apos;m Ask AIUB. Ask me anything about AIUB in English or বাংলা: a teacher&apos;s free time or room, exams, notices, holidays, admission, courses or rules. You can type or tap the mic, and ask follow-up questions too.</p>
+          {msgs.length === 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">{SUGGEST.map((s) => <button key={s} className="chip" onClick={() => ask(s, false)}>{s}</button>)}</div>
+          )}
+        </div>
         {msgs.map((m, i) => m.role === "me" ? (
           <div key={i} className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-sm bg-inverse px-4 py-3 text-white">{m.text}</div>
         ) : m.role === "err" ? (
@@ -104,7 +89,11 @@ function AskInner() {
             <div className="mt-3"><SpeakButton text={m.res.answer} autoPlay={m.speak || (auto && i === msgs.length - 1)} /></div>
           </div>
         ))}
-        {busy && <div aria-label="Looking for an answer" className="w-fit rounded-2xl border border-line bg-sheet px-4 py-3"><span className="skeleton inline-block h-4 w-24 align-middle" /></div>}
+        {busy && (
+          <div aria-label="Ask AIUB is typing" className="flex w-fit items-center gap-1.5 rounded-2xl rounded-bl-sm border border-line bg-sheet px-4 py-3.5">
+            {[0, 1, 2].map((d) => <span key={d} className="typing-dot h-2.5 w-2.5 rounded-full bg-mute" style={{ animationDelay: `${d * 160}ms` }} />)}
+          </div>
+        )}
         <div ref={end} className="scroll-mb-44" />
       </div>
 
@@ -118,6 +107,7 @@ function AskInner() {
         </div>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[15px]">
           <p role="status" className="text-busy">{voiceMsg}</p>
+          {msgs.length > 0 && <button type="button" className="text-mute underline hover:text-ink" onClick={() => setMsgs([])}>New chat</button>}
           <label className="flex items-center gap-2 text-mute"><input type="checkbox" className="h-5 w-5 accent-brand" checked={auto}
             onChange={(e) => { setAuto(e.target.checked); try { localStorage.setItem("aiub_autospeak", e.target.checked ? "1" : "0"); } catch { /* ignore */ } }} />Read answers aloud</label>
         </div>

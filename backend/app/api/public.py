@@ -231,9 +231,15 @@ def presence_count():
 
 
 # ---------------- Ask AIUB ----------------
+class Turn(BaseModel):
+    role: str = Field(pattern=r"^(user|assistant)$")
+    text: str = Field(max_length=1200)
+
+
 class Ask(BaseModel):
     question: str = Field(min_length=2, max_length=300)
     at: str | None = None
+    history: list[Turn] = Field(default_factory=list, max_length=8)   # the last few chat turns, for follow-up questions
 
 
 @router.post("/ask")
@@ -255,7 +261,7 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
         mode = "faculty"
         result = {"answer": msg, "faculty": _card(snap, f, now),
                   "sources": [{"title": f"{f.name}: faculty schedule on this site", "url": f"/faculty/{f.id}"}]}
-    elif llm.enabled() and (ai := _ask_ai(db, snap, question, now)):
+    elif llm.enabled() and (ai := _ask_ai(db, snap, question, now, [t.model_dump() for t in body.history[-6:]])):
         mode, answered, result = "ai", ai.pop("answered"), ai
     elif re.search(r"\b(notice|circular|announcement|latest news)\b", question, re.I):
         rows = db.scalars(select(Notice).order_by(Notice.id.desc()).limit(3)).all()
@@ -286,12 +292,15 @@ def ask(body: Ask, request: Request, db: Session = Depends(get_db)):
     return {"mode": mode, "answered": answered, **result}
 
 
-def _ask_ai(db: Session, snap, question: str, now) -> dict | None:
+def _ask_ai(db: Session, snap, question: str, now, history: list[dict] | None = None) -> dict | None:
     """Gather what the site knows that may answer the question, and let the AI write a short cited answer."""
     sources: list[dict] = []
-    for h in search_chunks(snap, question, k=3):
+    # a follow-up like "and the fees?" is searched together with the student's previous question
+    last_user = next((h["text"] for h in reversed(history or []) if h["role"] == "user"), "")
+    lookup = f"{last_user} {question}" if last_user and len(question.split()) < 8 else question
+    for h in search_chunks(snap, lookup, k=3):
         sources.append({"title": h["title"], "url": h["url"], "text": h["text"]})
-    for row in faq_candidates(question, k=5):
+    for row in faq_candidates(lookup, k=5):
         sources.append({"title": row[4], "url": row[5], "text": f"{row[1]} {row[3]}"})
     rows = db.scalars(select(Notice).order_by(Notice.published_date.desc().nullslast(), Notice.id.desc()).limit(8)).all()
     if rows:
@@ -304,7 +313,7 @@ def _ask_ai(db: Session, snap, question: str, now) -> dict | None:
     if up:
         cal.append("Upcoming holidays: " + "; ".join(f"{d.strftime('%a %d %b %Y')}: {n}" for d, n in up) + ".")
     sources.append({"title": "AIUB academic calendar on this site", "url": "/", "text": " ".join(cal)})
-    out = llm.answer(question, sources)
+    out = llm.answer(question, sources, history or [])
     if not out:
         return None
     used = out["used"] or []

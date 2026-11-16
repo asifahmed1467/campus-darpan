@@ -13,7 +13,7 @@ MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]   # better first; t
 
 SYSTEM = (
     "You are Ask AIUB, a helpful assistant for students of American International University-Bangladesh (AIUB). "
-    "Answer ONLY from the numbered sources given. If the sources do not contain the answer, say briefly that you don't "
+    "You are chatting; use the earlier messages to understand follow-up questions. Answer ONLY from the numbered sources given. If the sources do not contain the answer, say briefly that you don't "
     "have that information yet and suggest checking aiub.edu or the relevant office. Never invent dates, fees, rules, "
     "names or numbers. Keep answers short (2 to 5 sentences), plain and friendly. Cite sources inline like [1]. "
     "Reply in the same language as the question: Bangla (Bengali script) if the question is in Bangla or Banglish, otherwise English."
@@ -24,14 +24,16 @@ def enabled() -> bool:
     return bool(os.getenv("GROQ_API_KEY", "").strip())
 
 
-def answer(question: str, sources: list[dict]) -> dict | None:
+def answer(question: str, sources: list[dict], history: list[dict] | None = None) -> dict | None:
     """sources: [{title, url, text}]. Returns {answer, used: [indexes], model} or None."""
     key = os.getenv("GROQ_API_KEY", "").strip()
     if not key or not sources:
         return None
     block = "\n\n".join(f"[{i + 1}] {s['title']}\n{s['text'][:900]}" for i, s in enumerate(sources[:8]))
-    messages = [{"role": "system", "content": SYSTEM},
-                {"role": "user", "content": f"Sources:\n{block}\n\nStudent's question: {question}"}]
+    messages = [{"role": "system", "content": SYSTEM}]
+    for h in (history or [])[-6:]:      # earlier turns, so follow-up questions make sense
+        messages.append({"role": h["role"], "content": h["text"][:800]})
+    messages.append({"role": "user", "content": f"Sources:\n{block}\n\nStudent's question: {question}"})
     for model in MODELS:
         try:
             r = httpx.post("https://api.groq.com/openai/v1/chat/completions", timeout=20,

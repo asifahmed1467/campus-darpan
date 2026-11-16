@@ -374,8 +374,8 @@ def test_ask_uses_ai_when_set_up(monkeypatch):
     from app.services import llm
     seen = {}
     monkeypatch.setattr(llm, "enabled", lambda: True)
-    def fake(question, sources):
-        seen["n"] = len(sources)
+    def fake(question, sources, history=None):
+        seen["n"] = len(sources); seen["h"] = history
         return {"answer": "AIUB was founded in 1994 [2].", "used": [1], "model": "test"}
     monkeypatch.setattr(llm, "answer", fake)
     r = TestClient(app).post("/api/ask", json={"question": "When was AIUB founded?"}).json()
@@ -385,6 +385,9 @@ def test_ask_uses_ai_when_set_up(monkeypatch):
     r = TestClient(app).post("/api/ask", json={"question": "When is Nyme Ahmed free?"}).json()
     assert r["mode"] == "faculty"
     # if the AI fails, the old answer is used
-    monkeypatch.setattr(llm, "answer", lambda q, s: None)
+    r = TestClient(app).post("/api/ask", json={"question": "and the year it moved?", "history": [
+        {"role": "user", "text": "When was AIUB founded?"}, {"role": "assistant", "text": "1994."}]}).json()
+    assert r["mode"] == "ai" and seen["h"][0]["text"] == "When was AIUB founded?"
+    monkeypatch.setattr(llm, "answer", lambda q, s, h=None: None)
     r = TestClient(app).post("/api/ask", json={"question": "When was AIUB founded?"}).json()
     assert r["mode"] in ("faq", "docs")

@@ -129,6 +129,9 @@ nav a[aria-current="page"] svg { animation: nav-bounce 450ms cubic-bezier(.3,1.4
 /* Cards and big numbers: a soft scale-in when revealed */
 .reveal { transform: translateY(16px) scale(.985); }
 .reveal[data-seen="true"] { transform: none; }
+/* Chat typing indicator */
+@keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: .45; } 30% { transform: translateY(-5px); opacity: 1; } }
+.typing-dot { animation: typing 1s ease-in-out infinite; }
 /* Primary buttons get a soft light sweep on hover */
 .btn-primary { position: relative; overflow: hidden; }
 .btn-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .22) 50%, transparent 70%); transform: translateX(-120%); transition: transform 600ms ease; }
