@@ -61,7 +61,8 @@ def answer(question: str, sources: list[dict], history: list[dict] | None = None
         try:
             r = httpx.post("https://api.groq.com/openai/v1/chat/completions", timeout=20,
                            headers={"Authorization": f"Bearer {key}"},
-                           json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 350})
+                           json={"model": model, "messages": messages, "temperature": 0.2, "max_tokens": 900,
+                                 **({"reasoning_effort": "low"} if "gpt-oss" in model else {})})
         except httpx.HTTPError as e:
             last_error.update(model=model, error=type(e).__name__)
             continue
