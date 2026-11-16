@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { useLive } from "@/lib/hooks";
 
 type Line = { text: string; url: string; when?: string };
-type Road = { road: string; level: "smooth" | "slow" | "heavy" | "closed"; speed: number; delay_min: number };
+type Road = { road: string; level: "smooth" | "slow" | "heavy" | "closed"; minutes: number; usual_min: number; delay_min: number; km: number };
 type Today = {
   date: string; weekday: string; semester: string | null; week: { week: number; of: number } | null;
   holiday_today: string | null; next_holiday: { name: string; date: string; days: number } | null;
@@ -53,7 +53,7 @@ export default function TodayCard() {
     if (t.holiday_today) parts.push(`Holiday: ${t.holiday_today}`);
     t.dated.forEach((d) => parts.push(d.text));
     if (t.weather?.text) parts.push(t.weather.text);
-    if (heavy.length) parts.push(`Heavy traffic: ${heavy.map((r) => r.road).join(", ")}`);
+    if (t.traffic?.length) parts.push(`Drive to AIUB now: ${t.traffic.map((r) => `${r.road.replace(" to AIUB", "")} ${r.minutes} min`).join(", ")}`);
     parts.push(location.origin);
     const text = parts.join("\n");
     try {
@@ -87,19 +87,20 @@ export default function TodayCard() {
         )}
         {t.traffic && t.traffic.length > 0 && (
           <Row icon={ICON.road} tone={heavy.length ? "bg-busy/15 text-busy" : "bg-go/15 text-go"}>
-            <p className="font-display font-semibold">{heavy.length ? `Heavy traffic on ${heavy.length} road${heavy.length > 1 ? "s" : ""} near campus` : "Roads near campus are moving"}</p>
+            <p className="font-display font-semibold">{heavy.length ? `Heavy traffic on ${heavy.length} route${heavy.length > 1 ? "s" : ""} to campus` : "Drive times to campus right now"}</p>
             <ul className="mt-1.5 space-y-1">
               {t.traffic.map((r) => (
                 <li key={r.road} className="flex items-center justify-between gap-3 text-[15px]">
                   <span className="min-w-0 truncate">{r.road}</span>
                   <span className="flex shrink-0 items-center gap-2">
-                    {r.delay_min > 0 && <span className="text-mute">+{r.delay_min} min</span>}
+                    <b className="font-display">{r.minutes} min</b>
+                    {r.delay_min > 0 && <span className="text-mute">(usually {r.usual_min})</span>}
                     <span className={`rounded-full px-2 py-0.5 font-display text-xs font-bold ${ROAD_TONE[r.level]}`}>{ROAD_WORD[r.level]}</span>
                   </span>
                 </li>
               ))}
             </ul>
-            <p className="mt-1 text-sm text-mute">Live from TomTom, updated every 10 minutes.</p>
+            <p className="mt-1 text-sm text-mute">Live drive times by car or CNG from Google Maps, updated every 30 minutes from 7 AM to 9 PM.</p>
           </Row>
         )}
         {t.new_notices.length > 0 && (

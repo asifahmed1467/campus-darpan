@@ -3,7 +3,7 @@
 - exam days and dated notices: read from notice TITLES (the notice list page is allowed; notice pages are not read)
 - holidays and the semester week: the academic calendar in the database
 - rain and heat: Open-Meteo's free forecast for Kuratoli (no key)
-- road traffic near campus: TomTom's free traffic API, only when TOMTOM_KEY is set (the owner adds the key)
+- drive times to AIUB from Uttara, Mirpur, Banani and Badda: Google Maps Routes API, only when GOOGLE_MAPS_KEY is set
 Every outside call is cached and fails quietly: the briefing simply leaves that part out.
 """
 import math
@@ -17,15 +17,15 @@ import httpx
 
 AIUB_LAT, AIUB_LON = 23.8222, 90.4273
 
-# Main roads students use to reach AIUB (Kuratoli). Points are approximate; TomTom snaps each to the nearest road.
-ROADS = [
-    ("Kuril Flyover", 23.8197, 90.4213),
-    ("Airport Road, Khilkhet", 23.8296, 90.4196),
-    ("Airport Road, Banani", 23.7945, 90.4045),
-    ("Pragati Sarani, Jamuna Future Park", 23.8135, 90.4242),
-    ("Pragati Sarani, Notun Bazar", 23.7977, 90.4234),
-    ("Airport Road, Uttara", 23.8510, 90.4086),
+# Common trips to AIUB (Kuratoli). Live drive times come from Google Maps (Routes API) when GOOGLE_MAPS_KEY is set.
+ROUTES = [
+    ("Uttara", 23.8740, 90.4005),
+    ("Mirpur 10", 23.8069, 90.3687),
+    ("Banani", 23.7937, 90.4007),
+    ("Badda", 23.7805, 90.4267),
 ]
+TRAFFIC_HOURS = (7, 21)        # only check between 7 AM and 9 PM Dhaka time
+TRAFFIC_TTL = 1800             # every 30 minutes: 4 trips x 28 checks = 112 a day, about 3,400 a month
 
 _MON = {m: i + 1 for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"])}
 _MON_RE = r"(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?"
@@ -150,54 +150,53 @@ def get_weather(now: datetime) -> dict | None:
     return weather_summary(hourly, now) if hourly else None
 
 
-def traffic_level(cur: float, free: float, closed: bool) -> str:
-    if closed:
-        return "closed"
-    ratio = cur / free if free else 1
-    return "smooth" if ratio >= 0.75 else "slow" if ratio >= 0.5 else "heavy"
+def traffic_level(now_s: float, usual_s: float) -> str:
+    ratio = now_s / usual_s if usual_s else 1
+    return "smooth" if ratio <= 1.2 else "slow" if ratio <= 1.6 else "heavy"
 
 
-traffic_state = {"status": "not_configured"}   # not_configured | ok | rejected | unavailable (never holds the key)
+traffic_state = {"status": "not_configured"}   # not_configured | ok | rejected | unavailable | resting (never holds the key)
 
 
-def get_traffic() -> list[dict] | None:
-    key = os.getenv("TOMTOM_KEY", "").strip()
+def get_traffic(now: datetime | None = None) -> list[dict] | None:
+    key = os.getenv("GOOGLE_MAPS_KEY", "").strip()
     if not key:
         traffic_state["status"] = "not_configured"
         return None
+    if now is not None and not (TRAFFIC_HOURS[0] <= now.hour < TRAFFIC_HOURS[1]):
+        traffic_state["status"] = "resting"          # outside 7 AM to 9 PM: no calls, show nothing
+        return None
 
-    def one(road):
-        name, lat, lon = road
-        url = f"https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/14/json?point={lat},{lon}&unit=KMPH&key={key}"
-        r = httpx.get(url, timeout=6)
-        traffic_state["code"] = r.status_code
-        if r.status_code >= 400:
-            traffic_state["detail"] = r.text[:200].replace(key, "***")
+    def one(trip):
+        name, lat, lon = trip
+        r = httpx.post("https://routes.googleapis.com/directions/v2:computeRoutes", timeout=8,
+                       headers={"X-Goog-Api-Key": key, "X-Goog-FieldMask": "routes.duration,routes.staticDuration,routes.distanceMeters"},
+                       json={"origin": {"location": {"latLng": {"latitude": lat, "longitude": lon}}},
+                             "destination": {"location": {"latLng": {"latitude": AIUB_LAT, "longitude": AIUB_LON}}},
+                             "travelMode": "DRIVE", "routingPreference": "TRAFFIC_AWARE"})
         if r.status_code in (401, 403):
             traffic_state["status"] = "rejected"
         r.raise_for_status()
-        d = r.json()["flowSegmentData"]
-        cur, free = d.get("currentSpeed", 0), d.get("freeFlowSpeed", 0)
-        delay = max(0, round((d.get("currentTravelTime", 0) - d.get("freeFlowTravelTime", 0)) / 60))
-        return {"road": name, "level": traffic_level(cur, free, bool(d.get("roadClosure"))), "speed": cur, "delay_min": delay}
+        route = r.json()["routes"][0]
+        now_s, usual_s = float(route["duration"].rstrip("s")), float(route.get("staticDuration", route["duration"]).rstrip("s"))
+        return {"road": f"{name} to AIUB", "level": traffic_level(now_s, usual_s), "minutes": round(now_s / 60),
+                "usual_min": round(usual_s / 60), "delay_min": max(0, round((now_s - usual_s) / 60)),
+                "km": round(route.get("distanceMeters", 0) / 1000, 1)}
 
     def fetch():
-        with ThreadPoolExecutor(len(ROADS)) as ex:
-            rows = [x for x in ex.map(lambda rd: _safe(one, rd), ROADS) if x]
+        with ThreadPoolExecutor(len(ROUTES)) as ex:
+            rows = [x for x in ex.map(lambda t: _safe(one, t), ROUTES) if x]
         if not rows:
             if traffic_state["status"] != "rejected":
                 traffic_state["status"] = "unavailable"
             raise RuntimeError("no traffic data")
         traffic_state["status"] = "ok"
-        order = {"closed": 0, "heavy": 1, "slow": 2, "smooth": 3}
-        return sorted(rows, key=lambda x: order[x["level"]])
-    rows = _cached("traffic", 600 if traffic_state["status"] == "ok" else 90, fetch)
-    return rows
+        return rows
+    return _cached("traffic", TRAFFIC_TTL if traffic_state["status"] == "ok" else 300, fetch)
 
 
 def _safe(fn, arg):
     try:
         return fn(arg)
-    except Exception as e:
-        traffic_state["error"] = type(e).__name__
+    except Exception:
         return None

@@ -339,5 +339,5 @@ def test_today_helpers():
               "precipitation_probability": [70 if h == 14 else 5 for h in range(24)], "temperature_2m": [28.0] * 24}
     w = T.weather_summary(hourly, datetime(2026, 11, 16, 9, 0))
     assert "2 PM" in w["text"] and w["rain"] == 70
-    assert T.traffic_level(10, 40, False) == "heavy" and T.traffic_level(25, 40, False) == "slow" and T.traffic_level(38, 40, False) == "smooth"
+    assert T.traffic_level(2400, 1200) == "heavy" and T.traffic_level(1700, 1200) == "slow" and T.traffic_level(1300, 1200) == "smooth"
     assert T.get_traffic() is None   # no key set, so no traffic section
