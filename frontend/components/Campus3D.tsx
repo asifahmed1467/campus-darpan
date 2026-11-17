@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { GATES, SX, SZ, WALKWAYS, bestRoute } from "@/lib/campusRoute";
 import { BUILDING_COLORS, FIELD, LAWN, PARKING, PLAN, TREES, type Box, type CampusBuilding } from "./CampusMap";
 
 /**
@@ -8,34 +9,14 @@ import { BUILDING_COLORS, FIELD, LAWN, PARKING, PLAN, TREES, type Box, type Camp
  * Tap a building: the camera flies to it, the others fade, and a student walks there from the main gate.
  * Choosing a floor lights that floor up.
  */
-const SX = 30, SZ = 19;                       // plan units -> metres-ish
 const X = (s: number) => (s - 0.55) * SX;
 const Z = (t: number) => (t + 0.45) * SZ;
 const FH = 0.95;                              // floor height
 const UNKNOWN_LEVELS = 3, C_LEVELS = 4;
-const GATE = { s: 1.3, t: 1.32 };             // main gate on the road side (schematic)
-const SPINE_S = 1.3, BACK_T = -0.05, REAR_T = -0.95;   // walkways between the buildings
+const GATE = GATES.main;
 
 const levelsOf = (b: CampusBuilding) => (b.id === "C" ? C_LEVELS : b.levels ?? UNKNOWN_LEVELS);
 const nameOf = (b: CampusBuilding) => (b.id === "D" ? "D Building" : b.id === "C" ? "C Building" : b.id === "A7" ? "Annex 7" : b.name);
-
-/** Walking route from the main gate to a building's nearest face, along the campus walkways. Plan units. */
-export function routeTo(id: string): [number, number][] {
-  const b = PLAN[id];
-  if (!b) return [];
-  const cs = (b.s0 + b.s1) / 2, ct = (b.t0 + b.t1) / 2;
-  const pts: [number, number][] = [[GATE.s, GATE.t]];
-  if (b.s0 >= SPINE_S) {                                  // D and Annex 9, right of the walkway
-    pts.push([SPINE_S, ct], [b.s0 - 0.05, ct]);
-  } else if (b.t1 > -0.5) {                               // the row along the field's back edge
-    pts.push([SPINE_S, BACK_T], [cs, BACK_T], [cs, b.t1 + 0.04]);
-  } else {                                                // the buildings further back
-    pts.push([SPINE_S, BACK_T], [SPINE_S, REAR_T]);
-    if (b.t0 < REAR_T && REAR_T < b.t1) pts.push([b.s1 + 0.05, REAR_T]);       // walkway runs into it: stop at its side
-    else pts.push([cs, REAR_T], [cs, b.t1 + 0.04]);
-  }
-  return pts;
-}
 
 function facadeTexture(base: string, win: string, floors: number): THREE.CanvasTexture {
   const c = document.createElement("canvas");
@@ -57,24 +38,25 @@ function facadeTexture(base: string, win: string, floors: number): THREE.CanvasT
 
 function label(text: string, big: boolean) {
   const c = document.createElement("canvas");
-  const w = big ? 512 : 256; c.width = w; c.height = big ? 120 : 72;
+  const w = big ? 640 : 400, h = big ? 150 : 110; c.width = w; c.height = h;
   const g = c.getContext("2d")!;
-  g.fillStyle = big ? "#D85A30" : "rgba(15,27,61,0.86)";
-  g.beginPath(); g.roundRect(4, 6, w - 8, c.height - 12, 18); g.fill();
-  g.fillStyle = "#fff"; g.font = `700 ${big ? 54 : 36}px system-ui, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle";
-  g.fillText(text, w / 2, c.height / 2 + 2, w - 24);
-  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
-  s.renderOrder = 10;
-  const h = big ? 2.2 : 1.1; s.scale.set((w / c.height) * h, h, 1);
-  return s;
+  g.fillStyle = big ? "#D85A30" : "rgba(15,27,61,0.92)";
+  g.beginPath(); g.roundRect(4, 6, w - 8, h - 12, 24); g.fill();
+  g.strokeStyle = "rgba(255,255,255,0.9)"; g.lineWidth = 5; g.stroke();
+  g.fillStyle = "#fff"; g.font = `800 ${big ? 78 : 64}px system-ui, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillText(text, w / 2, h / 2 + 3, w - 40);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+  sp.renderOrder = 10;
+  const sh = big ? 3.6 : 2.6; sp.scale.set((w / h) * sh, sh, 1); sp.userData.base = sp.scale.clone();
+  return sp;
 }
 
 export default function Campus3D({ buildings, selected, floor, onSelect }: {
   buildings: CampusBuilding[]; selected: string | null; floor: number | null; onSelect: (id: string) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
-  const api = useRef<{ select: (id: string | null, floor: number | null) => void } | null>(null);
+  const api = useRef<{ select: (id: string | null, floor: number | null) => void; rotate: (d: number) => void; zoom: (f: number) => void; reset: () => void } | null>(null);
   const pickRef = useRef(onSelect); pickRef.current = onSelect;
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState("Tap a building to see where it is and how to walk there.");
@@ -126,10 +108,14 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
     const walkM = mat({ color: dark ? 0x4a4f5a : 0xd9d2c3, roughness: 0.95 });
     const walk = (s0: number, t0: number, s1: number, t1: number) =>
       put(walkM, Math.abs(X(s1) - X(s0)) + 1.6, 0.05, Math.abs(Z(t1) - Z(t0)) + 1.6, (X(s0) + X(s1)) / 2, 0.06, (Z(t0) + Z(t1)) / 2, false);
-    walk(SPINE_S, GATE.t, SPINE_S, -2.0); walk(-1.2, BACK_T, SPINE_S, BACK_T); walk(-1.2, REAR_T, SPINE_S, REAR_T);
-    put(mat({ color: 0x3b4252, roughness: 0.5, metalness: 0.5 }), 5, 0.3, 0.3, X(GATE.s), 2.4, Z(GATE.t) + 0.6);     // gate arch
-    for (const dx of [-2.4, 2.4]) put(mat({ color: 0x3b4252, roughness: 0.5 }), 0.3, 2.4, 0.3, X(GATE.s) + dx, 1.2, Z(GATE.t) + 0.6);
-    const gateTag = label("Main gate", false); gateTag.position.set(X(GATE.s), 3.6, Z(GATE.t) + 0.6); S.add(gateTag);
+    for (const way of WALKWAYS) for (let i = 1; i < way.length; i++) walk(way[i - 1][0], way[i - 1][1], way[i][0], way[i][1]);
+    const gateM = mat({ color: 0x3b4252, roughness: 0.5, metalness: 0.5 });
+    const gateTags: THREE.Sprite[] = [];
+    for (const g of Object.values(GATES)) {
+      put(gateM, 5, 0.3, 0.3, X(g.s), 2.4, Z(g.t) + 0.6);     // gate arch
+      for (const dx of [-2.4, 2.4]) put(gateM, 0.3, 2.4, 0.3, X(g.s) + dx, 1.2, Z(g.t) + 0.6);
+      const tag = label(g.name, false); tag.position.set(X(g.s), 4.2, Z(g.t) + 0.6); S.add(tag); gateTags.push(tag);
+    }
     const trunkM = mat({ color: 0x7a5a3c, roughness: 1 }), leafM = mat({ color: dark ? 0x2f6a3e : 0x3f8f46, roughness: 1 });
     const leafG = new THREE.SphereGeometry(0.9, 10, 8); trash.push(leafG);
     const inBuilding = (s: number, t: number) => Object.values(PLAN).some((b) => s > b.s0 - 0.08 && s < b.s1 + 0.08 && t > b.t0 - 0.15 && t < b.t1 + 0.15);
@@ -219,20 +205,55 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
     pin.add(pinHead, pinTip); pin.visible = false; S.add(pin); trash.push(pinHead.geometry, pinTip.geometry);
     const band = put(mat({ color: 0x22c55e, emissive: 0x22c55e, emissiveIntensity: 0.5, transparent: true, opacity: 0.75 }), 1, FH, 1, 0, 0, 0, false); band.visible = false;
     let bigTag: THREE.Sprite | null = null;
+    // the student: capsule body, swinging arms and legs, backpack, hair, soft shadow
     const person = new THREE.Group(); S.add(person); person.visible = false;
-    const legs = [-0.12, 0.12].map((dx) => { const p = new THREE.Group(); p.position.set(dx, 0.6, 0); const l = new THREE.Mesh(BOX, mat({ color: 0x1b1d22 })); l.scale.set(0.16, 0.6, 0.18); l.position.y = -0.3; p.add(l); person.add(p); return p; });
-    const body = new THREE.Mesh(BOX, mat({ color: 0x1f3a7a })); body.scale.set(0.5, 0.6, 0.3); body.position.y = 0.92; body.castShadow = true; person.add(body);
-    const bag = new THREE.Mesh(BOX, mat({ color: 0xf2b01e })); bag.scale.set(0.36, 0.44, 0.16); bag.position.set(0, 0.95, -0.22); person.add(bag);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 14, 10), mat({ color: 0xc08a62 })); head.position.y = 1.42; person.add(head); trash.push(head.geometry);
-    person.scale.setScalar(1.2);
-    let routeLine: THREE.Line | null = null;
-    let path: THREE.Vector3[] = [], pathLen = 0, walkT0 = -1;
+    const rig = new THREE.Group(); person.add(rig);
+    const skin = mat({ color: 0xc08a62, roughness: 0.8 }), shirt = mat({ color: 0x2457c5, roughness: 0.7 }), pants = mat({ color: 0x252a36, roughness: 0.8 });
+    const bagM = mat({ color: 0xf2b01e, roughness: 0.6 }), dark1 = mat({ color: 0x14161b, roughness: 0.7 });
+    const cap = (r: number, l: number) => { const g = new THREE.CapsuleGeometry(r, l, 4,10); trash.push(g); return g; };
+    const ball = (r: number) => { const g = new THREE.SphereGeometry(r, 14, 10); trash.push(g); return g; };
+    const part = (g: THREE.BufferGeometry, m: THREE.Material, x: number, y: number, z: number, parent: THREE.Object3D = rig) => {
+      const me = new THREE.Mesh(g, m); me.position.set(x, y, z); me.castShadow = true; parent.add(me); return me;
+    };
+    const torso = part(cap(0.2, 0.34), shirt, 0, 1.18, 0); torso.scale.z = 0.72;
+    const headM = part(ball(0.17), skin, 0, 1.72, 0);
+    const hair = part(ball(0.18), dark1, 0, 1.77, -0.025); hair.scale.set(1, 0.7, 1);
+    part(new THREE.BoxGeometry(0.4, 0.5, 0.18), bagM, 0, 1.2, -0.24); trash.push(headM.geometry);
+    const limb = (x: number, y: number, len: number, rad: number, m: THREE.Material, tip: THREE.Material, tipY: number) => {
+      const pivot = new THREE.Group(); pivot.position.set(x, y, 0); rig.add(pivot);
+      part(cap(rad, len), m, 0, -len / 2 - rad * 0.6, 0, pivot);
+      part(ball(rad * 1.15), tip, 0, tipY, 0, pivot);
+      return pivot;
+    };
+    const legs = [limb(-0.1, 0.86, 0.5, 0.075, pants, dark1, -0.86), limb(0.1, 0.86, 0.5, 0.075, pants, dark1, -0.86)];
+    const arms = [limb(-0.3, 1.4, 0.4, 0.06, shirt, skin, -0.55), limb(0.3, 1.4, 0.4, 0.06, shirt, skin, -0.55)];
+    const blob = new THREE.Mesh(new THREE.CircleGeometry(0.5, 20), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false }));
+    blob.rotation.x = -Math.PI / 2; blob.position.y = 0.03; person.add(blob); trash.push(blob.geometry, blob.material as THREE.Material);
+    person.scale.setScalar(1.5);
+    // route drawn as a flat amber ribbon on the ground
+    const ribbonM = mat({ color: 0xf2b01e, emissive: 0xf2b01e, emissiveIntensity: 0.5, roughness: 0.6 });
+    let routeGroup: THREE.Group | null = null;
+    let path: THREE.Vector3[] = [], pathLen = 0, walkT0 = -1, yaw = 0, gateName = "", routeMetres = 0;
+    const drawRoute = () => {
+      if (routeGroup) { S.remove(routeGroup); routeGroup = null; }
+      if (path.length < 2) return;
+      routeGroup = new THREE.Group();
+      const dotG = new THREE.CylinderGeometry(0.55, 0.55, 0.05, 16); trash.push(dotG);
+      for (let i = 1; i < path.length; i++) {
+        const a = path[i - 1], c = path[i], len = a.distanceTo(c);
+        const seg = new THREE.Mesh(BOX, ribbonM); seg.scale.set(0.9, 0.05, len); seg.position.set((a.x + c.x) / 2, 0.14, (a.z + c.z) / 2);
+        seg.rotation.y = Math.atan2(c.x - a.x, c.z - a.z); routeGroup.add(seg);
+      }
+      for (const p of path) { const d = new THREE.Mesh(dotG, ribbonM); d.position.set(p.x, 0.14, p.z); routeGroup.add(d); }
+      S.add(routeGroup);
+    };
 
-    // camera: overview, or a flight to the chosen building
+    // drone camera: it glides to a spot behind and above whatever it is following
     const overview = { pos: new THREE.Vector3(14, 62, 78), look: new THREE.Vector3(4, 0, -10) };
     const cam = { pos: overview.pos.clone(), look: overview.look.clone() };
     const goal = { pos: overview.pos.clone(), look: overview.look.clone() };
-    let orbit = 0, drag: { x: number } | null = null, lastTouch = 0, lastDraw = 0, selId: string | null = null, flyT0 = 0;
+    let orbit = 0, auto = 0, zoom = 1, drag: { x: number } | null = null, lastTouch = 0, lastDraw = 0, selId: string | null = null, lastNow = 0;
+    const heading = new THREE.Vector3(0, 0, -1);
 
     const select = (id: string | null, fl: number | null) => {
       const changed = id !== selId;
@@ -243,11 +264,12 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
         b.tag.visible = !id;
       }
       if (bigTag) { S.remove(bigTag); bigTag.material.map?.dispose(); bigTag.material.dispose(); bigTag = null; }
-      if (routeLine) { S.remove(routeLine); routeLine.geometry.dispose(); (routeLine.material as THREE.Material).dispose(); routeLine = null; }
       const b = blds.find((x) => x.id === id);
       if (!b) {
+        if (routeGroup) { S.remove(routeGroup); routeGroup = null; }
+        path = []; pathLen = 0;
         pin.visible = band.visible = person.visible = false;
-        goal.pos.copy(overview.pos); goal.look.copy(overview.look); flyT0 = performance.now();
+        goal.pos.copy(overview.pos); goal.look.copy(overview.look); auto = 0;
         setStatus("Tap a building to see where it is and how to walk there.");
         return;
       }
@@ -255,7 +277,8 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
       const w = (b.box.s1 - b.box.s0) * SX, d = (b.box.t1 - b.box.t0) * SZ;
       pin.visible = true; pin.position.set(cx, b.h + 1.2, cz);
       const meta = buildings.find((x) => x.id === id);
-      bigTag = label(meta ? nameOf(meta) : b.id, true); bigTag.position.set(cx, b.h + 4.4, cz); S.add(bigTag);
+      const title = meta ? nameOf(meta) : b.id;
+      bigTag = label(title, true); bigTag.position.set(cx, b.h + 5.2, cz); S.add(bigTag);
       if (fl !== null && fl < b.levels) {
         band.visible = true;
         if (id === "C") { band.scale.set(Math.min(w, d) + 0.25, FH * 0.9, Math.min(w, d) + 0.25); }
@@ -263,24 +286,32 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
         band.position.set(cx, fl * FH + FH / 2, cz);
       } else band.visible = false;
       if (changed) {
-        // route from the main gate along the walkways
-        path = routeTo(id!).map(([s, t]) => new THREE.Vector3(X(s), 0.12, Z(t)));
+        // shortest walk from the nearer entrance, along the walkways
+        const r = bestRoute(id!);
+        path = r ? r.points.map(([s, t]) => new THREE.Vector3(X(s), 0.12, Z(t))) : [];
         pathLen = 0; for (let i = 1; i < path.length; i++) pathLen += path[i].distanceTo(path[i - 1]);
-        const g = new THREE.BufferGeometry().setFromPoints(path.map((p) => p.clone().setY(0.16)));
-        routeLine = new THREE.Line(g, new THREE.LineDashedMaterial({ color: 0xf2b01e, dashSize: 0.8, gapSize: 0.5 })); routeLine.computeLineDistances(); S.add(routeLine);
-        person.visible = true; person.position.copy(path[0]); walkT0 = performance.now() + (reduce ? -1e7 : 1400);
+        gateName = r ? GATES[r.gate].name : GATE.name; routeMetres = r ? Math.round(r.metres) : 0;
+        drawRoute();
+        auto = 0; orbit = 0;
+        person.visible = path.length > 1;
+        if (path.length > 1) {
+          person.position.copy(path[0]); walkT0 = performance.now() + (reduce ? -1e7 : 2200);
+          heading.set(path[1].x - path[0].x, 0, path[1].z - path[0].z).normalize();
+          yaw = Math.atan2(heading.x, heading.z);
+        }
         const size = Math.max(w, d, b.h);
-        goal.look.set((cx + X(GATE.s)) / 2 * 0.35 + cx * 0.65, b.h * 0.35, (cz + Z(GATE.t)) / 2 * 0.35 + cz * 0.65);
-        goal.pos.set(goal.look.x + 10 + size * 0.6, b.h + 16 + size * 0.8, goal.look.z + 22 + size * 0.9);
-        flyT0 = performance.now();
-        setStatus(`${meta ? nameOf(meta) : b.id}: follow the student from the main gate.`);
-      } else if (routeLine === null && path.length) {
-        const g = new THREE.BufferGeometry().setFromPoints(path.map((p) => p.clone().setY(0.16)));
-        routeLine = new THREE.Line(g, new THREE.LineDashedMaterial({ color: 0xf2b01e, dashSize: 0.8, gapSize: 0.5 })); routeLine.computeLineDistances(); S.add(routeLine);
-      }
+        goal.look.set(cx, b.h * 0.4, cz);
+        goal.pos.set(cx + 12 + size * 0.5, b.h + 18 + size * 0.7, cz + 26 + size * 0.8);
+        setStatus(`${title}: follow the student from the ${gateName} (about ${routeMetres} m).`);
+      } else if (!routeGroup && path.length) drawRoute();
       lastTouch = performance.now();
     };
-    api.current = { select };
+    api.current = {
+      select,
+      rotate: (d: number) => { orbit += d; lastTouch = performance.now(); },
+      zoom: (f: number) => { zoom = Math.min(1.9, Math.max(0.55, zoom * f)); lastTouch = performance.now(); },
+      reset: () => { orbit = 0; zoom = 1; lastTouch = performance.now(); },
+    };
 
     // pointer: drag to turn, tap to choose a building
     const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -302,35 +333,60 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
 
     let onScreen = true;
     const io = new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; }); io.observe(el);
-    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-    const start = { pos: cam.pos.clone(), look: cam.look.clone() };
-    let lastFly = -1, raf = 0;
+    let raf = 0, lost = false;
+    const UP = new THREE.Vector3(0, 1, 0), tp = new THREE.Vector3(), tl = new THREE.Vector3(), off = new THREE.Vector3();
+    const wrapA = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+    const onLost = (e: Event) => { e.preventDefault(); lost = true; };
+    const onRestored = () => { lost = false; lastTouch = performance.now(); };
+    dom.addEventListener("webglcontextlost", onLost); dom.addEventListener("webglcontextrestored", onRestored);
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      if (!onScreen || document.hidden) return;
-      const moving = now - flyT0 < 2200 || (walkT0 > 0 && now - walkT0 < 12000) || now - lastTouch < 1500;
-      if (!moving && now - lastDraw < 250) return;
-      lastDraw = now;
-      // camera flight
-      if (flyT0 !== lastFly) { lastFly = flyT0; start.pos.copy(cam.pos); start.look.copy(cam.look); }
-      const k = reduce ? 1 : ease(Math.min(1, (now - flyT0) / 1800));
-      cam.pos.lerpVectors(start.pos, goal.pos, k); cam.look.lerpVectors(start.look, goal.look, k);
-      const off = cam.pos.clone().sub(cam.look); off.applyAxisAngle(new THREE.Vector3(0, 1, 0), orbit);
-      C.position.copy(cam.look).add(off); C.lookAt(cam.look);
-      // walker
-      if (person.visible && path.length > 1) {
-        const dist = Math.max(0, (now - walkT0) / 1000) * 7;     // metres per second (sped up)
-        let left = Math.min(dist, pathLen), i = 1;
-        while (i < path.length - 1 && left > path[i].distanceTo(path[i - 1])) { left -= path[i].distanceTo(path[i - 1]); i++; }
-        const a = path[i - 1], b = path[i], seg = a.distanceTo(b) || 1;
-        person.position.lerpVectors(a, b, Math.min(1, left / seg));
-        person.rotation.y = Math.atan2(b.x - a.x, b.z - a.z);
-        const walking = dist > 0 && dist < pathLen, sw = walking ? Math.sin(now / 95) * 0.7 : 0;
-        legs[0].rotation.x = sw; legs[1].rotation.x = -sw;
-        if (dist >= pathLen && selId) setStatus(`You have arrived at ${nameOf(buildings.find((x) => x.id === selId)!)}.`);
-      }
-      if (pin.visible) { pin.position.y = (blds.find((b) => b.id === selId)?.h ?? 0) + 1.2 + Math.sin(now / 300) * 0.25; pin.rotation.y = now / 800; }
-      R.render(S, C);
+      if (!onScreen || document.hidden || lost) return;
+      try {
+        const dt = Math.min(0.06, lastNow ? (now - lastNow) / 1000 : 0.016); 
+        const dist = selId && path.length > 1 ? Math.max(0, (now - walkT0) / 1000) * 5.5 : 0;   // walking pace, a little sped up
+        const walking = person.visible && path.length > 1 && now >= walkT0 && dist < pathLen;
+        const arrived = person.visible && path.length > 1 && dist >= pathLen;
+        const settling = cam.pos.distanceTo(tp) + cam.look.distanceTo(tl) > 0.1;
+        const busy = walking || !!selId || settling || now - lastTouch < 1500 || now < walkT0;
+        if (!busy && now - lastDraw < 100) return;
+        if (busy && now - lastDraw < 20) return;
+        lastNow = now; lastDraw = now;
+        // walker: follow the path, turn smoothly at corners, swing arms and legs, bob a little
+        if (person.visible && path.length > 1) {
+          let left = Math.min(dist, pathLen), i = 1;
+          while (i < path.length - 1 && left > path[i].distanceTo(path[i - 1])) { left -= path[i].distanceTo(path[i - 1]); i++; }
+          const a = path[i - 1], c = path[i], seg = a.distanceTo(c) || 1;
+          person.position.lerpVectors(a, c, Math.min(1, left / seg));
+          const want = Math.atan2(c.x - a.x, c.z - a.z);
+          yaw += wrapA(want - yaw) * Math.min(1, dt * 9);
+          person.rotation.y = yaw; heading.set(Math.sin(yaw), 0, Math.cos(yaw));
+          const sw = walking ? Math.sin(now / 130) * 0.75 : 0;
+          legs[0].rotation.x = sw; legs[1].rotation.x = -sw;
+          arms[0].rotation.x = -sw * 0.8; arms[1].rotation.x = walking ? sw * 0.8 : Math.PI * 0.85 + Math.sin(now / 160) * 0.25;   // waves on arrival
+          rig.position.y = walking ? Math.abs(Math.sin(now / 130)) * 0.07 : 0;
+          if (arrived && selId) setStatus(`You have arrived at ${nameOf(buildings.find((x) => x.id === selId) ?? ({ id: selId, name: selId } as CampusBuilding))}.`);
+        }
+        // where the drone wants to be
+        if (person.visible && path.length > 1 && !arrived && !reduce) {      // drone follows from the gate until the student arrives
+          tl.copy(person.position).addScaledVector(heading, 5).setY(1.4);
+          tp.copy(person.position).addScaledVector(heading, -13).setY(10.5 + Math.sin(now / 900) * 0.4);
+        } else {
+          tl.copy(goal.look); tp.copy(goal.pos);
+          if (arrived && !reduce) auto += dt * 0.12;         // slow lap around the building
+        }
+        off.copy(tp).sub(tl).applyAxisAngle(UP, orbit + auto).multiplyScalar(zoom);
+        tp.copy(tl).add(off);
+        const kp = reduce ? 1 : 1 - Math.exp(-dt * (walking ? 3.2 : 2.2)), kl = reduce ? 1 : 1 - Math.exp(-dt * 4.5);
+        cam.pos.lerp(tp, kp); cam.look.lerp(tl, kl);
+        C.position.copy(cam.pos); C.lookAt(cam.look);
+        if (pin.visible) { pin.position.y = (blds.find((b) => b.id === selId)?.h ?? 0) + 1.2 + Math.sin(now / 300) * 0.25; pin.rotation.y = now / 800; }
+        // names stay readable: they grow a little as the camera moves away
+        const grow = (t: THREE.Sprite) => { const f = Math.min(2.2, Math.max(0.9, C.position.distanceTo(t.position) / 55)); t.scale.copy(t.userData.base).multiplyScalar(f); };
+        for (const b of blds) if (b.tag.visible) grow(b.tag);
+        gateTags.forEach(grow); if (bigTag) grow(bigTag);
+        R.render(S, C);
+      } catch (e) { console.error("3D campus frame", e); }
     };
     raf = requestAnimationFrame(frame);
     select(selected, floor);
@@ -340,6 +396,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
     return () => {
       cancelAnimationFrame(raf); removeEventListener("resize", onResize); io.disconnect();
       dom.removeEventListener("pointerdown", down); dom.removeEventListener("pointermove", move); dom.removeEventListener("pointerup", up); dom.removeEventListener("pointercancel", up);
+      dom.removeEventListener("webglcontextlost", onLost); dom.removeEventListener("webglcontextrestored", onRestored);
       S.traverse((o) => { if (o instanceof THREE.Sprite) { o.material.map?.dispose(); o.material.dispose(); } if (o instanceof THREE.Mesh && o.material instanceof THREE.MeshStandardMaterial) o.material.map?.dispose(); });
       trash.forEach((d) => d.dispose()); R.dispose(); dom.remove(); api.current = null;
     };
@@ -349,9 +406,19 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
   useEffect(() => { api.current?.select(selected, floor); }, [selected, floor]);
 
   if (failed) return null;
+  const btn = "grid h-10 w-10 place-items-center rounded-full border border-line bg-sheet/90 font-display text-xl font-bold shadow-md active:scale-95";
   return (
     <div>
-      <div ref={host} className="relative w-full overflow-hidden rounded-xl bg-[linear-gradient(rgb(var(--c-paper)),rgb(var(--c-track)))]" aria-hidden />
+      <div className="relative">
+        <div ref={host} className="relative w-full overflow-hidden rounded-xl bg-[linear-gradient(rgb(var(--c-paper)),rgb(var(--c-track)))]" aria-hidden />
+        <div className="absolute right-2 top-2 flex flex-col gap-2" role="group" aria-label="Map view controls">
+          <button type="button" className={btn} aria-label="Zoom in" onClick={() => api.current?.zoom(0.8)}>+</button>
+          <button type="button" className={btn} aria-label="Zoom out" onClick={() => api.current?.zoom(1.25)}>&minus;</button>
+          <button type="button" className={btn} aria-label="Turn left" onClick={() => api.current?.rotate(0.4)}>&#8630;</button>
+          <button type="button" className={btn} aria-label="Turn right" onClick={() => api.current?.rotate(-0.4)}>&#8631;</button>
+          <button type="button" className={btn} aria-label="Reset view" onClick={() => api.current?.reset()}>&#8634;</button>
+        </div>
+      </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
         <p className="font-display font-semibold" aria-live="polite">{status}</p>
         {selected && <button type="button" className="chip" onClick={() => pickRef.current("")}>Show whole campus</button>}
