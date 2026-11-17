@@ -1,9 +1,9 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useDebounced } from "@/lib/hooks";
-import { useLang } from "@/lib/i18n";
+import { useLang, type Key, type TFn } from "@/lib/i18n";
 import { TONE_DOT, TONE_TEXT, statusInfo } from "@/lib/status";
 import type { Status, Suggestion } from "@/lib/types";
 import { MicButton } from "./Voice";
@@ -18,14 +18,14 @@ function Highlight({ text, q }: { text: string; q: string }) {
   return <>{parts.map((p, i) => (i % 2 ? <b key={i} className="text-brand">{p}</b> : <span key={i}>{p}</span>))}</>;
 }
 
-function suggestionLine(s: Suggestion) {
+function suggestionLine(s: Suggestion, t: TFn) {
   const fake = { status: s.status, basis: s.basis, until: s.until, minutes_left: null, current: null, next: s.next_when ? { when: s.next_when, room: null } : null, reason: null, room: s.room, now: "" } as unknown as Status;
-  return statusInfo(fake);
+  return statusInfo(fake, t);
 }
 
-const TYPED = ["Nyme Ahmed", "When is Zasmin sir free?", "Where is room DN0921?", "Which notice is new?"];
+const TYPED_KEYS: Key[] = ["search.ex1", "search.ex2", "search.ex3", "search.ex4"];
 /** Types example searches into the empty box, one after another. Stops when the person focuses or types. */
-function useTyped(on: boolean) {
+function useTyped(on: boolean, TYPED: string[]) {
   const [txt, setTxt] = useState("");
   useEffect(() => {
     if (!on || matchMedia("(prefers-reduced-motion: reduce)").matches) { setTxt(""); return; }
@@ -35,12 +35,12 @@ function useTyped(on: boolean) {
       n += dir;
       setTxt(w.slice(0, n));
       if (dir === 1 && n === w.length) { dir = -1; timer = setTimeout(step, 1500); return; }
-      if (dir === -1 && n === 0) { dir = 1; i = (i + 1) % TYPED.length; timer = setTimeout(step, 350); return; }
+      if (dir === -1 && n === 0) { if (i === TYPED.length - 1) { setTxt(""); return; } dir = 1; i += 1; timer = setTimeout(step, 350); return; } // one pass, then rest
       timer = setTimeout(step, dir === 1 ? 70 : 28);
     };
     timer = setTimeout(step, 900);
     return () => clearTimeout(timer);
-  }, [on]);
+  }, [on, TYPED]);
   return txt;
 }
 
@@ -50,7 +50,8 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
   const id = useId();
   const [q, setQ] = useState("");
   const [focused, setFocused] = useState(false);
-  const typed = useTyped(big && !focused && q === "");
+  const examples = useMemo(() => TYPED_KEYS.map((k) => t(k)), [t]);
+  const typed = useTyped(big && !focused && q === "", examples);
   const dq = useDebounced(q, 120);
   const [items, setItems] = useState<Suggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -94,7 +95,7 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
   const showList = open && q.trim().length > 0 && searched !== "";
   return (
     <div ref={box} className="relative min-w-0">
-      <div className={`flex items-center gap-2 rounded-2xl border-2 border-edge bg-sheet pl-4 pr-1.5 shadow-[4px_4px_0_0_rgb(var(--c-shadow))] ${big ? "py-2" : "py-1"}`}>
+      <div className={`flex items-center gap-2 neu-inset rounded-2xl pl-4 pr-1.5 ${big ? "py-2" : "py-1"}`}>
         <svg aria-hidden width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
         <input id={id} role="combobox" aria-expanded={showList} aria-controls={`${id}-list`} aria-autocomplete="list"
           aria-activedescendant={active >= 0 ? `${id}-o${active}` : undefined} aria-label={t("search.placeholder")}
@@ -108,13 +109,13 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
           else { setQ(text); setOpen(true); }
         }} onError={setVoiceMsg} />
       </div>
-      <p role="status" aria-live="polite" className="mt-2 min-h-[1.5rem] text-[15px] text-busy">{voiceMsg}</p>
+      <p role="status" aria-live="polite" className="mt-2 min-h-[1.5rem] text-base text-busy">{voiceMsg}</p>
 
       {showList && (
-        <ul id={`${id}-list`} role="listbox" aria-label="Matching teachers"
-          className="suggest-in absolute left-0 right-0 top-[calc(100%-1.25rem)] z-50 max-h-[70vh] overflow-auto rounded-xl border-2 border-edge bg-sheet shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
+        <ul id={`${id}-list`} role="listbox" aria-label={t("search.matches")}
+          className="suggest-in absolute left-0 right-0 top-[calc(100%-1.25rem)] z-50 max-h-[70vh] overflow-auto neu-raised rounded-2xl">
           {items.map((s, i) => {
-            const info = suggestionLine(s);
+            const info = suggestionLine(s, t);
             return (
               <li key={s.id} id={`${id}-o${i}`} role="option" aria-selected={i === active}
                 onMouseEnter={() => setActive(i)} onMouseDown={(e) => { e.preventDefault(); go(i); }}
@@ -122,21 +123,21 @@ export default function SearchBox({ big = false, autoFocus = false }: { big?: bo
                 className={`suggest-row flex cursor-pointer items-center justify-between gap-3 border-t border-line px-4 py-3 first:border-t-0 ${i === active ? "bg-paper" : ""}`}>
                 <div className="min-w-0">
                   <div className="truncate font-display text-lg font-semibold"><Highlight text={s.name} q={q} /></div>
-                  <div className="truncate text-[15px] text-mute">{[s.faculty_code, s.department, s.room && `Room ${s.room}`].filter(Boolean).join(", ")}</div>
+                  <div className="truncate text-base text-mute">{[s.faculty_code, s.department, s.room && t("search.room", { room: s.room })].filter(Boolean).join(", ")}</div>
                 </div>
-                <div className="shrink-0 text-right text-[15px]">
+                <div className="shrink-0 text-right text-base">
                   <div className={`inline-flex items-center gap-1.5 font-display font-semibold ${TONE_TEXT[info.tone]}`}>
                     <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${TONE_DOT[info.tone]}`} />{t(info.label)}
                   </div>
-                  <div className="text-mute">{s.status === "available" && s.until ? `until ${s.until}` : s.next_when ? `free ${s.next_when}` : ""}</div>
+                  <div className="text-mute">{s.status === "available" && s.until ? t("search.until", { t: s.until }) : s.next_when ? t("search.free_at", { when: s.next_when }) : ""}</div>
                 </div>
               </li>
             );
           })}
           {items.length === 0 && (
-            <li className="px-4 py-4 text-[15px]">
-              No teacher matches “{searched}”. Check the spelling, or{" "}
-              <a className="font-semibold text-brand underline" href={`/ask?q=${encodeURIComponent(searched)}`}>ask AIUB instead</a>.
+            <li className="px-4 py-4 text-base">
+              {t("search.no_match", { q: searched })}{" "}
+              <a className="font-semibold text-brand underline" href={`/ask?q=${encodeURIComponent(searched)}`}>{t("search.ask_instead")}</a>.
             </li>
           )}
         </ul>

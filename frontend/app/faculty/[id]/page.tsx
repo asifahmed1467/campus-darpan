@@ -54,7 +54,7 @@ export default function FacultyProfile() {
 
       <RoomCard p={p} />
 
-      <section aria-labelledby="st" className="rise mt-6 rounded-2xl border-2 border-edge bg-sheet p-5 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-7">
+      <section aria-labelledby="st" className="rise mt-6 rounded-2xl neu-raised p-5 sm:p-7">
         <h2 id="st" className="sr-only">Availability now</h2>
         <StatusLabel f={p} />
         <p className={`mt-2 font-display text-4xl font-bold leading-tight sm:text-5xl ${TONE_TEXT[info.tone]}`}>{info.main || t(info.label)}</p>

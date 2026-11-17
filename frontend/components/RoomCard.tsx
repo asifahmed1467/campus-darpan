@@ -10,7 +10,7 @@ export function RoomCard({ p }: { p: Profile }) {
   const code = p.room ? [p.building, p.room].filter(Boolean).join(" ") : null;
   const ri = p.room_info;
   return (
-    <section aria-labelledby="rm" className="rise mt-6 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4 rounded-2xl border-2 border-edge bg-inverse p-5 text-white shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-x-6 sm:p-6" style={{ ["--i" as string]: 1 }}>
+    <section aria-labelledby="rm" className="rise mt-6 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4 rounded-2xl bg-inverse p-5 text-white shadow-[6px_6px_16px_rgb(var(--neu-lo)),-6px_-6px_16px_rgb(var(--neu-hi))] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-x-6 sm:p-6" style={{ ["--i" as string]: 1 }}>
       <svg aria-hidden width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="pin shrink-0 self-start text-needle sm:h-11 sm:w-11">
         <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.6" />
       </svg>

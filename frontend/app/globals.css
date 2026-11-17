@@ -4,15 +4,20 @@
 
 :root {
   color-scheme: light;
-  --c-ink: 15 27 61; --c-paper: 238 242 248; --c-brand: 11 42 111; --c-go: 15 157 88; --c-busy: 217 72 15;
-  --c-needle: 242 176 30; --c-violet: 123 94 167; --c-line: 213 221 234; --c-mute: 91 103 132; --c-sheet: 255 255 255;
-  --c-inverse: 15 27 61; --c-edge: 15 27 61; --c-track: 221 228 240; --c-warn: 138 90 0; --c-shadow: 15 27 61; --c-focus: 43 107 255;
+  /* Light theme: Blueprint Teal. Dark theme below keeps the original navy identity. */
+  --c-ink: 12 36 48; --c-paper: 238 245 245; --c-brand: 15 92 110; --c-go: 22 122 73; --c-busy: 191 63 12;
+  --c-needle: 245 166 35; --c-violet: 107 78 155; --c-line: 207 221 223; --c-mute: 79 107 117; --c-sheet: 243 249 249;
+  --c-inverse: 12 36 48; --c-edge: 12 36 48; --c-track: 217 231 232; --c-warn: 122 82 0; --c-shadow: 12 36 48; --c-focus: 43 107 255;
+  /* Neumorphism: one soft light from the top left. The surface matches the page, shadows do the lifting. */
+  --neu-hi: 255 255 255 / .95; --neu-lo: 12 36 48 / .16;
+  --ease: cubic-bezier(.22, 1, .36, 1);
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --c-ink: 232 237 247; --c-paper: 11 17 32; --c-brand: 60 118 236; --c-go: 34 181 108; --c-busy: 244 112 66;
-  --c-needle: 247 188 52; --c-violet: 166 139 212; --c-line: 42 54 82; --c-mute: 156 170 199; --c-sheet: 20 29 50;
+  --c-needle: 247 188 52; --c-violet: 166 139 212; --c-line: 42 54 82; --c-mute: 156 170 199; --c-sheet: 16 24 42;
   --c-inverse: 36 52 96; --c-edge: 84 104 150; --c-track: 36 48 76; --c-warn: 240 184 70; --c-shadow: 3 6 14; --c-focus: 127 166 255;
+  --neu-hi: 255 255 255 / .05; --neu-lo: 0 0 0 / .55;
 }
 html { -webkit-text-size-adjust: 100%; scroll-padding-top: 5rem; }
 body {
@@ -28,145 +33,120 @@ a { text-underline-offset: 3px; }
 
 :focus-visible { outline: 3px solid rgb(var(--c-focus)); outline-offset: 2px; border-radius: 6px; }
 
-/* The one animated moment: each day-strip's "now" needle sweeps from the left edge to the current time. */
-@keyframes needle-in { from { left: 0%; opacity: 0; } 15% { opacity: 1; } to { left: var(--x); opacity: 1; } }
-.needle { left: var(--x); animation: needle-in 900ms cubic-bezier(.2,.7,.2,1) both; }
-@keyframes toast-in { 0% { transform: translateY(24px) scale(.96); opacity: 0; } 65% { transform: translateY(-4px) scale(1.01); opacity: 1; } 100% { transform: none; opacity: 1; } }
-.toast { animation: toast-in 420ms cubic-bezier(.2,.8,.3,1) both; }
-@keyframes bell-ring { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); } 60% { transform: rotate(-8deg); } 75% { transform: rotate(4deg); } }
-.bell { transform-origin: 50% 8%; animation: bell-ring 900ms ease-in-out 250ms 2; }
+/* ---------- Neumorphic surfaces: raised (resting), inset (wells, fields, tracks), pressed ---------- */
+.neu-raised { background: rgb(var(--c-sheet)); border: 1px solid rgb(var(--c-mute) / .42);
+  box-shadow: 9px 9px 20px rgb(var(--neu-lo)), -9px -9px 20px rgb(var(--neu-hi)); }
+.neu-raised-sm { background: rgb(var(--c-sheet)); border: 1px solid rgb(var(--c-mute) / .42);
+  box-shadow: 4px 4px 10px rgb(var(--neu-lo)), -4px -4px 10px rgb(var(--neu-hi)); }
+.neu-inset { background: rgb(var(--c-paper)); border: 1px solid rgb(var(--c-mute) / .65);
+  box-shadow: inset 4px 4px 9px rgb(var(--neu-lo)), inset -4px -4px 9px rgb(var(--neu-hi)); transition: box-shadow 240ms var(--ease), border-color 240ms var(--ease); }
+.neu-inset-sm { box-shadow: inset 2px 2px 4px rgb(var(--neu-lo)), inset -2px -2px 4px rgb(var(--neu-hi)); }
+/* A well that shows the focus ring when anything inside it has focus (the search box). */
+.neu-inset:focus-within { border-color: rgb(var(--c-focus)); box-shadow: inset 4px 4px 9px rgb(var(--neu-lo)), inset -4px -4px 9px rgb(var(--neu-hi)), 0 0 0 3px rgb(var(--c-focus) / .45); }
+
+/* ---------- Motion: one easing, three speeds, everything gentle ---------- */
+/* The one signature moment: each day-strip's "now" needle glides from the left edge to the current time. */
+@keyframes needle-in { from { left: 0%; opacity: 0; } 20% { opacity: 1; } to { left: var(--x); opacity: 1; } }
+.needle { left: var(--x); animation: needle-in 1100ms var(--ease) both; }
+@keyframes toast-in { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+.toast { animation: toast-in 380ms var(--ease) both; }
+@keyframes bell-ring { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(10deg); } 50% { transform: rotate(-8deg); } 75% { transform: rotate(4deg); } }
+.bell { transform-origin: 50% 8%; animation: bell-ring 900ms ease-in-out 250ms 1; }
 @keyframes toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .toast-timer { transform-origin: left; animation: toast-timer 9s linear forwards; }
-/* Gentle entrance: blocks rise in once, staggered by --i. Hover lifts answer the pointer. */
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.rise { animation: rise 520ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i, 0) * 70ms); }
-@keyframes room-pop { 0% { opacity: 0; transform: scale(.86); } 60% { transform: scale(1.04); } 100% { opacity: 1; transform: none; } }
-.room-num { animation: room-pop 650ms cubic-bezier(.2,.8,.3,1) 250ms both; transform-origin: left center; }
-@keyframes pin-drop { 0% { transform: translateY(-14px); opacity: 0; } 55% { transform: translateY(3px); opacity: 1; } 100% { transform: none; } }
-.pin { animation: pin-drop 600ms ease-out 150ms both; }
-@keyframes live-pulse { 0% { box-shadow: 0 0 0 0 rgb(var(--c-go) / .55); } 100% { box-shadow: 0 0 0 9px rgb(var(--c-go) / 0); } }
-.dot-live { animation: live-pulse 1.8s ease-out infinite; }
-.lift { transition: transform 160ms ease, background-color 160ms ease; }
-.lift:hover { transform: translateX(3px); }
-.btn { transition: transform 120ms ease, background-color 160ms ease, border-color 160ms ease; }
-.btn:active { transform: scale(.97); }
-.chip { transition: transform 140ms ease, border-color 160ms ease; }
-.chip:hover { transform: translateY(-2px); }
-/* Calm extras: a soft page fade, scroll reveal, a faint hero glow and a gentle card lift. */
+/* Entrances: a short fade and a small rise, staggered lightly (capped at four steps). */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 480ms var(--ease) both; animation-delay: calc(min(var(--i, 0), 4) * 45ms); }
+@keyframes room-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+.room-num { animation: room-pop 480ms var(--ease) 150ms both; transform-origin: left center; }
+@keyframes pin-drop { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pin { animation: pin-drop 480ms var(--ease) 100ms both; }
+@keyframes live-pulse { 0% { box-shadow: 0 0 0 0 rgb(var(--c-go) / .4); } 100% { box-shadow: 0 0 0 7px rgb(var(--c-go) / 0); } }
+.dot-live { animation: live-pulse 2.6s ease-out infinite; }
+.lift { position: relative; transition: background-color 240ms var(--ease); }
+.btn { transition: box-shadow 240ms var(--ease), background-color 240ms var(--ease), border-color 240ms var(--ease), color 240ms var(--ease); }
+.chip { transition: box-shadow 240ms var(--ease), background-color 240ms var(--ease), border-color 240ms var(--ease); }
+/* Pressing sinks the control into the surface. */
+.btn:active, .chip:active { box-shadow: inset 3px 3px 6px rgb(var(--neu-lo)), inset -3px -3px 6px rgb(var(--neu-hi)); }
 @keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
-.page-in { animation: page-in 260ms ease-out both; }
-.reveal { opacity: 0; transform: translateY(10px); transition: opacity 600ms ease, transform 600ms cubic-bezier(.2,.7,.2,1); }
+.page-in { animation: page-in 320ms var(--ease) both; }
+.reveal { opacity: 0; transform: translateY(8px); transition: opacity 560ms var(--ease), transform 560ms var(--ease); }
 .reveal[data-seen="true"] { opacity: 1; transform: none; }
+/* A still, soft glow behind the hero: no drifting, no blur filter. */
 .hero-glow { position: relative; isolation: isolate; }
-.hero-glow::before { content: ""; position: absolute; z-index: -1; inset: -2rem -3rem auto -3rem; height: 26rem; pointer-events: none;
-  background: radial-gradient(60% 60% at 25% 30%, rgb(var(--c-brand) / .10), transparent 70%); animation: glow-drift 14s ease-in-out infinite alternate; }
-@keyframes glow-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(3%, 6%, 0); } }
-.card-hover { transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease; }
-.card-hover:hover { transform: translateY(-2px); border-color: rgb(var(--c-brand) / .5); box-shadow: 0 10px 24px -16px rgb(var(--c-shadow) / .45); }
-.field:focus, .field:focus-visible { box-shadow: 0 0 0 4px rgb(var(--c-focus) / .18); transition: box-shadow 160ms ease; }
+.hero-glow::before { content: ""; position: absolute; z-index: -1; inset: -2rem -3rem auto -3rem; height: 28rem; pointer-events: none;
+  background: radial-gradient(55% 55% at 28% 32%, rgb(var(--c-brand) / .12), transparent 70%); }
+.card-hover { transition: box-shadow 320ms var(--ease), border-color 320ms var(--ease); }
+.card-hover:hover { border-color: rgb(var(--c-brand) / .4); box-shadow: 11px 11px 24px rgb(var(--neu-lo)), -11px -11px 24px rgb(var(--neu-hi)); }
+.field:focus, .field:focus-visible { box-shadow: 0 0 0 4px rgb(var(--c-focus) / .18); transition: box-shadow 200ms var(--ease); }
 /* Scroll progress bar */
 .scroll-bar { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60; transform-origin: left; background: rgb(var(--c-needle)); transform: scaleX(var(--p, 0)); pointer-events: none; }
-/* Headline: each word eases in one after another */
-@keyframes word-in { from { opacity: 0; transform: translateY(.45em); filter: blur(5px); } to { opacity: 1; transform: none; filter: blur(0); } }
-.word { display: inline-block; animation: word-in 640ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(120ms + var(--w, 0) * 90ms); }
-/* General page motion: on every page, the blocks slide up one after another and list rows follow in order. */
-.page-in > *:not(.reveal), .page-in > * > *:not(.reveal) { animation: rise 600ms cubic-bezier(.2,.7,.2,1) both; }
-.page-in > * > *:nth-child(2) { animation-delay: 80ms; } .page-in > * > *:nth-child(3) { animation-delay: 160ms; }
-.page-in > * > *:nth-child(4) { animation-delay: 240ms; } .page-in > * > *:nth-child(5) { animation-delay: 320ms; }
-.page-in > * > *:nth-child(n+6) { animation-delay: 380ms; }
-.page-in li:not([role]) { animation: slide-in 480ms cubic-bezier(.2,.7,.2,1) both; }
-.page-in li:not([role]):nth-child(1) { animation-delay: 120ms; } .page-in li:not([role]):nth-child(2) { animation-delay: 190ms; }
-.page-in li:not([role]):nth-child(3) { animation-delay: 260ms; } .page-in li:not([role]):nth-child(4) { animation-delay: 330ms; }
-.page-in li:not([role]):nth-child(5) { animation-delay: 400ms; } .page-in li:not([role]):nth-child(6) { animation-delay: 460ms; }
-.page-in li:not([role]):nth-child(n+7) { animation-delay: 520ms; }
-@keyframes slide-in { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
-/* Links: the underline grows in on hover; rows glide; logo and toggles react to touch */
-main a.underline { text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat; transition: background-size 260ms ease; }
+/* Headline: the words fade up one after another, no blur. */
+@keyframes word-in { from { opacity: 0; transform: translateY(.3em); } to { opacity: 1; transform: none; } }
+.word { display: inline-block; animation: word-in 560ms var(--ease) both; animation-delay: calc(80ms + var(--w, 0) * 60ms); }
+@keyframes slide-in { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+/* Links: the underline grows in on hover */
+main a.underline { text-decoration: none; background: linear-gradient(currentColor, currentColor) 0 100% / 100% 2px no-repeat; transition: background-size 280ms var(--ease); }
 main a.underline:hover { background-size: 100% 4px; }
-main li { transition: background-color 180ms ease; }
-header a[aria-label] svg, header a[aria-label] img { transition: transform 400ms cubic-bezier(.3,1.5,.5,1); }
-header a[aria-label]:hover svg, header a[aria-label]:hover img { transform: rotate(-8deg) scale(1.08); }
-header .chip:active { transform: scale(.92); }
-/* Hero: two soft colour clouds drift behind the headline */
-.hero-glow::after { content: ""; position: absolute; z-index: -1; right: -4rem; top: 3rem; width: 22rem; height: 22rem; border-radius: 9999px; pointer-events: none;
-  background: radial-gradient(circle, rgb(var(--c-needle) / .20), transparent 68%); filter: blur(10px); animation: cloud-b 11s ease-in-out infinite alternate; }
-.hero-glow::before { height: 30rem; background: radial-gradient(55% 55% at 28% 32%, rgb(var(--c-brand) / .22), transparent 70%); animation: cloud-a 9s ease-in-out infinite alternate; }
-@keyframes cloud-a { from { transform: translate3d(-4%, -2%, 0) scale(1); } to { transform: translate3d(8%, 10%, 0) scale(1.15); } }
-@keyframes cloud-b { from { transform: translate3d(0, 0, 0) scale(.9); } to { transform: translate3d(-18%, 14%, 0) scale(1.15); } }
+main li { transition: background-color 240ms var(--ease); }
+header a[aria-label] svg, header a[aria-label] img { transition: transform 400ms var(--ease); }
+header a[aria-label]:hover svg, header a[aria-label]:hover img { transform: scale(1.05); }
 /* Notice ticker */
-.ticker-track { animation: ticker 55s linear infinite; }
+.ticker-track { animation: ticker 90s linear infinite; }
 .ticker:hover .ticker-track, .ticker:focus-within .ticker-track, .ticker:active .ticker-track { animation-play-state: paused; }
 .ticker-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
 @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-/* The "Right now" card breathes: a slow float, and a lift when touched */
-@keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-.float-card { animation: float-y 6s ease-in-out 1.2s infinite; }
-/* Section headings draw an amber underline as they arrive */
-.draw-line::after { content: ""; display: block; height: 4px; width: 3.2rem; margin-top: .5rem; border-radius: 2px; background: rgb(var(--c-needle)); transform: scaleX(0); transform-origin: left; transition: transform 700ms cubic-bezier(.2,.7,.2,1) 300ms; }
+/* Section headings draw an accent underline as they arrive */
+.draw-line::after { content: ""; display: block; height: 4px; width: 3.2rem; margin-top: .5rem; border-radius: 2px; background: rgb(var(--c-needle)); transform: scaleX(0); transform-origin: left; transition: transform 700ms var(--ease) 250ms; }
 .reveal[data-seen="true"] .draw-line::after, .draw-line.on::after { transform: scaleX(1); }
-/* Search suggestions drop open, rows follow one by one */
-@keyframes suggest-in { from { opacity: 0; transform: translateY(-8px) scale(.98); } to { opacity: 1; transform: none; } }
-.suggest-in { animation: suggest-in 220ms cubic-bezier(.2,.8,.3,1) both; transform-origin: top; }
-.suggest-row { animation: slide-in 300ms cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--s, 0) * 35ms); }
-/* Headline: an amber highlighter sweeps under the last words */
-.mark-word { background: linear-gradient(rgb(var(--c-needle) / .45), rgb(var(--c-needle) / .45)) 0 88% / 0% 28% no-repeat; animation: word-in 640ms cubic-bezier(.2,.7,.2,1) both, mark 700ms cubic-bezier(.3,.7,.2,1) forwards; animation-delay: calc(120ms + var(--w, 0) * 90ms), calc(700ms + var(--w, 0) * 140ms); }
+/* Search suggestions fade open, rows follow lightly */
+@keyframes suggest-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.suggest-in { animation: suggest-in 240ms var(--ease) both; transform-origin: top; }
+.suggest-row { animation: slide-in 280ms var(--ease) both; animation-delay: calc(min(var(--s, 0), 5) * 30ms); }
+/* Headline: an accent highlighter sweeps under the last words */
+.mark-word { background: linear-gradient(rgb(var(--c-needle) / .45), rgb(var(--c-needle) / .45)) 0 88% / 0% 28% no-repeat; animation: word-in 560ms var(--ease) both, mark 900ms var(--ease) forwards; animation-delay: calc(80ms + var(--w, 0) * 60ms), calc(600ms + var(--w, 0) * 100ms); }
 @keyframes mark { to { background-size: 100% 28%; } }
-/* Teacher initials pop and tilt on hover; rows get a sliding accent bar */
-.avatar { transition: transform 350ms cubic-bezier(.3,1.6,.5,1), background-color 200ms ease; }
-.lift:hover .avatar, .lift:focus-visible .avatar { transform: rotate(-6deg) scale(1.1); background: rgb(var(--c-brand)); }
-.lift { position: relative; }
-.lift::before { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 3px; border-radius: 3px; background: rgb(var(--c-needle)); transform: scaleY(0); transition: transform 260ms cubic-bezier(.2,.7,.2,1); }
+/* Teacher initials ease to the brand color; rows get a sliding accent bar */
+.avatar { transition: background-color 300ms var(--ease), box-shadow 300ms var(--ease); box-shadow: 3px 3px 7px rgb(var(--neu-lo)), -2px -2px 6px rgb(var(--neu-hi)); }
+.lift:hover .avatar, .lift:focus-visible .avatar { background: rgb(var(--c-brand)); }
+.lift::before { content: ""; position: absolute; left: 0; top: 18%; bottom: 18%; width: 3px; border-radius: 3px; background: rgb(var(--c-needle)); transform: scaleY(0); transition: transform 300ms var(--ease); }
 .lift:hover::before, .lift:focus-visible::before { transform: scaleY(1); }
-/* Room badges shine once when hovered */
-main a span.bg-inverse { position: relative; overflow: hidden; }
-main a span.bg-inverse::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgb(255 255 255 / .35) 50%, transparent 65%); transform: translateX(-120%); }
-main a:hover span.bg-inverse::after { transition: transform 700ms ease; transform: translateX(120%); }
-/* Theme button spins when tapped; bottom nav icon bounces when chosen */
-.spin-tap svg { transition: transform 500ms cubic-bezier(.3,1.4,.5,1); }
-.spin-tap:active svg { transform: rotate(180deg) scale(.85); }
-@keyframes nav-bounce { 0% { transform: translateY(0); } 40% { transform: translateY(-5px); } 70% { transform: translateY(1px); } 100% { transform: none; } }
-nav a[aria-current="page"] svg { animation: nav-bounce 450ms cubic-bezier(.3,1.4,.5,1); }
-/* Cards and big numbers: a soft scale-in when revealed */
-.reveal { transform: translateY(16px) scale(.985); }
-.reveal[data-seen="true"] { transform: none; }
+/* Theme button turns gently when tapped; the active nav icon eases up once */
+.spin-tap svg { transition: transform 420ms var(--ease); }
+.spin-tap:active svg { transform: rotate(90deg); }
+@keyframes nav-settle { from { transform: translateY(3px); } to { transform: none; } }
+nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 /* Chat typing indicator */
-@keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: .45; } 30% { transform: translateY(-5px); opacity: 1; } }
-.typing-dot { animation: typing 1s ease-in-out infinite; }
-/* Primary buttons get a soft light sweep on hover */
-.btn-primary { position: relative; overflow: hidden; }
-.btn-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / .22) 50%, transparent 70%); transform: translateX(-120%); transition: transform 600ms ease; }
-.btn-primary:hover::after { transform: translateX(120%); }
+@keyframes typing { 0%, 60%, 100% { opacity: .4; } 30% { opacity: 1; } }
+.typing-dot { animation: typing 1.4s ease-in-out infinite; }
 .caret { display: inline-block; width: 2px; height: 1.1em; margin-left: 1px; vertical-align: -.15em; background: rgb(var(--c-ink)); animation: caret 1s steps(1) infinite; }
 @keyframes caret { 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .suggest-in, .suggest-row, .mark-word, nav a[aria-current="page"] svg, .ticker-track, .float-card, .hero-glow::after, .word, .caret, .page-in > *, .page-in > * > *:not(.reveal), .page-in li:not([role]) { animation: none !important; }
-  .scroll-bar { display: none; }
-  .ticker-track { overflow-x: auto; }
-  .mark-word { background-size: 100% 28%; }
-  .avatar, .lift::before, .spin-tap svg { transition: none !important; }
-  .draw-line::after { transform: scaleX(1) !important; transition: none !important; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .page-in, .hero-glow::before { animation: none !important; }
-  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
-  .card-hover { transition: none !important; transform: none !important; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .rise, .room-num, .pin, .dot-live, .lift, .btn, .chip { animation: none !important; transition: none !important; transform: none !important; }
-  .needle, .toast, .bell, .toast-timer { animation: none; }
-  html { scroll-behavior: auto; }
-}
 
-.skeleton { background: linear-gradient(90deg, rgb(var(--c-track)) 25%, rgb(var(--c-line)) 37%, rgb(var(--c-track)) 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; border-radius: 8px; }
+.skeleton { background: linear-gradient(90deg, rgb(var(--c-track)) 25%, rgb(var(--c-line)) 37%, rgb(var(--c-track)) 63%); background-size: 400% 100%; animation: shimmer 1.8s ease infinite; border-radius: 8px; }
 @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
-@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
 
-.btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-display font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed; min-height: 44px; }
-.btn-primary { @apply bg-brand text-white hover:bg-inverse; }
-.btn-quiet { @apply bg-sheet text-ink border border-line hover:border-brand; }
-.chip { @apply inline-flex items-center rounded-full border border-line bg-sheet px-3 text-sm font-medium text-ink hover:border-brand; min-height: 36px; }
-.chip[aria-pressed="true"] { @apply bg-inverse text-white border-inverse; }
-.field { @apply w-full rounded-lg border border-line bg-sheet px-3 py-2.5 text-ink placeholder:text-mute; min-height: 44px; }
+/* Everyone who asks for less motion gets none: animations settle instantly in their end state. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .ticker-track { animation: none !important; overflow-x: auto; }
+  .scroll-bar { display: none; }
+  .mark-word { background-size: 100% 28%; }
+  .draw-line::after { transform: scaleX(1) !important; }
+  .skeleton { animation: none !important; }
+}
+
+.btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-display font-semibold disabled:opacity-50 disabled:cursor-not-allowed; min-height: 44px; }
+.btn-primary { @apply bg-brand text-white; box-shadow: 4px 4px 10px rgb(var(--neu-lo)), -3px -3px 8px rgb(var(--neu-hi)); }
+.btn-primary:hover { box-shadow: 6px 6px 14px rgb(var(--neu-lo)), -4px -4px 10px rgb(var(--neu-hi)); filter: brightness(1.06); }
+.btn-primary:active { box-shadow: inset 3px 3px 7px rgb(0 0 0 / .35), inset -2px -2px 5px rgb(255 255 255 / .12); }
+.btn-quiet { @apply bg-sheet text-ink border; border-color: rgb(var(--c-mute) / .55); box-shadow: 4px 4px 10px rgb(var(--neu-lo)), -4px -4px 10px rgb(var(--neu-hi)); }
+.btn-quiet:hover { border-color: rgb(var(--c-brand) / .6); box-shadow: 6px 6px 14px rgb(var(--neu-lo)), -5px -5px 12px rgb(var(--neu-hi)); }
+.chip { @apply inline-flex items-center rounded-full border bg-sheet px-3 text-sm font-medium text-ink; min-height: 36px; border-color: rgb(var(--c-mute) / .55); box-shadow: 3px 3px 8px rgb(var(--neu-lo)), -3px -3px 8px rgb(var(--neu-hi)); }
+.chip:hover { border-color: rgb(var(--c-brand) / .6); }
+.chip[aria-pressed="true"] { @apply bg-inverse text-white; border-color: rgb(var(--c-inverse)); box-shadow: inset 3px 3px 6px rgb(0 0 0 / .4), inset -2px -2px 5px rgb(255 255 255 / .1); }
+.field { @apply w-full rounded-xl bg-sheet px-3 py-2.5 text-ink placeholder:text-mute; min-height: 44px; border: 1px solid rgb(var(--c-mute) / .65);
+  box-shadow: inset 3px 3px 7px rgb(var(--neu-lo)), inset -3px -3px 7px rgb(var(--neu-hi)); }
 
 /* Campus map: a visible focus ring and hover cue on each building */
 .bld:focus { outline: none; }

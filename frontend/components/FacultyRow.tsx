@@ -15,7 +15,7 @@ export const initials = (name: string) => {
 
 export function StatusLabel({ f }: { f: Faculty }) {
   const { t } = useLang();
-  const info = statusInfo(f.status);
+  const info = statusInfo(f.status, t);
   return (
     <span className={`inline-flex items-center gap-2 font-display font-semibold ${TONE_TEXT[info.tone]}`}>
       <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${TONE_DOT[info.tone]} ${info.tone === "go" ? "dot-live" : ""}`} />
@@ -25,11 +25,12 @@ export function StatusLabel({ f }: { f: Faculty }) {
 }
 
 export function FavButton({ id, name }: { id: number; name: string }) {
+  const { t } = useLang();
   const favs = useFavs();
   const on = favs.has(id);
   return (
     <button type="button" onClick={() => favs.toggle(id)} aria-pressed={on}
-      aria-label={on ? `Remove ${name} from favourites` : `Add ${name} to favourites`}
+      aria-label={on ? t("fav.remove", { name }) : t("fav.add", { name })}
       className="grid h-11 w-11 place-items-center rounded-full text-mute hover:text-ink">
       <svg width="22" height="22" viewBox="0 0 24 24" fill={on ? "rgb(var(--c-needle))" : "none"} stroke={on ? "rgb(var(--c-warn))" : "currentColor"} strokeWidth="1.8" strokeLinejoin="round">
         <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9L3.5 9.7l5.9-.8L12 3.5z" />
@@ -39,7 +40,8 @@ export function FavButton({ id, name }: { id: number; name: string }) {
 }
 
 export default function FacultyRow({ f, compact = false, idx = 0 }: { f: Faculty; compact?: boolean; idx?: number }) {
-  const info = statusInfo(f.status);
+  const { t } = useLang();
+  const info = statusInfo(f.status, t);
   const nowMin = minutesOf(f.status.now);
   return (
     <li className="rise relative border-t border-line first:border-t-0" style={{ ["--i" as string]: Math.min(idx, 10) }}>
@@ -51,12 +53,12 @@ export default function FacultyRow({ f, compact = false, idx = 0 }: { f: Faculty
               <span className="font-display text-lg font-semibold leading-tight">{f.name}{f.room && <span className="ml-2 align-middle"><RoomBadge room={f.room} building={f.building} /></span>}</span>
               <StatusLabel f={f} />
             </div>
-            <div className="flex flex-col gap-x-4 text-[15px] text-mute sm:flex-row sm:justify-between">
+            <div className="flex flex-col gap-x-4 text-base text-mute sm:flex-row sm:justify-between">
               <span>{[f.designation, f.department].filter(Boolean).join(", ") || f.faculty_code || " "}</span>
               <span className="sm:text-right">{info.line}</span>
             </div>
-            {f.email && <div className="text-[15px] text-mute [overflow-wrap:anywhere]">{f.email}</div>}
-            {!compact && info.sub && <div className="text-[15px] text-ink/80">{info.sub}</div>}
+            {f.email && <div className="text-base text-mute [overflow-wrap:anywhere]">{f.email}</div>}
+            {!compact && info.sub && <div className="text-base text-ink/80">{info.sub}</div>}
           </div>
         </div>
         <div className="mt-3 sm:pl-[52px]"><DayStrip blocks={f.today} nowMin={nowMin} /></div>
@@ -67,8 +69,9 @@ export default function FacultyRow({ f, compact = false, idx = 0 }: { f: Faculty
 }
 
 export function RowSkeleton({ n = 4 }: { n?: number }) {
+  const { t } = useLang();
   return (
-    <ul aria-busy="true" aria-label="Loading teachers">
+    <ul aria-busy="true" aria-label={t("faculty.loading")}>
       {Array.from({ length: n }).map((_, i) => (
         <li key={i} className="border-t border-line px-4 py-4 first:border-t-0">
           <div className="flex gap-3"><div className="skeleton h-10 w-10" /><div className="flex-1 space-y-2"><div className="skeleton h-5 w-1/2" /><div className="skeleton h-4 w-2/3" /></div></div>

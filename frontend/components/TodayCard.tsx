@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { useLive } from "@/lib/hooks";
+import { useLang } from "@/lib/i18n";
 
 type Line = { text: string; url: string; when?: string };
 type Road = { road: string; level: "smooth" | "slow" | "heavy" | "closed"; minutes: number; usual_min: number; delay_min: number; km: number };
@@ -16,7 +17,7 @@ type Today = {
 const ROAD_TONE: Record<Road["level"], string> = {
   smooth: "bg-go/15 text-go", slow: "bg-needle/25 text-warn", heavy: "bg-busy/15 text-busy", closed: "bg-busy text-white",
 };
-const ROAD_WORD: Record<Road["level"], string> = { smooth: "Clear", slow: "Slow", heavy: "Heavy", closed: "Closed" };
+const ROAD_WORD = { smooth: "today.road_clear", slow: "today.road_slow", heavy: "today.road_heavy", closed: "today.road_closed" } as const;
 
 function Row({ icon, children, tone = "" }: { icon: React.ReactNode; children: React.ReactNode; tone?: string }) {
   return (
@@ -38,93 +39,94 @@ const ICON = {
 };
 
 export default function TodayCard() {
+  const { t: tr, num, date } = useLang();
   const q = useLive(() => api<Today>("/api/today"), [], 300_000);
   const [shared, setShared] = useState("");
   const t = q.data;
-  if (q.loading && !t) return <div className="skeleton h-48 rounded-2xl" aria-label="Loading today's briefing" />;
+  if (q.loading && !t) return <div className="skeleton h-48 rounded-2xl" aria-label={tr("today.loading")} />;
   if (!t) return null;
 
-  const dateLabel = new Date(t.date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  const dateLabel = date(t.date, { weekday: "long", day: "numeric", month: "long" });
   const quiet = !t.holiday_today && !t.dated.length && !t.new_notices.length;
   const heavy = (t.traffic ?? []).filter((r) => r.level === "heavy" || r.level === "closed");
 
   const share = async () => {
-    const parts = [`AIUB Today, ${dateLabel}`];
-    if (t.holiday_today) parts.push(`Holiday: ${t.holiday_today}`);
+    const parts = [`${tr("today.title")}, ${dateLabel}`];
+    if (t.holiday_today) parts.push(`${tr("today.holiday_short")} ${t.holiday_today}`);
     t.dated.forEach((d) => parts.push(d.text));
     if (t.weather?.text) parts.push(t.weather.text);
-    if (t.traffic?.length) parts.push(`Drive to AIUB now: ${t.traffic.map((r) => `${r.road.replace(" to AIUB", "")} ${r.minutes} min`).join(", ")}`);
+    if (t.traffic?.length) parts.push(`${tr("today.drive_now")} ${t.traffic.map((r) => `${r.road.replace(" to AIUB", "")} ${tr("unit.min", { n: r.minutes })}`).join(", ")}`);
     parts.push(location.origin);
     const text = parts.join("\n");
     try {
-      if (navigator.share) await navigator.share({ title: "AIUB Today", text });
-      else { await navigator.clipboard.writeText(text); setShared("Copied. Paste it in your group."); setTimeout(() => setShared(""), 3000); }
+      if (navigator.share) await navigator.share({ title: tr("today.title"), text });
+      else { await navigator.clipboard.writeText(text); setShared(tr("today.copied")); setTimeout(() => setShared(""), 3000); }
     } catch { /* closed the share sheet */ }
   };
 
   return (
-    <section aria-labelledby="today-h" className="rounded-2xl border-2 border-edge bg-sheet p-4 shadow-[6px_6px_0_0_rgb(var(--c-shadow))] sm:p-5">
+    <section aria-labelledby="today-h" className="neu-raised rounded-3xl p-4 sm:p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="today-h" className="text-2xl font-bold">AIUB Today</h2>
+        <h2 id="today-h" className="text-2xl font-bold">{tr("today.title")}</h2>
         <p className="font-display font-semibold text-mute">
-          {dateLabel}{t.week ? ` · Week ${t.week.week} of ${t.week.of}` : ""}
+          {dateLabel}{t.week ? ` · ${tr("today.week", { w: t.week.week, of: t.week.of })}` : ""}
         </p>
       </div>
 
       <ul className="mt-2 divide-y divide-line">
-        {t.holiday_today && <Row icon={ICON.party} tone="bg-go/15 text-go"><b className="font-display">Holiday today:</b> {t.holiday_today}. No classes.</Row>}
-        {!t.holiday_today && t.weekend && <Row icon={ICON.party} tone="bg-go/15 text-go">It&apos;s the weekend. No regular classes today.</Row>}
+        {t.holiday_today && <Row icon={ICON.party} tone="bg-go/15 text-go"><b className="font-display">{tr("today.holiday_label")}</b> {t.holiday_today}. {tr("today.no_classes")}</Row>}
+        {!t.holiday_today && t.weekend && <Row icon={ICON.party} tone="bg-go/15 text-go">{tr("today.weekend")}</Row>}
         {t.dated.map((d) => (
           <Row key={d.text} icon={ICON.exam} tone={d.when === "today" ? "bg-busy/15 text-busy" : "bg-needle/25 text-warn"}>
             <b className="font-display">{d.text}</b>{" "}
-            <a className="whitespace-nowrap font-semibold text-brand underline" href={d.url} target="_blank" rel="noopener noreferrer">Open notice</a>
+            <a className="whitespace-nowrap font-semibold text-brand underline" href={d.url} target="_blank" rel="noopener noreferrer">{tr("today.open_notice")}</a>
           </Row>
         ))}
         {t.weather?.text && (
           <Row icon={t.weather.rain ? ICON.rain : ICON.sun} tone={t.weather.rain && t.weather.rain >= 60 ? "bg-brand/15 text-brand" : ""}>
-            {t.weather.text}{t.weather.now_temp != null && <span className="text-mute"> Now {t.weather.now_temp}°C.</span>}
+            {t.weather.text}{t.weather.now_temp != null && <span className="text-mute"> {tr("today.now_temp", { n: t.weather.now_temp })}</span>}
           </Row>
         )}
         {t.traffic && t.traffic.length > 0 && (
           <Row icon={ICON.road} tone={heavy.length ? "bg-busy/15 text-busy" : "bg-go/15 text-go"}>
-            <p className="font-display font-semibold">{heavy.length ? `Heavy traffic on ${heavy.length} route${heavy.length > 1 ? "s" : ""} to campus` : "Drive times to campus right now"}</p>
+            <p className="font-display font-semibold">{heavy.length ? (heavy.length > 1 ? tr("today.heavy_many", { n: heavy.length }) : tr("today.heavy_one")) : tr("today.drive_times")}</p>
             <ul className="mt-1.5 space-y-1">
               {t.traffic.map((r) => (
-                <li key={r.road} className="flex items-center justify-between gap-3 text-[15px]">
+                <li key={r.road} className="flex items-center justify-between gap-3 text-base">
                   <span className="min-w-0 truncate">{r.road}</span>
                   <span className="flex shrink-0 items-center gap-2">
-                    <b className="font-display">{r.minutes} min</b>
-                    {r.delay_min > 0 && <span className="text-mute">(usually {r.usual_min})</span>}
-                    <span className={`rounded-full px-2 py-0.5 font-display text-xs font-bold ${ROAD_TONE[r.level]}`}>{ROAD_WORD[r.level]}</span>
+                    <b className="font-display">{tr("unit.min", { n: r.minutes })}</b>
+                    {r.delay_min > 0 && <span className="text-mute">{tr("today.usually", { n: r.usual_min })}</span>}
+                    <span className={`rounded-full px-2 py-0.5 font-display text-sm font-bold ${ROAD_TONE[r.level]}`}>{tr(ROAD_WORD[r.level])}</span>
                   </span>
                 </li>
               ))}
             </ul>
-            <p className="mt-1 text-sm text-mute">{t.traffic_at && <b className="font-display text-ink">Live, updated {t.traffic_at}. </b>}
-              Drive times by car or CNG from {t.traffic_source ?? "the map service"}, based on road speeds seen in the last 15 minutes. &quot;Usually&quot; is the normal time for this hour; when there is a jam, the live time rises above it.</p>
+            <p className="mt-1 text-base text-mute">{t.traffic_at && <b className="font-display text-ink">{tr("today.live_updated", { at: t.traffic_at })} </b>}
+              {tr("today.traffic_note", { src: t.traffic_source ?? tr("today.map_service") })}</p>
           </Row>
         )}
         {t.new_notices.length > 0 && (
           <Row icon={ICON.bell}>
-            <p className="font-display font-semibold">{t.new_notices.length} new notice{t.new_notices.length > 1 ? "s" : ""} since yesterday</p>
-            <ul className="mt-1 space-y-0.5 text-[15px]">
+            <p className="font-display font-semibold">{t.new_notices.length > 1 ? tr("today.new_many", { n: t.new_notices.length }) : tr("today.new_one")}</p>
+            <ul className="mt-1 space-y-0.5 text-base">
               {t.new_notices.map((n) => <li key={n.url}><a className="hover:underline" href={n.url} target="_blank" rel="noopener noreferrer">{n.text}</a></li>)}
             </ul>
           </Row>
         )}
-        {quiet && !t.weekend && <Row icon={ICON.calm} tone="bg-go/15 text-go">Normal class day. No exams or holidays today.</Row>}
+        {quiet && !t.weekend && <Row icon={ICON.calm} tone="bg-go/15 text-go">{tr("today.normal_day")}</Row>}
         {t.next_holiday && (
           <Row icon={ICON.party}>
-            Next holiday: <b className="font-display">{t.next_holiday.name}</b>,{" "}
-            {new Date(t.next_holiday.date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
-            <span className="text-mute"> ({t.next_holiday.days === 1 ? "tomorrow" : `in ${t.next_holiday.days} days`})</span>
+            {tr("today.next_holiday")} <b className="font-display">{t.next_holiday.name}</b>,{" "}
+            {date(t.next_holiday.date, { weekday: "short", day: "numeric", month: "short" })}
+            <span className="text-mute"> ({t.next_holiday.days === 1 ? tr("today.tomorrow") : tr("today.in_days", { n: t.next_holiday.days })})</span>
           </Row>
         )}
       </ul>
 
       <div className="mt-2 flex flex-wrap items-center gap-3 border-t border-line pt-3">
-        <button type="button" className="btn btn-quiet !min-h-[40px] !py-1.5" onClick={share}>Share today</button>
-        <span role="status" className="text-sm text-go">{shared}</span>
+        <button type="button" className="btn btn-quiet !min-h-[40px] !py-1.5" onClick={share}>{tr("today.share")}</button>
+        <span role="status" className="text-base text-go">{shared}</span>
       </div>
     </section>
   );

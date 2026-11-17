@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
 };
-export const viewport: Viewport = { themeColor: "#0B2A6F", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#0F5C6E", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
