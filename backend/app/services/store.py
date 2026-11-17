@@ -119,14 +119,21 @@ class Store:
 
         by_fac: dict[int, list[Slot]] = {}
         courses: dict[int, set[str]] = {}
-        q = select(TsfSlot)
-        if snap.sem_name:
-            q = q.where(TsfSlot.semester == snap.sem_name)
-        for s in db.scalars(q):
-            by_fac.setdefault(s.faculty_id, []).append(
-                Slot(s.day, s.start_min, s.end_min, s.type, s.course, s.section, s.room, s.label))
-            if s.course:
-                courses.setdefault(s.faculty_id, set()).add(s.course)
+        # Each teacher shows their newest uploaded TSF, whatever the semester string says, so an
+        # upload can never be hidden by a name mismatch such as "Fall 2026-27" vs "Fall 2026".
+        rows: dict[int, dict[str, list[TsfSlot]]] = {}
+        newest: dict[int, tuple[int, str]] = {}
+        for s in db.scalars(select(TsfSlot)):
+            rows.setdefault(s.faculty_id, {}).setdefault(s.semester, []).append(s)
+            if s.faculty_id not in newest or s.id > newest[s.faculty_id][0]:
+                newest[s.faculty_id] = (s.id, s.semester)
+        for fid, by_sem in rows.items():
+            use = by_sem[newest[fid][1]]
+            for s in use:
+                by_fac.setdefault(fid, []).append(
+                    Slot(s.day, s.start_min, s.end_min, s.type, s.course, s.section, s.room, s.label))
+                if s.course:
+                    courses.setdefault(fid, set()).add(s.course)
 
         for f in db.scalars(select(Faculty)):
             code = f.faculty_code or faculty_for(f.department)

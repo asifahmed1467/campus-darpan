@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..models import Faculty, TsfSlot, TsfUpload
+from ..models import Faculty, Semester, TsfSlot, TsfUpload
 from .timeutil import DAYS, fmt_hhmm, parse_hhmm
 
 TYPES = {"CLASS", "CONSULTATION", "ADMIN", "FREE"}
@@ -165,7 +165,7 @@ def summarize(slots: list[dict]) -> dict:
 
 def preview(db: Session, fmt: str, content: str, semester: str | None) -> dict:
     sem, teachers, gerr = parse(fmt, content)
-    sem = semester or sem
+    sem = " ".join((semester or sem or "").split()) or None
     report = []
     for t in teachers:
         f = find_faculty(db, t)
@@ -186,7 +186,7 @@ def apply(db: Session, fmt: str, content: str, semester: str | None, by: str, cr
     if not rep["ok"]:
         return {**rep, "applied": []}
     applied = []
-    sem = rep["semester"]
+    sem = " ".join(rep["semester"].split())
     for t in parse(fmt, content)[1]:
         f = find_faculty(db, t)
         if f is None:
@@ -214,4 +214,9 @@ def apply(db: Session, fmt: str, content: str, semester: str | None, by: str, cr
         db.add(TsfUpload(faculty_id=f.id, semester=sem, payload=t.slots, uploaded_by=by))
         applied.append({"id": f.id, "name": f.name, "slots": len(t.slots)})
     db.commit()
-    return {**rep, "applied": applied}
+    active = db.scalar(select(Semester.name).where(Semester.is_active.is_(True)))
+    note = None
+    if active and " ".join(active.casefold().split()) != sem.casefold():
+        note = (f"Saved under '{sem}', but the active semester is '{active}'. The site still shows these "
+                f"teachers' newest TSF. Use the same semester name to keep things tidy.")
+    return {**rep, "applied": applied, "active_semester": active, "semester_note": note}

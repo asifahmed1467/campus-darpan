@@ -400,3 +400,29 @@ def test_question_words_do_not_match_teachers_by_email():
     r = TestClient(app).post("/api/ask", json={"question": "and who do I email if there is a problem?"}).json()
     assert r["mode"] != "faculty"
     assert TestClient(app).post("/api/ask", json={"question": "When is Nyme sir free?"}).json()["mode"] == "faculty"
+
+
+def test_upload_under_other_semester_name_still_shows_and_warns(client, auth):
+    one = {"semester": "Fall 2026", "faculty_email": "sem.mismatch@aiub.edu", "name": "Sem Mismatch",
+           "slots": [{"day": "SUN", "start": "10:00", "end": "11:30", "type": "CONSULTATION"}]}
+    r = client.post("/api/admin/tsf/confirm", json={"format": "json", "content": json.dumps(one)}, headers=auth).json()
+    assert r["applied"][0]["slots"] == 1 and r["semester_note"]
+    hit = client.get("/api/search/suggest", params={"q": "sem mism", "at": "2026-11-15T10:30"}).json()["items"][0]
+    assert hit["status"] == "available"
+    # same name written with odd spacing is the same semester: no warning
+    one["semester"] = "  fall  2026-27 "
+    r = client.post("/api/admin/tsf/confirm", json={"format": "json", "content": json.dumps(one)}, headers=auth).json()
+    assert r["semester_note"] is None
+
+
+def test_reseeding_does_not_overwrite_uploaded_tsfs(client, auth):
+    from app import seed
+    one = {"semester": "Fall 2026-27", "email": "nyme.ahmed@aiub.edu", "name": "Nyme Ahmed",
+           "slots": [{"day": "TUE", "start": "08:00", "end": "09:00", "type": "CONSULTATION"}]}
+    assert client.post("/api/admin/tsf/confirm", json={"format": "json", "content": json.dumps(one)}, headers=auth).status_code == 200
+    seed.main(demo=False)  # what every deploy runs
+    from app.db import SessionLocal
+    from app.models import Faculty, TsfSlot
+    with SessionLocal() as db:
+        f = db.query(Faculty).filter(Faculty.name_norm == "nyme ahmed").first()
+        assert [s.day for s in db.query(TsfSlot).filter(TsfSlot.faculty_id == f.id)] == [2]

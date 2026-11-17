@@ -13,7 +13,7 @@ from sqlalchemy import select
 
 from .auth import hash_password
 from .db import SessionLocal, init_db
-from .models import Admin, Holiday, Notice, Semester
+from .models import Admin, Holiday, Notice, Semester, TsfSlot
 from .services import tsf_import
 
 SEMESTER = ("Fall 2026-27", date(2026, 9, 27), date(2027, 1, 3))
@@ -36,13 +36,14 @@ def main(demo: bool | None = None):
     db = SessionLocal()
     if not db.scalar(select(Semester)):
         db.add(Semester(name=SEMESTER[0], start_date=SEMESTER[1], end_date=SEMESTER[2], is_active=True))
-    for d, n in HOLIDAYS:
-        if not db.scalar(select(Holiday).where(Holiday.date == d)):
+    if not db.scalar(select(Holiday)):  # first run only, so holidays an admin edits or deletes stay that way
+        for d, n in HOLIDAYS:
             db.add(Holiday(date=d, name=n))
     db.commit()
 
     path = Path(__file__).resolve().parents[1] / "seed_tsf_batch_01.json"
-    if path.exists():
+    # First run only. Re-importing on every deploy would overwrite TSFs that admins uploaded since.
+    if path.exists() and not db.scalar(select(TsfSlot.id).limit(1)):
         res = tsf_import.apply(db, "json", path.read_text(), None, "seed")
         print("TSF:", [f"{a['name']} ({a['slots']} slots)" for a in res.get("applied", [])] or res.get("errors"))
 

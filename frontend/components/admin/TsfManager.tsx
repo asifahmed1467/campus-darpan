@@ -8,7 +8,7 @@ interface PTeacher {
   name: string; email: string | null; match: { id: number; name: string } | null; will_create: boolean; slot_count: number;
   hours: Record<string, number>; errors: string[]; warnings: string[]; slots: PSlot[];
 }
-interface Report { semester: string | null; teachers: PTeacher[]; errors: string[]; ok: boolean; applied?: { id: number; name: string; slots: number }[] }
+interface Report { semester: string | null; teachers: PTeacher[]; errors: string[]; ok: boolean; applied?: { id: number; name: string; slots: number }[]; semester_note?: string | null }
 
 const DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -96,6 +96,8 @@ export default function TsfManager() {
       {saved && (
         <div role="status" className="rounded-xl border-2 border-go bg-sheet p-4">
           <p className="font-display text-lg font-semibold text-go">Saved {saved.applied?.length} schedule{saved.applied?.length === 1 ? "" : "s"}</p>
+          <p className="text-[15px] text-mute">Live on the website within about 30 seconds. No redeploy needed.</p>
+          {saved.semester_note && <p role="status" className="mt-1 text-[15px] text-warn">{saved.semester_note}</p>}
           <ul className="mt-1 text-[15px]">{saved.applied?.map((a) => <li key={a.id}>{a.name}: {a.slots} time blocks</li>)}</ul>
           <p className="mt-1 text-[15px] text-mute">Students see the change within about 30 seconds.</p>
         </div>
