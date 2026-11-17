@@ -16,6 +16,7 @@ const NAV: { href: string; key: Key; icon: string }[] = [
 ];
 
 function SoundToggle() {
+  const { t } = useLang();
   const [on, setOn] = useState<boolean | null>(null);
   useEffect(() => { setOn(soundOn()); }, []);
   const flip = () => {
@@ -26,7 +27,7 @@ function SoundToggle() {
   };
   return (
     <button type="button" onClick={flip} className="chip !px-2.5" aria-pressed={on ?? undefined}
-      aria-label={on ? "Turn notice sound off" : "Turn notice sound on"} title={on ? "Notice sound on" : "Notice sound off"}>
+      aria-label={on ? t("sound.off") : t("sound.on")} title={on ? t("sound.off") : t("sound.on")}>
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M12 3a6 6 0 00-6 6c0 5-2 6-2 7h16c0-1-2-2-2-7a6 6 0 00-6-6zM10 19a2 2 0 004 0" />
         {on === false && <path d="M3 3l18 18" />}
@@ -36,18 +37,19 @@ function SoundToggle() {
 }
 
 function ThemeToggle() {
+  const { t } = useLang();
   const [dark, setDark] = useState<boolean | null>(null);
   useEffect(() => { setDark(document.documentElement.dataset.theme === "dark"); }, []);
   const flip = () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem("cd-theme", next); } catch { /* private mode */ }
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0B1120" : "#0B2A6F");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0B1120" : "#0F5C6E");
     setDark(next === "dark");
   };
   return (
     <button type="button" onClick={flip} className="chip spin-tap !px-2.5" aria-pressed={dark ?? undefined}
-      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} title={dark ? "Light mode" : "Dark mode"}>
+      aria-label={dark ? t("theme.to_light") : t("theme.to_dark")} title={dark ? t("theme.to_light") : t("theme.to_dark")}>
       <svg className="dark:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" /></svg>
       <svg className="hidden dark:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
     </button>
@@ -56,7 +58,7 @@ function ThemeToggle() {
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const { lang, setLang, t } = useLang();
+  const { lang, setLang, t, num } = useLang();
   const online = useOnline();
   const isAdmin = path.startsWith("/admin");
   const [scrolled, setScrolled] = useState(false);
@@ -72,7 +74,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, []);
   return (
     <>
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-inverse focus:px-3 focus:py-2 focus:text-white">Skip to content</a>
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-inverse focus:px-3 focus:py-2 focus:text-white">{t("shell.skip")}</a>
       <div id="scroll-bar" aria-hidden className="scroll-bar" />
       <header className={`sticky top-0 z-40 border-b bg-paper/95 backdrop-blur transition-shadow duration-300 ${scrolled ? "border-line shadow-[0_6px_18px_-12px_rgb(var(--c-shadow)/.35)]" : "border-transparent"}`}>
         <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2.5">
@@ -89,7 +91,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <div className="ml-auto flex items-center gap-3">
             {online !== null && !isAdmin && (
               <span className="flex items-center gap-2 rounded-full border border-line bg-sheet px-3 py-1 text-sm" aria-live="off">
-                <span aria-hidden className="h-2 w-2 rounded-full bg-go" /><b className="font-display">{online.toLocaleString()}</b> <span className="hidden sm:inline">{t("online")}</span>
+                <span aria-hidden className="h-2 w-2 rounded-full bg-go" /><b className="font-display">{num(online)}</b> <span className="hidden sm:inline">{t("online")}</span>
               </span>
             )}
             <SoundToggle />
@@ -101,10 +103,10 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <main id="main" key={path} className="page-in mx-auto max-w-6xl overflow-x-clip px-4 pb-6 pt-6 md:pb-12 md:pt-10">{children}</main>
-      <footer className="mx-auto max-w-6xl px-4 pb-24 text-sm text-mute md:pb-10">
+      <footer className="mx-auto max-w-6xl px-4 pb-24 text-base text-mute md:pb-10">
         <div className="border-t border-line pt-5">
           <b className="font-bn text-ink">ক্যাম্পাসদর্পণ</b> · 
-          A student project, not an official AIUB service. Schedules come from teachers' TSFs; check the door or the portal for last-minute changes.
+          {t("footer.note")}
           <p className="mt-3 font-display font-medium text-ink">© {new Date().getFullYear()} Asif Ahmed and Mahfuz Ahmed. All rights reserved.</p>
         </div>
       </footer>
@@ -112,7 +114,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         {NAV.map((n) => {
           const on = path.startsWith(n.href);
           return (
-            <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} className={`group relative flex min-h-[60px] flex-col items-center justify-center gap-0.5 text-[13px] font-semibold transition-colors ${on ? "text-brand" : "text-mute"}`}>
+            <Link key={n.href} href={n.href} aria-current={on ? "page" : undefined} className={`group relative flex min-h-[60px] flex-col items-center justify-center gap-0.5 text-base font-semibold transition-colors ${on ? "text-brand" : "text-mute"}`}>
               <span aria-hidden className={`absolute top-0 h-[3px] w-10 rounded-b bg-brand transition-opacity duration-300 ${on ? "opacity-100" : "opacity-0"}`} />
               <svg className="transition-transform duration-200 group-active:scale-90" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={on ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round"><path d={n.icon} /></svg>
               {t(n.key)}

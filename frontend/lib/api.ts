@@ -65,11 +65,13 @@ export function minutesOf(iso: string): number {
   return parseInt(iso.slice(11, 13), 10) * 60 + parseInt(iso.slice(14, 16), 10);
 }
 
-export function fmtMin(m: number): string {
+export function fmtMin(m: number, lang: "en" | "bn" = "en"): string {
   const h = Math.floor(m / 60), mi = m % 60;
-  return `${h % 12 || 12}:${String(mi).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+  const nf = new Intl.NumberFormat(lang === "bn" ? "bn-BD" : "en", { useGrouping: false, minimumIntegerDigits: 1 });
+  const nf2 = new Intl.NumberFormat(lang === "bn" ? "bn-BD" : "en", { useGrouping: false, minimumIntegerDigits: 2 });
+  return `${nf.format(h % 12 || 12)}:${nf2.format(mi)} ${h < 12 ? "AM" : "PM"}`;
 }
 
-export function dayName(iso: string): string {
-  return new Date(iso.slice(0, 10) + "T12:00:00").toLocaleDateString("en-US", { weekday: "long" });
+export function dayName(iso: string, lang: "en" | "bn" = "en"): string {
+  return new Date(iso.slice(0, 10) + "T12:00:00").toLocaleDateString(lang === "bn" ? "bn-BD" : "en-US", { weekday: "long" });
 }

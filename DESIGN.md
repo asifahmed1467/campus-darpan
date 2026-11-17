@@ -2,18 +2,18 @@
 name: ক্যাম্পাসদর্পণ (Campus Darpan)
 description: Your Campus, Connected. A live, glanceable campus plan for AIUB students.
 colors:
-  navy-ink: "#0F1B3D"
-  campus-paper: "#EEF2F8"
-  brand-navy: "#0B2A6F"
-  free-green: "#0F9D58"
-  busy-orange: "#D9480F"
-  needle-amber: "#F2B01E"
-  violet: "#7B5EA7"
-  hairline: "#D5DDEA"
-  slate-mute: "#5B6784"
+  teal-ink: "#0C2430"
+  campus-paper: "#EEF5F5"
+  brand-teal: "#0F5C6E"
+  free-green: "#167A49"
+  busy-orange: "#BF3F0C"
+  needle-amber: "#F5A623"
+  violet: "#6B4E9B"
+  hairline: "#CFDDDF"
+  slate-mute: "#4F6B75"
   sheet: "#FFFFFF"
-  track: "#DDE4F0"
-  warn-ochre: "#8A5A00"
+  track: "#D9E7E8"
+  warn-ochre: "#7A5200"
   focus-blue: "#2B6BFF"
   night-ink: "#E8EDF7"
   night-paper: "#0B1120"
@@ -47,31 +47,31 @@ rounded:
   full: "9999px"
 components:
   button-primary:
-    backgroundColor: "{colors.brand-navy}"
+    backgroundColor: "{colors.brand-teal}"
     textColor: "{colors.sheet}"
     rounded: "{rounded.md}"
     padding: "10px 16px"
     height: "44px"
   button-primary-hover:
-    backgroundColor: "{colors.navy-ink}"
+    backgroundColor: "{colors.teal-ink}"
   button-quiet:
     backgroundColor: "{colors.sheet}"
-    textColor: "{colors.navy-ink}"
+    textColor: "{colors.teal-ink}"
     rounded: "{rounded.md}"
     padding: "10px 16px"
     height: "44px"
   chip:
     backgroundColor: "{colors.sheet}"
-    textColor: "{colors.navy-ink}"
+    textColor: "{colors.teal-ink}"
     rounded: "{rounded.full}"
     padding: "0 12px"
     height: "36px"
   chip-pressed:
-    backgroundColor: "{colors.navy-ink}"
+    backgroundColor: "{colors.teal-ink}"
     textColor: "{colors.sheet}"
   field:
     backgroundColor: "{colors.sheet}"
-    textColor: "{colors.navy-ink}"
+    textColor: "{colors.teal-ink}"
     rounded: "{rounded.md}"
     padding: "10px 12px"
     height: "44px"
@@ -85,40 +85,40 @@ components:
 
 The interface reads like a live, annotated campus floor plan. A faint dotted grid sits behind every page, status is a colored dot, and the signature moment is a "now" needle that sweeps across each teacher's day strip to the current time. Information is the star: who is free, what was posted, where a room is.
 
-The mood is confident, clear and lightly playful. A trustworthy navy carries the structure, amber marks "now" and emphasis, green and orange carry free and busy. Small moments of delight (the needle sweep, an amber highlighter under the headline, a pulsing live dot) are earned by meaning, not decoration. Bangla and English share one type system and the same weight on the page.
+The mood is confident, clear and lightly playful. A trustworthy teal (navy in dark mode) carries the structure, amber marks "now" and emphasis, green and orange carry free and busy. Small moments of delight (the needle sweep, an amber highlighter under the headline, a pulsing live dot) are earned by meaning, not decoration. Bangla and English share one type system and the same weight on the page.
 
-Light and dark themes are both first-class, switched by `data-theme` and remembered in `localStorage`.
+Light (Blueprint Teal) and dark (the original navy look) themes are both first-class, switched by `data-theme` and remembered in `localStorage`.
 
 **Key Characteristics:**
 - Dotted plan grid on a cool paper ground; white sheets float above it.
-- Navy structure, amber "now", green and orange for state.
+- Teal structure, amber "now", green and orange for state.
 - Display type is Bricolage Grotesque; Bangla and body copy are Hind Siliguri.
 - 44px minimum touch targets; focus rings always visible.
 - Every animation has a `prefers-reduced-motion` fallback.
 
 ## Colors
 
-A cool, blue-leaning palette with two signal colors. Values below are the light theme; the dark theme remaps the same roles (see Dark theme).
+A cool, teal-leaning palette with two signal colors. Values below are the light theme (Blueprint Teal); the dark theme keeps the original navy identity and remaps the same roles (see Dark theme).
 
 ### Primary
-- **Brand Navy** (#0B2A6F): primary buttons, headline emphasis, hover borders on cards and chips, the browser theme color.
+- **Brand Teal** (#0F5C6E): primary buttons, headline emphasis, hover borders on cards and chips, the browser theme color.
 
 ### Secondary
-- **Needle Amber** (#F2B01E): the "now" needle, the scroll-progress bar, heading underline, highlighter sweep, favorite star. Used as a mark, never as a large fill.
+- **Needle Amber** (#F5A623): the "now" needle, the scroll-progress bar, heading underline, highlighter sweep, favorite star. Used as a mark, never as a large fill.
 
 ### Tertiary
-- **Free Green** (#0F9D58): teacher is free; pulsing live dot; "clear" road state.
-- **Busy Orange** (#D9480F): teacher is busy or in class; heavy-traffic state.
-- **Violet** (#7B5EA7): reserved accent for a distinct category (schedule types and map layers).
-- **Warn Ochre** (#8A5A00): text on amber backgrounds and the "slow" state, chosen for contrast.
+- **Free Green** (#167A49): teacher is free; pulsing live dot; "clear" road state.
+- **Busy Orange** (#BF3F0C): teacher is busy or in class; heavy-traffic state.
+- **Violet** (#6B4E9B): reserved accent for a distinct category (schedule types and map layers).
+- **Warn Ochre** (#7A5200): text on amber backgrounds and the "slow" state, chosen for contrast.
 
 ### Neutral
-- **Navy Ink** (#0F1B3D): body text; also the inverse surface (pressed chips, room badges) and hover color for primary buttons.
-- **Campus Paper** (#EEF2F8): page background, under the dot grid.
+- **Teal Ink** (#0C2430): body text; also the inverse surface (pressed chips, room badges) and hover color for primary buttons.
+- **Campus Paper** (#EEF5F5): page background, under the dot grid.
 - **Sheet** (#FFFFFF): cards, fields, buttons, chips.
-- **Hairline** (#D5DDEA): borders and dividers.
-- **Track** (#DDE4F0): progress tracks, skeleton base, icon tiles.
-- **Slate Mute** (#5B6784): secondary text and placeholders.
+- **Hairline** (#CFDDDF): borders and dividers.
+- **Track** (#D9E7E8): progress tracks, skeleton base, icon tiles.
+- **Slate Mute** (#4F6B75): secondary text and placeholders.
 - **Focus Blue** (#2B6BFF): the 3px focus ring and field glow.
 
 ### Dark theme
@@ -167,14 +167,14 @@ Gently rounded and friendly. Buttons, fields and cards use an 8px radius; chips,
 
 ### Buttons
 - **Shape:** 8px radius, 44px minimum height, 16px by 10px padding, label in the display face at semibold.
-- **Primary:** Brand Navy fill with white text; hover shifts to Navy Ink; a soft light sweep crosses it on hover.
+- **Primary:** Brand Teal fill with white text; hover shifts to Teal Ink; a soft light sweep crosses it on hover.
 - **Quiet:** white sheet with a hairline border; hover turns the border to brand.
 - **Press:** scales to 0.97.
 - **Disabled:** 50% opacity, not-allowed cursor.
 
 ### Chips
 - **Style:** fully round, white sheet, hairline border, 36px tall, semibold small text.
-- **State:** `aria-pressed="true"` inverts to Navy Ink with white text. Hover lifts 2px and turns the border to brand.
+- **State:** `aria-pressed="true"` inverts to Teal Ink with white text. Hover lifts 2px and turns the border to brand.
 
 ### Inputs / Fields
 - **Style:** white sheet, hairline border, 8px radius, 44px tall, muted placeholder.

@@ -1,127 +1,127 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-17T02:06:14.760729+00:00",
+  "generatedAt": "2026-11-17T02:32:22.459422+00:00",
   "title": "Design System: ক্যাম্পাসদর্পণ (Campus Darpan)",
   "extensions": {
     "colorMeta": {
-      "brand-navy": {
+      "brand-teal": {
         "role": "primary",
-        "displayName": "Brand Navy",
-        "canonical": "#0B2A6F",
+        "displayName": "Brand Teal",
+        "canonical": "#0F5C6E",
         "tonalRamp": [
-          "#071A46",
-          "#0B2C74",
-          "#103DA2",
-          "#154FD1",
-          "#4579ED",
-          "#80A2F0",
-          "#BFCDED",
-          "#EEF0F7"
+          "#093843",
+          "#0F5E70",
+          "#15839D",
+          "#1CA9CA",
+          "#4BC9E7",
+          "#84D8EB",
+          "#C1E4EC",
+          "#EEF5F7"
         ]
       },
       "needle-amber": {
         "role": "secondary",
         "displayName": "Needle Amber",
-        "canonical": "#F2B01E",
+        "canonical": "#F5A623",
         "tonalRamp": [
-          "#483304",
-          "#795507",
-          "#A9770A",
-          "#D9990D",
-          "#F4BB3E",
-          "#F4CF7B",
-          "#EFE0BD",
+          "#492F03",
+          "#7A4E06",
+          "#AB6D08",
+          "#DC8D0A",
+          "#F6B03C",
+          "#F6C779",
+          "#F0DDBC",
           "#F7F4ED"
         ]
       },
       "free-green": {
         "role": "tertiary",
         "displayName": "Free Green",
-        "canonical": "#0F9D58",
+        "canonical": "#167A49",
         "tonalRamp": [
-          "#074627",
-          "#0B7441",
-          "#10A35B",
-          "#14D175",
-          "#45ED9B",
-          "#7FF0B9",
-          "#BFEED7",
-          "#EEF7F2"
+          "#0C4127",
+          "#136C41",
+          "#1B975A",
+          "#23C274",
+          "#52E09A",
+          "#88E7B9",
+          "#C3EAD7",
+          "#EEF6F2"
         ]
       },
       "busy-orange": {
         "role": "tertiary",
         "displayName": "Busy Orange",
-        "canonical": "#D9480F",
+        "canonical": "#BF3F0C",
         "tonalRamp": [
           "#481805",
-          "#772808",
-          "#A7370C",
-          "#D7470F",
-          "#F27240",
-          "#F39E7C",
-          "#EFCBBE",
+          "#782808",
+          "#A8370B",
+          "#D8470E",
+          "#F3723F",
+          "#F49E7B",
+          "#EFCBBD",
           "#F7F0ED"
         ]
       },
-      "navy-ink": {
+      "teal-ink": {
         "role": "neutral",
-        "displayName": "Navy Ink",
-        "canonical": "#0F1B3D",
+        "displayName": "Teal Ink",
+        "canonical": "#0C2430",
         "tonalRamp": [
-          "#0F1B3D",
-          "#192D66",
-          "#233F8F",
-          "#2D52B8",
-          "#5B7BD7",
-          "#8EA4E1",
-          "#C5CEE7",
-          "#EFF1F6"
+          "#0F2E3D",
+          "#194D66",
+          "#246B8F",
+          "#2E8AB8",
+          "#5CADD6",
+          "#8FC5E1",
+          "#C5DCE7",
+          "#EFF3F6"
         ]
       },
       "campus-paper": {
         "role": "neutral",
         "displayName": "Campus Paper",
-        "canonical": "#EEF2F8",
+        "canonical": "#EEF5F5",
         "tonalRamp": [
-          "#162336",
-          "#253A5A",
-          "#34527E",
-          "#4369A3",
-          "#6E90C4",
-          "#9BB2D4",
-          "#CAD4E2",
-          "#F0F2F5"
+          "#1C3030",
+          "#2F5050",
+          "#427070",
+          "#559191",
+          "#7FB3B3",
+          "#A6C9C9",
+          "#CFDEDE",
+          "#F1F4F4"
         ]
       },
       "hairline": {
         "role": "neutral",
         "displayName": "Hairline",
-        "canonical": "#D5DDEA",
+        "canonical": "#CFDDDF",
         "tonalRamp": [
-          "#1A2333",
-          "#2B3B55",
-          "#3C5277",
-          "#4D6A99",
-          "#7791BB",
-          "#A1B2CE",
-          "#CDD4E0",
-          "#F0F2F4"
+          "#1F2C2E",
+          "#33494C",
+          "#47676B",
+          "#5C848A",
+          "#85A8AD",
+          "#AAC2C5",
+          "#D1DADC",
+          "#F1F3F3"
         ]
       },
       "slate-mute": {
         "role": "neutral",
         "displayName": "Slate Mute",
-        "canonical": "#5B6784",
+        "canonical": "#4F6B75",
         "tonalRamp": [
-          "#1F232D",
-          "#343B4B",
-          "#49526A",
-          "#5E6A88",
-          "#8691AC",
-          "#ABB2C4",
-          "#D1D4DB",
-          "#F1F2F3"
+          "#1F2A2E",
+          "#33464C",
+          "#48616B",
+          "#5D7D89",
+          "#85A2AD",
+          "#AABEC5",
+          "#D1D9DC",
+          "#F1F3F3"
         ]
       }
     },
@@ -189,7 +189,7 @@
       "refersTo": "button-primary",
       "description": "Main action; navy fill.",
       "html": "<button class=\"ds-btn ds-btn-primary\">Search</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;cursor:pointer;transition:background-color .16s,transform .12s}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}.ds-btn-primary{background:#0B2A6F;color:#fff;border:0}.ds-btn-primary:hover{background:#0F1B3D}"
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;cursor:pointer;transition:background-color .16s,transform .12s}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}.ds-btn-primary{background:#0F5C6E;color:#fff;border:0}.ds-btn-primary:hover{background:#0C2430}"
     },
     {
       "name": "Quiet Button",
@@ -197,7 +197,7 @@
       "refersTo": "button-quiet",
       "description": "Secondary action on a white sheet.",
       "html": "<button class=\"ds-btn ds-btn-quiet\">Cancel</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;cursor:pointer;transition:background-color .16s,transform .12s}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}.ds-btn-quiet{background:#fff;color:#0F1B3D;border:1px solid #D5DDEA}.ds-btn-quiet:hover{border-color:#0B2A6F}"
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;cursor:pointer;transition:background-color .16s,transform .12s}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}.ds-btn-quiet{background:#fff;color:#0C2430;border:1px solid #CFDDDF}.ds-btn-quiet:hover{border-color:#0F5C6E}"
     },
     {
       "name": "Chip",
@@ -205,7 +205,7 @@
       "refersTo": "chip",
       "description": "Filter or toggle; pressed state inverts.",
       "html": "<button class=\"ds-chip\">Free now</button> <button class=\"ds-chip\" aria-pressed=\"true\">Favourites</button>",
-      "css": ".ds-chip{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border:1px solid #D5DDEA;border-radius:9999px;background:#fff;color:#0F1B3D;font:500 14px 'Hind Siliguri',system-ui,sans-serif;cursor:pointer;transition:transform .14s,border-color .16s}.ds-chip:hover{border-color:#0B2A6F;transform:translateY(-2px)}.ds-chip[aria-pressed=true]{background:#0F1B3D;color:#fff;border-color:#0F1B3D}.ds-chip:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}"
+      "css": ".ds-chip{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border:1px solid #CFDDDF;border-radius:9999px;background:#fff;color:#0C2430;font:500 14px 'Hind Siliguri',system-ui,sans-serif;cursor:pointer;transition:transform .14s,border-color .16s}.ds-chip:hover{border-color:#0F5C6E;transform:translateY(-2px)}.ds-chip[aria-pressed=true]{background:#0C2430;color:#fff;border-color:#0C2430}.ds-chip:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}"
     },
     {
       "name": "Search Field",
@@ -213,21 +213,21 @@
       "refersTo": "field",
       "description": "Text input with soft focus halo.",
       "html": "<input class=\"ds-field\" placeholder=\"Search a teacher\" />",
-      "css": ".ds-field{width:100%;min-height:44px;padding:10px 12px;border:1px solid #D5DDEA;border-radius:8px;background:#fff;color:#0F1B3D;font:400 17px 'Hind Siliguri',system-ui,sans-serif}.ds-field::placeholder{color:#5B6784}.ds-field:focus{outline:3px solid #2B6BFF;outline-offset:2px;box-shadow:0 0 0 4px rgba(43,107,255,.18)}"
+      "css": ".ds-field{width:100%;min-height:44px;padding:10px 12px;border:1px solid #CFDDDF;border-radius:8px;background:#fff;color:#0C2430;font:400 17px 'Hind Siliguri',system-ui,sans-serif}.ds-field::placeholder{color:#4F6B75}.ds-field:focus{outline:3px solid #2B6BFF;outline-offset:2px;box-shadow:0 0 0 4px rgba(43,107,255,.18)}"
     },
     {
       "name": "Status Label",
       "kind": "custom",
       "description": "Teacher state with colored dot; green pulses when free.",
       "html": "<span class=\"ds-status\"><span class=\"ds-dot\"></span>Free now</span>",
-      "css": ".ds-status{display:inline-flex;align-items:center;gap:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;color:#0F9D58}.ds-dot{width:10px;height:10px;border-radius:9999px;background:#0F9D58;animation:ds-pulse 1.8s ease-out infinite}@keyframes ds-pulse{0%{box-shadow:0 0 0 0 rgba(15,157,88,.55)}100%{box-shadow:0 0 0 9px rgba(15,157,88,0)}}@media (prefers-reduced-motion:reduce){.ds-dot{animation:none}}"
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;color:#167A49}.ds-dot{width:10px;height:10px;border-radius:9999px;background:#167A49;animation:ds-pulse 1.8s ease-out infinite}@keyframes ds-pulse{0%{box-shadow:0 0 0 0 rgba(15,157,88,.55)}100%{box-shadow:0 0 0 9px rgba(15,157,88,0)}}@media (prefers-reduced-motion:reduce){.ds-dot{animation:none}}"
     },
     {
       "name": "Day Strip",
       "kind": "custom",
       "description": "A teacher's day with the amber now needle.",
       "html": "<div class=\"ds-strip\"><span class=\"ds-block\" style=\"left:10%;width:25%\"></span><span class=\"ds-block\" style=\"left:55%;width:20%\"></span><span class=\"ds-needle\"></span></div>",
-      "css": ".ds-strip{position:relative;height:28px;border-radius:8px;background:#DDE4F0}.ds-block{position:absolute;top:4px;bottom:4px;border-radius:5px;background:#D9480F;opacity:.85}.ds-needle{position:absolute;top:-3px;bottom:-3px;left:45%;width:3px;border-radius:2px;background:#F2B01E}"
+      "css": ".ds-strip{position:relative;height:28px;border-radius:8px;background:#D9E7E8}.ds-block{position:absolute;top:4px;bottom:4px;border-radius:5px;background:#BF3F0C;opacity:.85}.ds-needle{position:absolute;top:-3px;bottom:-3px;left:45%;width:3px;border-radius:2px;background:#F5A623}"
     }
   ],
   "narrative": {
@@ -235,7 +235,7 @@
     "overview": "The interface reads like a live, annotated campus floor plan. A faint dotted grid sits behind every page, status is a colored dot, and the signature moment is a \"now\" needle that sweeps across each teacher's day strip to the current time.",
     "keyCharacteristics": [
       "Dotted plan grid on a cool paper ground; white sheets float above it.",
-      "Navy structure, amber \"now\", green and orange for state.",
+      "Teal structure, amber \"now\", green and orange for state.",
       "Display type is Bricolage Grotesque; Bangla and body copy are Hind Siliguri.",
       "44px minimum touch targets; focus rings always visible.",
       "Every animation has a prefers-reduced-motion fallback."

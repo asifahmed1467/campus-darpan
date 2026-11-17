@@ -53,7 +53,7 @@ function AskInner() {
       <p className="mt-2 text-mute">Chat about anything at AIUB. Every answer shows where it came from.</p>
 
       <div className="mt-6 space-y-5" aria-live="polite">
-        <div className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
+        <div className="max-w-[95%] rounded-2xl rounded-bl-sm neu-raised p-4">
           <p className="text-lg">Hi! I&apos;m Ask AIUB, your AI assistant. Ask me anything in English or বাংলা: a teacher&apos;s free time or room, exams, notices and AIUB rules, or help with studies, coding, writing and more. You can type or tap the mic, and ask follow-up questions too.</p>
           {msgs.length === 0 && (
             <div className="mt-3 flex flex-wrap gap-2">{SUGGEST.map((s) => <button key={s} className="chip" onClick={() => ask(s, false)}>{s}</button>)}</div>
@@ -64,7 +64,7 @@ function AskInner() {
         ) : m.role === "err" ? (
           <div key={i} role="alert" className="rounded-2xl border-2 border-busy bg-sheet px-4 py-3 text-busy">{m.text}</div>
         ) : (
-          <div key={i} className="max-w-[95%] rounded-2xl rounded-bl-sm border-2 border-edge bg-sheet p-4 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
+          <div key={i} className="max-w-[95%] rounded-2xl rounded-bl-sm neu-raised p-4">
             {m.res.ai && <p className="mb-1.5 inline-block rounded-full bg-brand/10 px-2.5 py-0.5 font-display text-xs font-bold text-brand">{m.res.general ? "AI answer · it can make mistakes" : "AI answer from AIUB sources · check the source"}</p>}
             <RichText text={m.res.answer} className="text-lg" />
             {m.res.faculty && (
@@ -99,7 +99,7 @@ function AskInner() {
       </div>
 
       <form onSubmit={(e) => { e.preventDefault(); ask(q, false); }} className="sticky bottom-[68px] z-20 mt-6 bg-paper pb-3 pt-2 md:bottom-0">
-        <div className="flex items-center gap-2 rounded-2xl border-2 border-edge bg-sheet py-1.5 pl-4 pr-1.5 shadow-[4px_4px_0_0_rgb(var(--c-shadow))]">
+        <div className="flex items-center gap-2 rounded-2xl neu-inset py-1.5 pl-4 pr-1.5">
           <label htmlFor="ask" className="sr-only">{t("ask.placeholder")}</label>
           <input id="ask" className="min-w-0 flex-1 bg-transparent py-2 font-display text-lg outline-none placeholder:text-mute focus-visible:outline-none" value={q} maxLength={1000} autoComplete="off"
             onChange={(e) => setQ(e.target.value)} placeholder={t("ask.placeholder")} enterKeyHint="send" />
