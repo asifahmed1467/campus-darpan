@@ -13,6 +13,8 @@ export const GATES = {
   annex2: { s: -0.14, t: 1.32, name: "Annex 2 gate" },
 } as const;
 export type GateId = keyof typeof GATES;
+/** Where every walk begins: the far end of the road. Students decide there which gate is nearer. */
+export const ENTRY = { s: -1.0, t: 1.32, name: "Start" } as const;
 
 const SPINE_S = 1.3, BACK_T = -0.05, REAR_T = -0.95, LEFT_S = -0.14;
 
@@ -22,6 +24,7 @@ export const WALKWAYS: Pt[][] = [
   [[-1.2, BACK_T], [LEFT_S, BACK_T], [SPINE_S, BACK_T]],
   [[-1.2, REAR_T], [SPINE_S, REAR_T]],
   [[LEFT_S, GATES.annex2.t], [LEFT_S, BACK_T]],        // direct way from the road up the field's left edge to Annex 2
+  [[ENTRY.s, ENTRY.t], [LEFT_S, ENTRY.t], [SPINE_S, ENTRY.t]],   // pavement along the road from the start, past both gates
 ];
 
 const STUBS = [6, 16];                                   // metres from a walkway to a door: short first, longer only if nothing else reaches
@@ -87,34 +90,37 @@ function simplify(pts: Pt[]): Pt[] {
 
 export interface Route { points: Pt[]; gate: GateId; metres: number }
 
-/** Shortest walking route to a building from whichever entrance is nearer. */
+/** Shortest walk from the start, along the walkways and the pavement, to the nearest door-side footpath of a building. */
 export function bestRoute(id: string): Route | null {
   const target = PLAN[id];
   if (!target) return null;
   graph ??= build();
   const g = graph;
   const others = [...Object.entries(PLAN).filter(([k]) => k !== id).map(([, v]) => v), FIELD, LAWN];   // no shortcuts over buildings, the pitch or the pond lawn
-  let best = null as (Route & { cost: number }) | null;
+  const { dist, prev } = dijkstra(g, key([ENTRY.s, ENTRY.t]));
+  let best = null as { way: Pt[]; q: Pt; cost: number } | null;
   for (const maxStub of STUBS) {
-    for (const gate of Object.keys(GATES) as GateId[]) {
-      const start = key([GATES[gate].s, GATES[gate].t]);
-      const { dist, prev } = dijkstra(g, start);
-      for (const [k, p] of g.nodes) {
-        const d = dist.get(k);
-        if (d === undefined) continue;
-        const q = nearestOn(target, p);
-        if (m(p, q) > maxStub || crosses(p, q, others)) continue;
-        const cost = d + m(p, q);
-        if (!best || cost < best.cost) {
-          const way: Pt[] = [];
-          for (let c: string | undefined = k; c; c = prev.get(c)) way.push(g.nodes.get(c)!);
-          way.reverse();
-          best = { points: simplify([...way, q]), gate, metres: cost, cost };
-        }
+    for (const [k, p] of g.nodes) {
+      const d = dist.get(k);
+      if (d === undefined) continue;
+      // a footpath leaves the walkway at a right angle, so the walkway must run alongside the building
+      const alongS = p[0] >= target.s0 && p[0] <= target.s1, alongT = p[1] >= target.t0 && p[1] <= target.t1;
+      if (!alongS && !alongT) continue;
+      const q = nearestOn(target, p);
+      if (m(p, q) > maxStub || crosses(p, q, others)) continue;
+      const cost = d + m(p, q);
+      if (!best || cost < best.cost) {
+        const way: Pt[] = [];
+        for (let c: string | undefined = k; c; c = prev.get(c)) way.push(g.nodes.get(c)!);
+        best = { way: way.reverse(), q, cost };
       }
     }
     if (best) break;
   }
-  const r = best as (Route & { cost: number }) | null;
-  return r && { points: r.points, gate: r.gate, metres: r.metres };
+  const r = best;
+  if (!r) return null;
+  // which gate did the walk turn in at? the first step off the road pavement tells
+  const off = r.way.find((p) => p[1] < GATES.main.t - 0.01);
+  const gate: GateId = off && Math.abs(off[0] - GATES.annex2.s) < 0.05 ? "annex2" : "main";
+  return { points: simplify([...r.way, r.q]), gate, metres: r.cost };
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { GATES, SX, SZ, WALKWAYS, bestRoute } from "@/lib/campusRoute";
+import { ENTRY, GATES, SX, SZ, WALKWAYS, bestRoute } from "@/lib/campusRoute";
 import { BUILDING_COLORS, FIELD, LAWN, PARKING, PLAN, TREES, type Box, type CampusBuilding } from "./CampusMap";
 
 /**
@@ -56,7 +56,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
   buildings: CampusBuilding[]; selected: string | null; floor: number | null; onSelect: (id: string) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
-  const api = useRef<{ select: (id: string | null, floor: number | null) => void; rotate: (d: number) => void; zoom: (f: number) => void; reset: () => void } | null>(null);
+  const api = useRef<{ select: (id: string | null, floor: number | null) => void; rotate: (d: number) => void; zoom: (f: number) => void; reset: () => void; replay: () => void } | null>(null);
   const pickRef = useRef(onSelect); pickRef.current = onSelect;
   const [failed, setFailed] = useState(false);
   const [status, setStatus] = useState("Tap a building to see where it is and how to walk there.");
@@ -109,6 +109,10 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
     const walk = (s0: number, t0: number, s1: number, t1: number) =>
       put(walkM, Math.abs(X(s1) - X(s0)) + 1.6, 0.05, Math.abs(Z(t1) - Z(t0)) + 1.6, (X(s0) + X(s1)) / 2, 0.06, (Z(t0) + Z(t1)) / 2, false);
     for (const way of WALKWAYS) for (let i = 1; i < way.length; i++) walk(way[i - 1][0], way[i - 1][1], way[i][0], way[i][1]);
+    for (const id of Object.keys(PLAN)) {       // the short footpath from a walkway to each building, so nobody walks on grass
+      const r = bestRoute(id);
+      if (r && r.points.length > 1) { const a = r.points[r.points.length - 2], c = r.points[r.points.length - 1]; walk(a[0], a[1], c[0], c[1]); }
+    }
     const gateM = mat({ color: 0x3b4252, roughness: 0.5, metalness: 0.5 });
     const gateTags: THREE.Sprite[] = [];
     for (const g of Object.values(GATES)) {
@@ -116,6 +120,9 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
       for (const dx of [-2.4, 2.4]) put(gateM, 0.3, 2.4, 0.3, X(g.s) + dx, 1.2, Z(g.t) + 0.6);
       const tag = label(g.name, false); tag.position.set(X(g.s), 4.2, Z(g.t) + 0.6); S.add(tag); gateTags.push(tag);
     }
+    const startTag = label("Start here", false); startTag.position.set(X(ENTRY.s), 4.2, Z(ENTRY.t)); S.add(startTag); gateTags.push(startTag);
+    const startDot = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.3, 0.08, 24), mat({ color: 0xd85a30, emissive: 0xd85a30, emissiveIntensity: 0.5 }));
+    startDot.position.set(X(ENTRY.s), 0.12, Z(ENTRY.t)); S.add(startDot); trash.push(startDot.geometry);
     const trunkM = mat({ color: 0x7a5a3c, roughness: 1 }), leafM = mat({ color: dark ? 0x2f6a3e : 0x3f8f46, roughness: 1 });
     const leafG = new THREE.SphereGeometry(0.9, 10, 8); trash.push(leafG);
     const inBuilding = (s: number, t: number) => Object.values(PLAN).some((b) => s > b.s0 - 0.08 && s < b.s1 + 0.08 && t > b.t0 - 0.15 && t < b.t1 + 0.15);
@@ -233,7 +240,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
     // route drawn as a flat amber ribbon on the ground
     const ribbonM = mat({ color: 0xf2b01e, emissive: 0xf2b01e, emissiveIntensity: 0.5, roughness: 0.6 });
     let routeGroup: THREE.Group | null = null;
-    let path: THREE.Vector3[] = [], pathLen = 0, walkT0 = -1, yaw = 0, gateName = "", routeMetres = 0;
+    let path: THREE.Vector3[] = [], pathLen = 0, walkT0 = -1, speed = 12, yaw = 0, gateName = "", routeMetres = 0;
     const drawRoute = () => {
       if (routeGroup) { S.remove(routeGroup); routeGroup = null; }
       if (path.length < 2) return;
@@ -295,14 +302,14 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
         auto = 0; orbit = 0;
         person.visible = path.length > 1;
         if (path.length > 1) {
-          person.position.copy(path[0]); walkT0 = performance.now() + (reduce ? -1e7 : 2200);
+          person.position.copy(path[0]); speed = Math.max(12, pathLen / 8); walkT0 = performance.now() + (reduce ? -1e7 : 900);   // fast, and never longer than about 8 seconds
           heading.set(path[1].x - path[0].x, 0, path[1].z - path[0].z).normalize();
           yaw = Math.atan2(heading.x, heading.z);
         }
         const size = Math.max(w, d, b.h);
         goal.look.set(cx, b.h * 0.4, cz);
         goal.pos.set(cx + 12 + size * 0.5, b.h + 18 + size * 0.7, cz + 26 + size * 0.8);
-        setStatus(`${title}: follow the student from the ${gateName} (about ${routeMetres} m).`);
+        setStatus(`${title}: the student starts at the road end and walks in through the ${gateName} (about ${routeMetres} m).`);
       } else if (!routeGroup && path.length) drawRoute();
       lastTouch = performance.now();
     };
@@ -310,6 +317,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
       select,
       rotate: (d: number) => { orbit += d; lastTouch = performance.now(); },
       zoom: (f: number) => { zoom = Math.min(1.9, Math.max(0.55, zoom * f)); lastTouch = performance.now(); },
+      replay: () => { if (path.length > 1) { person.position.copy(path[0]); walkT0 = performance.now() + 500; auto = 0; lastTouch = performance.now(); } },
       reset: () => { orbit = 0; zoom = 1; lastTouch = performance.now(); },
     };
 
@@ -344,7 +352,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
       if (!onScreen || document.hidden || lost) return;
       try {
         const dt = Math.min(0.06, lastNow ? (now - lastNow) / 1000 : 0.016); 
-        const dist = selId && path.length > 1 ? Math.max(0, (now - walkT0) / 1000) * 5.5 : 0;   // walking pace, a little sped up
+        const dist = selId && path.length > 1 ? Math.max(0, (now - walkT0) / 1000) * speed : 0;
         const walking = person.visible && path.length > 1 && now >= walkT0 && dist < pathLen;
         const arrived = person.visible && path.length > 1 && dist >= pathLen;
         const settling = cam.pos.distanceTo(tp) + cam.look.distanceTo(tl) > 0.1;
@@ -361,10 +369,10 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
           const want = Math.atan2(c.x - a.x, c.z - a.z);
           yaw += wrapA(want - yaw) * Math.min(1, dt * 9);
           person.rotation.y = yaw; heading.set(Math.sin(yaw), 0, Math.cos(yaw));
-          const sw = walking ? Math.sin(now / 130) * 0.75 : 0;
+          const sw = walking ? Math.sin(now / 90) * 0.8 : 0;
           legs[0].rotation.x = sw; legs[1].rotation.x = -sw;
           arms[0].rotation.x = -sw * 0.8; arms[1].rotation.x = walking ? sw * 0.8 : Math.PI * 0.85 + Math.sin(now / 160) * 0.25;   // waves on arrival
-          rig.position.y = walking ? Math.abs(Math.sin(now / 130)) * 0.07 : 0;
+          rig.position.y = walking ? Math.abs(Math.sin(now / 90)) * 0.08 : 0;
           if (arrived && selId) setStatus(`You have arrived at ${nameOf(buildings.find((x) => x.id === selId) ?? ({ id: selId, name: selId } as CampusBuilding))}.`);
         }
         // where the drone wants to be
@@ -377,7 +385,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
         }
         off.copy(tp).sub(tl).applyAxisAngle(UP, orbit + auto).multiplyScalar(zoom);
         tp.copy(tl).add(off);
-        const kp = reduce ? 1 : 1 - Math.exp(-dt * (walking ? 3.2 : 2.2)), kl = reduce ? 1 : 1 - Math.exp(-dt * 4.5);
+        const kp = reduce ? 1 : 1 - Math.exp(-dt * (walking ? 4.5 : 3)), kl = reduce ? 1 : 1 - Math.exp(-dt * 4.5);
         cam.pos.lerp(tp, kp); cam.look.lerp(tl, kl);
         C.position.copy(cam.pos); C.lookAt(cam.look);
         if (pin.visible) { pin.position.y = (blds.find((b) => b.id === selId)?.h ?? 0) + 1.2 + Math.sin(now / 300) * 0.25; pin.rotation.y = now / 800; }
@@ -421,7 +429,10 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1">
         <p className="font-display font-semibold" aria-live="polite">{status}</p>
-        {selected && <button type="button" className="chip" onClick={() => pickRef.current("")}>Show whole campus</button>}
+        <div className="flex gap-2">
+          {selected && <button type="button" className="chip" onClick={() => api.current?.replay()}>Walk again</button>}
+          {selected && <button type="button" className="chip" onClick={() => pickRef.current("")}>Show whole campus</button>}
+        </div>
       </div>
     </div>
   );
