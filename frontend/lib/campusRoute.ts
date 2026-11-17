@@ -94,7 +94,7 @@ export function bestRoute(id: string): Route | null {
   graph ??= build();
   const g = graph;
   const others = [...Object.entries(PLAN).filter(([k]) => k !== id).map(([, v]) => v), FIELD, LAWN];   // no shortcuts over buildings, the pitch or the pond lawn
-  let best: (Route & { cost: number }) | null = null;
+  let best = null as (Route & { cost: number }) | null;
   for (const maxStub of STUBS) {
     for (const gate of Object.keys(GATES) as GateId[]) {
       const start = key([GATES[gate].s, GATES[gate].t]);
@@ -115,5 +115,6 @@ export function bestRoute(id: string): Route | null {
     }
     if (best) break;
   }
-  return best && { points: best.points, gate: best.gate, metres: best.metres };
+  const r = best as (Route & { cost: number }) | null;
+  return r && { points: r.points, gate: r.gate, metres: r.metres };
 }
