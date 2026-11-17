@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T02:06:14.760729+00:00",
+  "title": "Design System: ক্যাম্পাসদর্পণ (Campus Darpan)",
+  "extensions": {
+    "colorMeta": {
+      "brand-navy": {
+        "role": "primary",
+        "displayName": "Brand Navy",
+        "canonical": "#0B2A6F",
+        "tonalRamp": [
+          "#071A46",
+          "#0B2C74",
+          "#103DA2",
+          "#154FD1",
+          "#4579ED",
+          "#80A2F0",
+          "#BFCDED",
+          "#EEF0F7"
+        ]
+      },
+      "needle-amber": {
+        "role": "secondary",
+        "displayName": "Needle Amber",
+        "canonical": "#F2B01E",
+        "tonalRamp": [
+          "#483304",
+          "#795507",
+          "#A9770A",
+          "#D9990D",
+          "#F4BB3E",
+          "#F4CF7B",
+          "#EFE0BD",
+          "#F7F4ED"
+        ]
+      },
+      "free-green": {
+        "role": "tertiary",
+        "displayName": "Free Green",
+        "canonical": "#0F9D58",
+        "tonalRamp": [
+          "#074627",
+          "#0B7441",
+          "#10A35B",
+          "#14D175",
+          "#45ED9B",
+          "#7FF0B9",
+          "#BFEED7",
+          "#EEF7F2"
+        ]
+      },
+      "busy-orange": {
+        "role": "tertiary",
+        "displayName": "Busy Orange",
+        "canonical": "#D9480F",
+        "tonalRamp": [
+          "#481805",
+          "#772808",
+          "#A7370C",
+          "#D7470F",
+          "#F27240",
+          "#F39E7C",
+          "#EFCBBE",
+          "#F7F0ED"
+        ]
+      },
+      "navy-ink": {
+        "role": "neutral",
+        "displayName": "Navy Ink",
+        "canonical": "#0F1B3D",
+        "tonalRamp": [
+          "#0F1B3D",
+          "#192D66",
+          "#233F8F",
+          "#2D52B8",
+          "#5B7BD7",
+          "#8EA4E1",
+          "#C5CEE7",
+          "#EFF1F6"
+        ]
+      },
+      "campus-paper": {
+        "role": "neutral",
+        "displayName": "Campus Paper",
+        "canonical": "#EEF2F8",
+        "tonalRamp": [
+          "#162336",
+          "#253A5A",
+          "#34527E",
+          "#4369A3",
+          "#6E90C4",
+          "#9BB2D4",
+          "#CAD4E2",
+          "#F0F2F5"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#D5DDEA",
+        "tonalRamp": [
+          "#1A2333",
+          "#2B3B55",
+          "#3C5277",
+          "#4D6A99",
+          "#7791BB",
+          "#A1B2CE",
+          "#CDD4E0",
+          "#F0F2F4"
+        ]
+      },
+      "slate-mute": {
+        "role": "neutral",
+        "displayName": "Slate Mute",
+        "canonical": "#5B6784",
+        "tonalRamp": [
+          "#1F232D",
+          "#343B4B",
+          "#49526A",
+          "#5E6A88",
+          "#8691AC",
+          "#ABB2C4",
+          "#D1D4DB",
+          "#F1F2F3"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home headline."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "h1 to h3 on every page."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, Bangla-safe 17px."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips, buttons, status."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-hover",
+        "value": "0 10px 24px -16px rgb(15 27 61 / .45)",
+        "purpose": "Interactive cards on hover only."
+      },
+      {
+        "name": "field-focus",
+        "value": "0 0 0 4px rgb(43 107 255 / .18)",
+        "purpose": "Soft halo on focused inputs."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-rise",
+        "value": "cubic-bezier(.2,.7,.2,1)",
+        "purpose": "Entrances and the now-needle sweep (900ms)."
+      },
+      {
+        "name": "ease-pop",
+        "value": "cubic-bezier(.3,1.5,.5,1)",
+        "purpose": "Playful tilts and bounces on touch."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action; navy fill.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Search</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;cursor:pointer;transition:background-color .16s,transform .12s}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}.ds-btn-primary{background:#0B2A6F;color:#fff;border:0}.ds-btn-primary:hover{background:#0F1B3D}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Secondary action on a white sheet.",
+      "html": "<button class=\"ds-btn ds-btn-quiet\">Cancel</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border-radius:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;cursor:pointer;transition:background-color .16s,transform .12s}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}.ds-btn-quiet{background:#fff;color:#0F1B3D;border:1px solid #D5DDEA}.ds-btn-quiet:hover{border-color:#0B2A6F}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filter or toggle; pressed state inverts.",
+      "html": "<button class=\"ds-chip\">Free now</button> <button class=\"ds-chip\" aria-pressed=\"true\">Favourites</button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border:1px solid #D5DDEA;border-radius:9999px;background:#fff;color:#0F1B3D;font:500 14px 'Hind Siliguri',system-ui,sans-serif;cursor:pointer;transition:transform .14s,border-color .16s}.ds-chip:hover{border-color:#0B2A6F;transform:translateY(-2px)}.ds-chip[aria-pressed=true]{background:#0F1B3D;color:#fff;border-color:#0F1B3D}.ds-chip:focus-visible{outline:3px solid #2B6BFF;outline-offset:2px}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Text input with soft focus halo.",
+      "html": "<input class=\"ds-field\" placeholder=\"Search a teacher\" />",
+      "css": ".ds-field{width:100%;min-height:44px;padding:10px 12px;border:1px solid #D5DDEA;border-radius:8px;background:#fff;color:#0F1B3D;font:400 17px 'Hind Siliguri',system-ui,sans-serif}.ds-field::placeholder{color:#5B6784}.ds-field:focus{outline:3px solid #2B6BFF;outline-offset:2px;box-shadow:0 0 0 4px rgba(43,107,255,.18)}"
+    },
+    {
+      "name": "Status Label",
+      "kind": "custom",
+      "description": "Teacher state with colored dot; green pulses when free.",
+      "html": "<span class=\"ds-status\"><span class=\"ds-dot\"></span>Free now</span>",
+      "css": ".ds-status{display:inline-flex;align-items:center;gap:8px;font:600 16px 'Bricolage Grotesque Variable',system-ui,sans-serif;color:#0F9D58}.ds-dot{width:10px;height:10px;border-radius:9999px;background:#0F9D58;animation:ds-pulse 1.8s ease-out infinite}@keyframes ds-pulse{0%{box-shadow:0 0 0 0 rgba(15,157,88,.55)}100%{box-shadow:0 0 0 9px rgba(15,157,88,0)}}@media (prefers-reduced-motion:reduce){.ds-dot{animation:none}}"
+    },
+    {
+      "name": "Day Strip",
+      "kind": "custom",
+      "description": "A teacher's day with the amber now needle.",
+      "html": "<div class=\"ds-strip\"><span class=\"ds-block\" style=\"left:10%;width:25%\"></span><span class=\"ds-block\" style=\"left:55%;width:20%\"></span><span class=\"ds-needle\"></span></div>",
+      "css": ".ds-strip{position:relative;height:28px;border-radius:8px;background:#DDE4F0}.ds-block{position:absolute;top:4px;bottom:4px;border-radius:5px;background:#D9480F;opacity:.85}.ds-needle{position:absolute;top:-3px;bottom:-3px;left:45%;width:3px;border-radius:2px;background:#F2B01E}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Campus Plan",
+    "overview": "The interface reads like a live, annotated campus floor plan. A faint dotted grid sits behind every page, status is a colored dot, and the signature moment is a \"now\" needle that sweeps across each teacher's day strip to the current time.",
+    "keyCharacteristics": [
+      "Dotted plan grid on a cool paper ground; white sheets float above it.",
+      "Navy structure, amber \"now\", green and orange for state.",
+      "Display type is Bricolage Grotesque; Bangla and body copy are Hind Siliguri.",
+      "44px minimum touch targets; focus rings always visible.",
+      "Every animation has a prefers-reduced-motion fallback."
+    ],
+    "rules": [
+      {
+        "name": "The Signal Colors Rule",
+        "body": "Green, orange and amber each mean one thing (free, busy, now). Never use them as decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Amber Is A Mark Rule",
+        "body": "Amber is a thin line, a needle or a highlighter band. It is never a button fill or a card background.",
+        "section": "colors"
+      },
+      {
+        "name": "The Bangla First-Class Rule",
+        "body": "Any new text style must be checked in Bangla as well as English; never set Bangla in the display face alone and never below 16px.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat At Rest Rule",
+        "body": "Surfaces carry no shadow at rest; shadow answers a pointer.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep touch targets at least 44px (chips 36px) and keep the 3px focus ring visible.",
+      "Do use Free Green, Busy Orange and Needle Amber only for free, busy and now.",
+      "Do wrap every new animation in a prefers-reduced-motion fallback, as the existing ones are.",
+      "Do build with the existing CSS variables (--c-*) so light and dark themes both work.",
+      "Do check Bangla and English text at the same size and weight."
+    ],
+    "donts": [
+      "Don't add a shadow at rest; reserve shadow for hover and focus.",
+      "Don't use amber as a fill for buttons or large areas.",
+      "Don't add new looping ambient motion; the needle sweep, live dot and notice ticker are the meaningful ones.",
+      "Don't hard-code hex values in components; use the Tailwind color names backed by --c-*.",
+      "Don't set Bangla text in a system fallback font or below 16px."
+    ]
+  }
+}
