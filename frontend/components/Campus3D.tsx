@@ -297,7 +297,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
         const r = bestRoute(id!);
         path = r ? r.points.map(([s, t]) => new THREE.Vector3(X(s), 0.12, Z(t))) : [];
         pathLen = 0; for (let i = 1; i < path.length; i++) pathLen += path[i].distanceTo(path[i - 1]);
-        gateName = r ? GATES[r.gate].name : GATE.name; routeMetres = r ? Math.round(r.metres) : 0;
+        gateName = r?.gate ? `walks in through the ${GATES[r.gate].name}` : "walks straight on along the road and turns left"; routeMetres = r ? Math.round(r.metres) : 0;
         drawRoute();
         auto = 0; orbit = 0;
         person.visible = path.length > 1;
@@ -309,7 +309,7 @@ export default function Campus3D({ buildings, selected, floor, onSelect }: {
         const size = Math.max(w, d, b.h);
         goal.look.set(cx, b.h * 0.4, cz);
         goal.pos.set(cx + 12 + size * 0.5, b.h + 18 + size * 0.7, cz + 26 + size * 0.8);
-        setStatus(`${title}: the student starts at the road end and walks in through the ${gateName} (about ${routeMetres} m).`);
+        setStatus(`${title}: the student starts at the road end and ${gateName} (about ${routeMetres} m).`);
       } else if (!routeGroup && path.length) drawRoute();
       lastTouch = performance.now();
     };

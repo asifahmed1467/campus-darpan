@@ -20,10 +20,10 @@ const SPINE_S = 1.3, BACK_T = 0.0, REAR_T = -0.95, LEFT_S = -0.26;
 /** Walkways as ordered points; junction points are listed on every walkway that meets there. */
 export const WALKWAYS: Pt[][] = [
   [[SPINE_S, BACK_T], [SPINE_S, REAR_T], [SPINE_S, -2.0]],
-  [[-0.42, BACK_T], [LEFT_S, BACK_T], [SPINE_S, BACK_T]],
+  [[-0.42, BACK_T], [LEFT_S, BACK_T], [1.15, BACK_T]],   // Annex 1-3 side road; it does not join the spine, D and Annex 9 are reached from the front road
   [[-1.30, REAR_T], [LEFT_S, REAR_T], [SPINE_S, REAR_T]],   // the road between Annex 3 and Annex 4, on to Annex 7
   [[LEFT_S, GATES.annex2.t], [LEFT_S, BACK_T], [LEFT_S, REAR_T]],   // direct way from the Annex 2 gate up the field's left edge
-  [[ENTRY.s, ENTRY.t], [LEFT_S, ENTRY.t]],                          // short pavement from the start (just behind the gate) to the gate
+  [[ENTRY.s, ENTRY.t], [LEFT_S, ENTRY.t], [SPINE_S, ENTRY.t], [SPINE_S, BACK_T]],                          // road straight on past the gate, then left down the spine to D and Annex 9
 ];
 
 const STUBS = [6, 16];                                   // metres from a walkway to a door: short first, longer only if nothing else reaches
@@ -119,6 +119,6 @@ export function bestRoute(id: string): Route | null {
   const r = best;
   if (!r) return null;
   // which gate did the walk turn in at? the first step off the road pavement tells
-  const gate: GateId = "annex2";
+  const gate: GateId | null = r.way.some((p) => p[1] < GATES.annex2.t - 0.01 && Math.abs(p[0] - GATES.annex2.s) < 0.05) ? "annex2" : null;   // null: straight on along the road, no gate
   return { points: simplify([...r.way, r.q]), gate, metres: r.cost };
 }
