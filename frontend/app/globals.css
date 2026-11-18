@@ -163,9 +163,11 @@ nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 .bld:focus-visible .face { stroke: rgb(var(--c-focus)); stroke-width: 4; }
 .bld:hover .face { stroke-width: 2.5; }
 
-/* Veil over the home hero video: the page colour, so text stays readable in both themes. */
-.hero-veil { background: linear-gradient(180deg, rgb(var(--c-paper) / .86), rgb(var(--c-paper) / .74) 55%, rgb(var(--c-paper) / .96)); }
-@media (min-width: 1024px) {
-  .hero-veil { background: linear-gradient(90deg, rgb(var(--c-paper) / .95) 0%, rgb(var(--c-paper) / .78) 42%, rgb(var(--c-paper) / .3) 100%),
-                           linear-gradient(0deg, rgb(var(--c-paper) / .9), transparent 30%); }
+/* Home page over the campus video: a light veil only where text sits, and frosted panels for plain text. */
+.hero-veil { background: linear-gradient(0deg, rgb(var(--c-paper) / .62) 0%, rgb(var(--c-paper) / .25) 30%, rgb(var(--c-paper) / 0) 55%); }
+@media (min-aspect-ratio: 4/5) {
+  .hero-veil { background: linear-gradient(90deg, rgb(var(--c-paper) / .55) 0%, rgb(var(--c-paper) / .3) 25%, rgb(var(--c-paper) / 0) 45%); }
 }
+body:has(.home-photo) { background-image: none; background-color: transparent; }
+.glass-panel { background: rgb(var(--c-sheet) / .72); border: 1px solid rgb(var(--c-mute) / .3); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); }
+@supports not (backdrop-filter: blur(1px)) { .glass-panel { background: rgb(var(--c-sheet) / .94); } }

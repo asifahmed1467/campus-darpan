@@ -30,10 +30,10 @@ export default function Home() {
   const freeNow = (fac.data?.items ?? []).filter((f) => f.has_tsf && f.status.status === "available").length;
 
   return (
-    <div className="space-y-14">
+    <div className="home-photo space-y-14">
+      <HeroVideo />
       <section className="relative z-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
-        <HeroVideo />
-        <div className="hero-glow relative z-20 min-w-0 pt-2 lg:pt-8">
+        <div className="glass-panel relative z-20 min-w-0 rounded-3xl p-5 sm:p-7">
           <h1 className="max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl" aria-label={t("hero.title")}>
             {t("hero.title").split(" ").map((w, i, all) => <span key={i} aria-hidden className={`word mr-[.25em] ${i >= all.length - 2 ? "mark-word" : ""}`} style={{ ["--w" as string]: i }}>{w}</span>)}
           </h1>
@@ -71,7 +71,7 @@ export default function Home() {
       <NoticeTicker items={notices.data?.items ?? []} />
 
       <Reveal><section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
-        <div className="min-w-0">
+        <div className="glass-panel min-w-0 rounded-2xl p-5">
           <div className="mb-2 flex items-baseline justify-between gap-4">
             <h2 className="draw-line text-3xl font-bold">{t("home.notices")}</h2>
             <Link href="/notices" className="font-display font-semibold text-brand underline">{t("home.all_notices")}</Link>
