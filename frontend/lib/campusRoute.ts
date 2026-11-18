@@ -1,6 +1,6 @@
 /**
  * Walking routes on the campus plan. The walkways form a small graph; a route is the shortest way from
- * either entrance (main gate or the direct Annex 2 gate) to the nearest face of the chosen building.
+ * either entrance (the Annex 2 gate) to the nearest face of the chosen building.
  * Plan units (s across, t along), same schematic plan as the flat map.
  */
 import { FIELD, LAWN, PLAN, type Box } from "@/components/CampusMap";
@@ -9,22 +9,21 @@ export const SX = 30, SZ = 19;                          // plan units -> metres-
 export type Pt = [number, number];
 
 export const GATES = {
-  main: { s: 1.3, t: 1.32, name: "Main gate" },
   annex2: { s: -0.14, t: 1.32, name: "Annex 2 gate" },
 } as const;
 export type GateId = keyof typeof GATES;
 /** Where every walk begins: the far end of the road. Students decide there which gate is nearer. */
-export const ENTRY = { s: -1.0, t: 1.32, name: "Start" } as const;
+export const ENTRY = { s: -0.6, t: 1.32, name: "Start" } as const;
 
 const SPINE_S = 1.3, BACK_T = -0.05, REAR_T = -0.95, LEFT_S = -0.14;
 
 /** Walkways as ordered points; junction points are listed on every walkway that meets there. */
 export const WALKWAYS: Pt[][] = [
-  [[SPINE_S, GATES.main.t], [SPINE_S, BACK_T], [SPINE_S, REAR_T], [SPINE_S, -2.0]],
+  [[SPINE_S, BACK_T], [SPINE_S, REAR_T], [SPINE_S, -2.0]],
   [[-1.2, BACK_T], [LEFT_S, BACK_T], [SPINE_S, BACK_T]],
   [[-1.2, REAR_T], [SPINE_S, REAR_T]],
   [[LEFT_S, GATES.annex2.t], [LEFT_S, BACK_T]],        // direct way from the road up the field's left edge to Annex 2
-  [[ENTRY.s, ENTRY.t], [LEFT_S, ENTRY.t], [SPINE_S, ENTRY.t]],   // pavement along the road from the start, past both gates
+  [[ENTRY.s, ENTRY.t], [LEFT_S, ENTRY.t]],   // short pavement from the start (just behind the gate) to the gate
 ];
 
 const STUBS = [6, 16];                                   // metres from a walkway to a door: short first, longer only if nothing else reaches
@@ -120,7 +119,6 @@ export function bestRoute(id: string): Route | null {
   const r = best;
   if (!r) return null;
   // which gate did the walk turn in at? the first step off the road pavement tells
-  const off = r.way.find((p) => p[1] < GATES.main.t - 0.01);
-  const gate: GateId = off && Math.abs(off[0] - GATES.annex2.s) < 0.05 ? "annex2" : "main";
+  const gate: GateId = "annex2";
   return { points: simplify([...r.way, r.q]), gate, metres: r.cost };
 }

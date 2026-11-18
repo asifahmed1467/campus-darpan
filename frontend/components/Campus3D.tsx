@@ -6,14 +6,14 @@ import { BUILDING_COLORS, FIELD, LAWN, PARKING, PLAN, TREES, type Box, type Camp
 
 /**
  * The campus in 3D, built from the same schematic plan as the flat map (not a surveyed model).
- * Tap a building: the camera flies to it, the others fade, and a student walks there from the main gate.
+ * Tap a building: the camera flies to it, the others fade, and a student walks there from the Start point behind the Annex 2 gate.
  * Choosing a floor lights that floor up.
  */
 const X = (s: number) => (s - 0.55) * SX;
 const Z = (t: number) => (t + 0.45) * SZ;
 const FH = 0.95;                              // floor height
 const UNKNOWN_LEVELS = 3, C_LEVELS = 4;
-const GATE = GATES.main;
+const GATE = GATES.annex2;
 
 const levelsOf = (b: CampusBuilding) => (b.id === "C" ? C_LEVELS : b.levels ?? UNKNOWN_LEVELS);
 const nameOf = (b: CampusBuilding) => (b.id === "D" ? "D Building" : b.id === "C" ? "C Building" : b.id === "A7" ? "Annex 7" : b.name);
