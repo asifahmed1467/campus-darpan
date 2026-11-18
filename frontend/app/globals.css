@@ -162,3 +162,10 @@ nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 .bld:focus { outline: none; }
 .bld:focus-visible .face { stroke: rgb(var(--c-focus)); stroke-width: 4; }
 .bld:hover .face { stroke-width: 2.5; }
+
+/* Veil over the home hero video: the page colour, so text stays readable in both themes. */
+.hero-veil { background: linear-gradient(180deg, rgb(var(--c-paper) / .86), rgb(var(--c-paper) / .74) 55%, rgb(var(--c-paper) / .96)); }
+@media (min-width: 1024px) {
+  .hero-veil { background: linear-gradient(90deg, rgb(var(--c-paper) / .95) 0%, rgb(var(--c-paper) / .78) 42%, rgb(var(--c-paper) / .3) 100%),
+                           linear-gradient(0deg, rgb(var(--c-paper) / .9), transparent 30%); }
+}

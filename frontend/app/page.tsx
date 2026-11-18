@@ -4,6 +4,7 @@ import FacultyRow, { RowSkeleton } from "@/components/FacultyRow";
 import { NoticeList } from "@/components/Notices";
 import NoticeTicker from "@/components/NoticeTicker";
 import TodayCard from "@/components/TodayCard";
+import HeroVideo from "@/components/HeroVideo";
 import Reveal from "@/components/Reveal";
 import SearchBox from "@/components/SearchBox";
 import { Mark, NAME_BN, TAGLINE_BN, TAGLINE_EN } from "@/components/Logo";
@@ -31,6 +32,7 @@ export default function Home() {
   return (
     <div className="space-y-14">
       <section className="relative z-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        <HeroVideo />
         <div className="hero-glow relative z-20 min-w-0 pt-2 lg:pt-8">
           <h1 className="max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl" aria-label={t("hero.title")}>
             {t("hero.title").split(" ").map((w, i, all) => <span key={i} aria-hidden className={`word mr-[.25em] ${i >= all.length - 2 ? "mark-word" : ""}`} style={{ ["--w" as string]: i }}>{w}</span>)}
