@@ -26,7 +26,7 @@ void main(){ vPos = (p * 0.5 + 0.5) * uRes; vPos.y = uRes.y - vPos.y; gl_Positio
 const FS = `precision highp float;
 varying vec2 vPos;
 uniform sampler2D tPhoto, tMaps, tDome, tBlur;
-uniform vec4 uRect; uniform vec2 uCam, uClick, uDomeC;
+uniform vec4 uRect; uniform vec2 uRes, uCam, uClick, uDomeC;
 uniform float uTime, uTheme, uHover, uOpen, uWave, uClickT, uZoom, uWide, uAniso;
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -42,8 +42,11 @@ void main(){
     uv = q + uCam * (dep - 0.38) * (1.0 + uOpen * dm);
   }
   // side fill: blurred photo, graded navy (dark) or pale grey (light)
-  vec3 fill = texture2D(tBlur, clamp(uv, 0.0, 1.0)).rgb;
-  fill = mix(fill * vec3(0.32, 0.4, 0.58) * 0.6 + vec3(0.02, 0.035, 0.07), mix(fill, vec3(0.93, 0.95, 0.965), 0.72), uTheme);
+  float vy = clamp(vPos.y / uRes.y, 0.0, 1.0);
+  vec3 blurC = texture2D(tBlur, clamp(uv, 0.0, 1.0)).rgb;
+  vec3 fd = mix(vec3(0.043, 0.078, 0.141), vec3(0.106, 0.165, 0.267), smoothstep(0.0, 0.7, vy));   // #0B1424 -> #1B2A44
+  vec3 fl = mix(vec3(0.867, 0.898, 0.933), vec3(0.765, 0.816, 0.871), smoothstep(0.0, 0.7, vy));   // #DDE5EE -> #C3D0DE
+  vec3 fill = mix(mix(fd, blurC * vec3(0.5, 0.6, 0.8), 0.18), mix(fl, blurC, 0.12), uTheme);
   fill *= 1.0 - 0.25 * uOpen;
   if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) { gl_FragColor = vec4(fill, 1.0); return; }
 
@@ -55,31 +58,32 @@ void main(){
   vec3 mn = min(c, min(min(n, s), min(e, w))), mx = max(c, max(max(n, s), max(e, w)));
   vec3 amp = sqrt(clamp(min(mn, 1.0 - mx) / max(mx, vec3(1e-4)), 0.0, 1.0));
   vec3 wg = -amp / mix(8.0, 5.0, 0.42);
-  c = clamp((c + (n + s + e + w) * wg) / (1.0 + 4.0 * wg), 0.0, 1.0);
+  vec3 c0 = c;
+  c = mix(c0, clamp((c + (n + s + e + w) * wg) / (1.0 + 4.0 * wg), 0.0, 1.0), 0.55);
 
   vec3 m = texture2D(tMaps, uv).rgb; float sky = m.g, win = m.b, dome = texture2D(tDome, uv).r;
   // clouds, sky only, +-10%
   float cl = fbm(uv * vec2(2.6, 5.2) + vec2(uTime * 0.012, uTime * 0.002));
   c *= 1.0 + sky * (cl - 0.5) * 0.4;
   // live grade: dark = blue hour, light = soft evening
-  vec3 dk = pow(c, vec3(1.12)) * vec3(0.86, 0.92, 1.06);
-  vec3 lt = c * 1.22 + 0.035; lt = mix(lt, vec3(dot(lt, vec3(0.3, 0.59, 0.11))), 0.1) * vec3(1.03, 1.0, 0.96);
-  c = mix(dk, lt, uTheme);
+  float L = dot(c, vec3(0.3, 0.59, 0.11));
+  vec3 sh = vec3(0.86, 0.94, 1.08), hi = vec3(1.06, 1.0, 0.93);                  // split tone
+  vec3 dk = pow(c, vec3(1.08)) * mix(sh, hi, smoothstep(0.25, 0.8, L));
+  dk = mix(dk, dk * dk * (3.0 - 2.0 * dk), 0.35);                               // soft S-curve
+  dk = mix(dk, mix(vec3(0.07, 0.11, 0.19), vec3(0.2, 0.28, 0.4), vy) + (dk - vec3(dot(dk, vec3(0.3, 0.59, 0.11)))) * 0.3, sky * 0.45);
+  vec3 lt = c * 1.18 + 0.04; lt = mix(lt, vec3(dot(lt, vec3(0.3, 0.59, 0.11))), 0.08) * mix(vec3(0.97, 0.99, 1.03), vec3(1.04, 1.0, 0.95), smoothstep(0.3, 0.85, L));
+  lt = mix(lt, mix(vec3(0.84, 0.88, 0.93), vec3(0.76, 0.81, 0.87), vy), sky * 0.4);
+  c = clamp(mix(dk, lt, uTheme), 0.0, 1.0);
   // windows breathe, each at its own pace (4-12 s)
   vec3 amber = vec3(1.0, 0.72, 0.47);
-  vec2 cell = floor(uv * vec2(70.0, 124.0)); float h = hash(cell);
+  float h = noise(uv * vec2(38.0, 66.0));                                   // smooth, so no square patches
   float br = 0.5 + 0.5 * sin(6.2832 * (uTime / (4.0 + 8.0 * h) + h * 7.0));
   c += amber * win * (mix(0.5, 0.2, uTheme) * (0.3 + 0.7 * br) + 0.45 * uOpen);
   // light band across the dome every ~20 s
   float band = uv.x * 0.7 + uv.y, pos = fract(uTime / 20.0) * 2.6 - 0.8, bd = (band - pos) / 0.06;
   c += vec3(0.9, 0.95, 1.0) * exp(-bd * bd) * dome * 0.16;
   // hover: brighter dome and a rim light on its outline
-  float gx = texture2D(tDome, uv + vec2(0.004, 0.0)).r - texture2D(tDome, uv - vec2(0.004, 0.0)).r;
-  float gy = texture2D(tDome, uv + vec2(0.0, 0.0025)).r - texture2D(tDome, uv - vec2(0.0, 0.0025)).r;
-  float rim = clamp(length(vec2(gx, gy)) * 1.6, 0.0, 1.0);
-  float hov = max(uHover, uOpen);
-  c *= 1.0 + 0.06 * hov * dome;
-  c += vec3(1.0, 0.93, 0.82) * rim * hov * 0.6;
+  c *= 1.0 + 0.06 * max(uHover, uOpen) * dome;
   // click: ripple across the dome, glass panels flash while the dark lines stay dark
   float lum = dot(c, vec3(0.3, 0.59, 0.11)), panel = smoothstep(0.1, 0.24, lum);
   if (uClickT >= 0.0) {
@@ -93,7 +97,7 @@ void main(){
   c += amber * smoothstep(front, front + 0.03, uv.y) * dome * panel * 0.28 * (1.0 - 0.4 * uTheme);
   // focus: the rest of the scene dims
   c *= 1.0 - 0.25 * uOpen * (1.0 - dome);
-  float feather = uWide > 0.5 ? smoothstep(0.0, 0.16, uv.x) : 1.0;
+  float feather = uWide > 0.5 ? smoothstep(0.0, 0.22, uv.x) : 1.0;
   gl_FragColor = vec4(mix(fill, c, feather), 1.0);
 }`;
 
@@ -148,7 +152,7 @@ export default function DomeHero() {
     const layout = (): Rect => {
       const W = innerWidth, H = innerHeight, isWide = W / H > 0.85;
       if (isWide) {
-        const w = Math.min(Math.max(0.56 * W, H * ASPECT), IMG_W / dpr), h = w / ASPECT;
+        const w = Math.min(Math.max(0.56 * W, H * ASPECT), (IMG_W * 0.85) / dpr), h = w / ASPECT;
         const startY = Math.min(0, Math.max(H - h, -0.2 * h));
         const y = h > H ? startY + (H - h - startY) * smooth(0, H * 1.2, scrollY) : (H - h) / 2;
         return { x: W - w, y, w, h };
@@ -273,8 +277,7 @@ export default function DomeHero() {
       openV += (ot - openV) * Math.min(1, dt * (s.open ? 2.4 : 3.3));
       const since = s.clickAt > 0 ? (now - s.clickAt) / 1000 : -1;
       waveV = s.open ? (s.reduce ? 1 : ease(Math.min(1, Math.max(0, (since - 0.3) / 1.1)))) : Math.max(0, waveV - dt / 0.9);
-      const bounce = since >= 0 && since < 0.4 ? 1 + 0.015 * Math.sin(Math.PI * since / 0.4) : 1;
-      s.zoom = (s.reduce ? 1 : 1 + 0.12 * ease(openV)) * bounce;
+      s.zoom = 1;
       s.rect = layout();
       const r = s.rect;
       gl!.viewport(0, 0, el.width, el.height);
