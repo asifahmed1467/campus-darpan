@@ -58,7 +58,13 @@ export default function FacultyRow({ f, compact = false, idx = 0 }: { f: Faculty
               <span className="sm:text-right">{info.line}</span>
             </div>
             {f.email && <div className="text-base text-mute [overflow-wrap:anywhere]">{f.email}</div>}
-            {!compact && info.sub && <div className="text-base text-ink/80">{info.sub}</div>}
+            {(() => {
+              const busy = f.status.status !== "available";      // in class, admin duty, closed: always say when they are next free
+              if (!info.sub || (compact && !busy)) return null;
+              return busy && f.status.next
+                ? <div className={`mt-0.5 flex items-center gap-1.5 text-base font-semibold ${TONE_TEXT.go}`}><span aria-hidden className={`h-2 w-2 rounded-full ${TONE_DOT.go}`} />{info.sub}</div>
+                : <div className="text-base text-ink/80">{info.sub}</div>;
+            })()}
           </div>
         </div>
         <div className="mt-3 sm:pl-[52px]"><DayStrip blocks={f.today} nowMin={nowMin} /></div>
