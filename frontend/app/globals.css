@@ -163,11 +163,26 @@ nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 .bld:focus-visible .face { stroke: rgb(var(--c-focus)); stroke-width: 4; }
 .bld:hover .face { stroke-width: 2.5; }
 
-/* Home page over the campus video: a light veil only where text sits, and frosted panels for plain text. */
-.hero-veil { background: linear-gradient(0deg, rgb(var(--c-paper) / .62) 0%, rgb(var(--c-paper) / .25) 30%, rgb(var(--c-paper) / 0) 55%); }
-@media (min-aspect-ratio: 4/5) {
-  .hero-veil { background: linear-gradient(90deg, rgb(var(--c-paper) / .55) 0%, rgb(var(--c-paper) / .3) 25%, rgb(var(--c-paper) / 0) 45%); }
-}
+/* Home page over the WebGL dome photo: scrims only where text sits, frosted panels for plain text. */
 body:has(.home-photo) { background-image: none; background-color: transparent; }
-.glass-panel { background: rgb(var(--c-sheet) / .72); border: 1px solid rgb(var(--c-mute) / .3); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); }
+.dome-scrim { background: linear-gradient(180deg, rgb(var(--c-paper) / .55) 0%, rgb(var(--c-paper) / 0) 30%),
+                          linear-gradient(0deg, rgb(var(--c-paper) / .55) 0%, rgb(var(--c-paper) / 0) 34%); }
+@media (min-aspect-ratio: 85/100) {
+  .dome-scrim { background: linear-gradient(90deg, rgb(var(--c-paper) / .5) 0%, rgb(var(--c-paper) / .25) 28%, rgb(var(--c-paper) / 0) 46%); }
+}
+.glass-panel { background: rgb(var(--c-sheet) / .62); border: 1px solid rgb(var(--c-mute) / .3); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); }
 @supports not (backdrop-filter: blur(1px)) { .glass-panel { background: rgb(var(--c-sheet) / .94); } }
+.on-photo { text-shadow: 0 1px 3px rgb(var(--c-paper) / .7), 0 6px 26px rgb(var(--c-paper) / .75); }
+[data-tilt] { transition: transform 120ms linear; will-change: transform; }
+.dome-card { opacity: 0; transform: translateX(16px) scale(.96); transition: opacity 600ms cubic-bezier(.2,.7,.1,1), transform 700ms cubic-bezier(.2,.7,.1,1); }
+.dome-card.top-1\/2 { transform: translateY(-50%) translateX(16px) scale(.96); }
+.dome-card.is-open { opacity: 1; transform: none; transition-delay: 600ms; }
+.dome-card.top-1\/2.is-open { transform: translateY(-50%); }
+.dome-hint::after { content: ""; position: absolute; inset: -2px; border-radius: 9999px; border: 2px solid #fff; animation: dome-ping 2s cubic-bezier(.2,.7,.1,1) infinite; }
+@keyframes dome-ping { from { transform: scale(1); opacity: .9; } to { transform: scale(5); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .dome-card, .dome-card.top-1\/2 { transform: none !important; transition: opacity 300ms; transition-delay: 0ms; }
+  .dome-card.top-1\/2 { transform: translateY(-50%) !important; }
+  .dome-hint::after { animation: none; }
+  [data-tilt] { transform: none !important; }
+}

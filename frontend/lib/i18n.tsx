@@ -21,6 +21,8 @@ const dict = {
     "rooms.title": "Find a room", "faculty.title": "Faculty", "notices.title": "Notices",
     "free_only": "Free now only", "all": "All",
 
+    "dome.eyebrow": "The dome", "dome.title": "C Building", "dome.line": "AIUB's round glass building. Get walking directions from the gate, or find a room inside.",
+    "dome.way": "Show me the way", "dome.close": "Close", "dome.hint": "Tap the dome", "dome.open": "Open the dome details",
     "home.hint": "Suggestions appear as you type. The mic works for questions like “When is Nyme sir free?”.",
     "home.free_count": "{n} free",
     "home.retry": "Try again",
@@ -91,6 +93,8 @@ const dict = {
     "rooms.title": "রুম খুঁজুন", "faculty.title": "শিক্ষক", "notices.title": "নোটিশ",
     "free_only": "শুধু এখন ফ্রি", "all": "সব",
 
+    "dome.eyebrow": "ডোম", "dome.title": "সি বিল্ডিং", "dome.line": "AIUB-এর গোল কাচের ভবন। গেট থেকে হাঁটার পথ দেখুন, বা ভেতরের রুম খুঁজুন।",
+    "dome.way": "পথ দেখাও", "dome.close": "বন্ধ করুন", "dome.hint": "ডোমে ট্যাপ করুন", "dome.open": "ডোমের তথ্য খুলুন",
     "home.hint": "টাইপ করলে নামের পরামর্শ আসবে। মাইক্রোফোনে প্রশ্নও করতে পারেন, যেমন “Nyme স্যার কখন ফ্রি?”।",
     "home.free_count": "{n} জন ফ্রি",
     "home.retry": "আবার চেষ্টা করুন",
