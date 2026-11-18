@@ -3,19 +3,19 @@
  * either entrance (the Annex 2 gate) to the nearest face of the chosen building.
  * Plan units (s across, t along), same schematic plan as the flat map.
  */
-import { FIELD, LAWN, PLAN, type Box } from "@/components/CampusMap";
+import { FIELD, PLAN, type Box } from "@/components/CampusMap";
 
 export const SX = 30, SZ = 19;                          // plan units -> metres-ish (same as Campus3D)
 export type Pt = [number, number];
 
 export const GATES = {
-  annex2: { s: -0.14, t: 1.32, name: "Annex 2 gate" },
+  annex2: { s: -0.26, t: 1.32, name: "Annex 2 gate" },
 } as const;
 export type GateId = keyof typeof GATES;
 /** Where every walk begins: the far end of the road. Students decide there which gate is nearer. */
 export const ENTRY = { s: -0.6, t: 1.32, name: "Start" } as const;
 
-const SPINE_S = 1.3, BACK_T = -0.05, REAR_T = -0.95, LEFT_S = -0.14;
+const SPINE_S = 1.3, BACK_T = 0.0, REAR_T = -0.95, LEFT_S = -0.26;
 
 /** Walkways as ordered points; junction points are listed on every walkway that meets there. */
 export const WALKWAYS: Pt[][] = [
@@ -95,7 +95,7 @@ export function bestRoute(id: string): Route | null {
   if (!target) return null;
   graph ??= build();
   const g = graph;
-  const others = [...Object.entries(PLAN).filter(([k]) => k !== id).map(([, v]) => v), FIELD, LAWN];   // no shortcuts over buildings, the pitch or the pond lawn
+  const others = [...Object.entries(PLAN).filter(([k]) => k !== id).map(([, v]) => v), FIELD];   // no shortcuts over buildings, the pitch or the pond lawn
   const { dist, prev } = dijkstra(g, key([ENTRY.s, ENTRY.t]));
   let best = null as { way: Pt[]; q: Pt; cost: number } | null;
   for (const maxStub of STUBS) {
