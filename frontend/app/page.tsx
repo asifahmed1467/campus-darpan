@@ -4,8 +4,8 @@ import FacultyRow, { RowSkeleton } from "@/components/FacultyRow";
 import { NoticeList } from "@/components/Notices";
 import NoticeTicker from "@/components/NoticeTicker";
 import TodayCard from "@/components/TodayCard";
-import DomeHero from "@/components/DomeHero";
 import Reveal from "@/components/Reveal";
+import QuoteBanner from "@/components/QuoteBanner";
 import SearchBox from "@/components/SearchBox";
 import { Mark, NAME_BN, TAGLINE_BN, TAGLINE_EN } from "@/components/Logo";
 import { api, dayName, fmtMin, minutesOf } from "@/lib/api";
@@ -30,27 +30,23 @@ export default function Home() {
   const freeNow = (fac.data?.items ?? []).filter((f) => f.has_tsf && f.status.status === "available").length;
 
   return (
-    <div className="home-photo space-y-14">
-      <DomeHero />
-      <section className="relative z-30 -mt-6 flex min-h-[calc(100svh-4.5rem)] flex-col justify-between gap-8 pb-4 pt-2 md:-mt-10 lg:max-w-[44%] lg:justify-center lg:gap-6">
-        <div className="on-photo">
+    <div className="space-y-14">
+      <QuoteBanner />
+      <section className="relative z-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        <div className="hero-glow relative z-20 min-w-0 pt-2 lg:pt-8">
           <h1 className="max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl" aria-label={t("hero.title")}>
             {t("hero.title").split(" ").map((w, i, all) => <span key={i} aria-hidden className={`word mr-[.25em] ${i >= all.length - 2 ? "mark-word" : ""}`} style={{ ["--w" as string]: i }}>{w}</span>)}
           </h1>
-          <p className="mt-4 max-w-[34ch] text-lg font-medium text-ink/90 sm:text-xl">{t("hero.sub")}</p>
-        </div>
-        <div data-tilt className="glass-panel min-w-0 rounded-[20px] p-4 sm:p-5">
-          <SearchBox big />
-          <p className="text-base text-ink/80">{t("home.hint")}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <p className="mt-5 max-w-[34ch] text-lg text-mute sm:text-xl">{t("hero.sub")}</p>
+          <div className="mt-8"><SearchBox big /></div>
+          <p className="text-base text-mute">{t("home.hint")}</p>
+          <div className="mt-5 flex flex-wrap gap-2">
             <Link className="chip font-display" href="/ask">{t("nav.ask")}</Link>
             <Link className="chip font-display" href="/notices">{t("home.all_notices")}</Link>
             <Link className="chip font-display" href="/rooms">{t("nav.rooms")}</Link>
           </div>
         </div>
-      </section>
 
-      <section className="relative z-20">
         <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise neu-raised relative z-10 min-w-0 rounded-3xl p-2 sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="flex items-center gap-3 text-2xl font-bold">{t("home.right_now")}
@@ -75,7 +71,7 @@ export default function Home() {
       <NoticeTicker items={notices.data?.items ?? []} />
 
       <Reveal><section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
-        <div className="glass-panel min-w-0 rounded-2xl p-5">
+        <div className="min-w-0">
           <div className="mb-2 flex items-baseline justify-between gap-4">
             <h2 className="draw-line text-3xl font-bold">{t("home.notices")}</h2>
             <Link href="/notices" className="font-display font-semibold text-brand underline">{t("home.all_notices")}</Link>

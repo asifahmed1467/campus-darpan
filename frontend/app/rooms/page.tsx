@@ -26,8 +26,6 @@ export default function RoomsPage() {
     api<{ buildings: CampusBuilding[]; rule: string }>("/api/campus").then((c) => { setBuildings(c.buildings); setRule(c.rule); }).catch((x) => setErr((x as Error).message));
     const code = new URLSearchParams(window.location.search).get("code");
     if (code) { setQ(code); lookup(code); }
-    const b = new URLSearchParams(window.location.search).get("building");
-    if (b && !code) setSel(b);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
