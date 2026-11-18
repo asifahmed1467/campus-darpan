@@ -87,7 +87,7 @@ function simplify(pts: Pt[]): Pt[] {
   return out;
 }
 
-export interface Route { points: Pt[]; gate: GateId; metres: number }
+export interface Route { points: Pt[]; gate: GateId | null; metres: number }
 
 /** Shortest walk from the start, along the walkways and the pavement, to the nearest door-side footpath of a building. */
 export function bestRoute(id: string): Route | null {
