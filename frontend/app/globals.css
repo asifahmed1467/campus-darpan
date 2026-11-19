@@ -234,3 +234,11 @@ nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 :root:not([data-theme="dark"]) .pal-green { --pal: 18 122 72; }
 :root:not([data-theme="dark"]) .pal-blue  { --pal: 37 84 200; }
 :root:not([data-theme="dark"]) .pal-amber { --pal: 168 100 0; }
+
+/* Phone tabs on the home page */
+.tab-btn { display: flex; align-items: center; justify-content: center; gap: .4rem; padding: .6rem .4rem; border-radius: 12px; font-family: var(--font-display, inherit); font-weight: 700; font-size: 1rem; color: rgb(var(--c-mute)); transition: background .2s, color .2s; }
+.tab-btn.is-on { color: #fff; }
+.tab-btn.tab-now { background: rgb(18 140 82); } .tab-btn.tab-today { background: rgb(47 98 214); } .tab-btn.tab-notices { background: rgb(184 108 0); }
+.tab-badge { min-width: 1.35rem; padding: 0 .35rem; border-radius: 999px; font-size: .78rem; line-height: 1.35rem; background: rgb(var(--c-needle)); color: #1b1b1b; }
+.tab-btn.is-on .tab-badge { background: #fff; color: #1b1b1b; }
+@media (prefers-reduced-motion: reduce) { .tab-btn { transition: none; } }

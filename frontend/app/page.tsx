@@ -9,6 +9,7 @@ import TopBand from "@/components/TopBand";
 import SearchBox from "@/components/SearchBox";
 import { Mark, NAME_BN, TAGLINE_BN, TAGLINE_EN } from "@/components/Logo";
 import { api, dayName, fmtMin, minutesOf } from "@/lib/api";
+import { useRef, useState } from "react";
 import { useFavs, useLive } from "@/lib/hooks";
 import { useLang } from "@/lib/i18n";
 import type { Faculty, Meta, Notice } from "@/lib/types";
@@ -29,21 +30,35 @@ export default function Home() {
   const now = fac.data?.now;
   const freeNow = (fac.data?.items ?? []).filter((f) => f.has_tsf && f.status.status === "available").length;
 
+  // phone: one panel at a time behind three tabs; laptop: all three side by side
+  const TABS = ["now", "today", "notices"] as const;
+  const [tab, setTab] = useState<(typeof TABS)[number]>("now");
+  const touch = useRef<[number, number] | null>(null);
+  const show = (k: (typeof TABS)[number]) => (tab === k ? "" : "hidden lg:block");
+  const nNotices = notices.data?.items.length ?? 0;
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const t0 = touch.current; touch.current = null; if (!t0) return;
+    const dx = e.changedTouches[0].clientX - t0[0], dy = e.changedTouches[0].clientY - t0[1];
+    if (Math.abs(dx) < 70 || Math.abs(dy) > 45) return;
+    const i = TABS.indexOf(tab) + (dx < 0 ? 1 : -1);
+    if (i >= 0 && i < TABS.length) setTab(TABS[i]);
+  };
+
   return (
-    <div className="space-y-6 lg:space-y-7">
-      <NoticeTicker items={notices.data?.items ?? []} />
-      <TopBand meta={meta.data} />
+    <div className="flex flex-col gap-6 lg:gap-7">
+      <div className="order-1"><NoticeTicker items={notices.data?.items ?? []} /></div>
+      <div className="order-4 lg:order-2"><TopBand meta={meta.data} /></div>
       {/* hero: title, search and the day's quote side by side, so everything below is visible without long scrolling */}
-      <section className="hero-glow relative z-20 grid items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
+      <section className="hero-glow relative z-20 order-2 grid lg:order-3 items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
         <div className="min-w-0">
           <h1 className="text-3xl font-bold sm:text-4xl lg:text-[2.6rem] lg:leading-tight" aria-label={t("hero.title")}>
             {t("hero.title").split(" ").map((w, i, all) => <span key={i} aria-hidden className={`word mr-[.25em] ${i >= all.length - 2 ? "mark-word" : ""}`} style={{ ["--w" as string]: i }}>{w}</span>)}
           </h1>
-          <p className="mt-1 text-base text-mute sm:text-lg">{t("hero.sub")}</p>
+          <p className="mt-1 hidden text-base text-mute sm:block sm:text-lg">{t("hero.sub")}</p>
         </div>
         <div className="min-w-0">
           <SearchBox big />
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-3 hidden flex-wrap items-center gap-2 sm:flex">
             <Link className="chip font-display" href="/ask">{t("nav.ask")}</Link>
             <Link className="chip font-display" href="/notices">{t("home.all_notices")}</Link>
             <Link className="chip font-display" href="/rooms">{t("nav.rooms")}</Link>
@@ -52,8 +67,19 @@ export default function Home() {
       </section>
 
       {/* everything students check, in one view: who is free, today, the latest notices */}
-      <section className="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr_1fr] lg:gap-6">
-        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="pal-green rise neu-raised relative z-10 min-w-0 rounded-3xl p-2 sm:p-3">
+      <div className="order-3 space-y-4 lg:order-4">
+      <div role="tablist" aria-label={t("tab.label")} className="sticky top-2 z-30 grid grid-cols-3 gap-1 rounded-2xl bg-sheet/95 p-1 shadow-md ring-1 ring-line backdrop-blur lg:hidden">
+        {TABS.map((k) => (
+          <button key={k} role="tab" aria-selected={tab === k} id={`tab-${k}`} aria-controls={`panel-${k}`} type="button" onClick={() => setTab(k)}
+            className={`tab-btn ${tab === k ? "is-on tab-" + k : ""}`}>
+            {k === "now" ? t("tab.now") : k === "today" ? t("tab.today") : t("tab.notices")}
+            {k === "now" && freeNow > 0 && <span className="tab-badge">{freeNow}</span>}
+            {k === "notices" && nNotices > 0 && <span className="tab-badge">{nNotices}</span>}
+          </button>
+        ))}
+      </div>
+      <section onTouchStart={(e) => { touch.current = [e.touches[0].clientX, e.touches[0].clientY]; }} onTouchEnd={onTouchEnd} className="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr_1fr] lg:gap-6">
+        <section id="panel-now" role="tabpanel" aria-labelledby="tab-now" aria-label={t("home.right_now")} style={{ ["--i" as string]: 2 }} className={`pal-green rise neu-raised relative z-10 min-w-0 rounded-3xl p-2 sm:p-3 ${show("now")}`}>
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="flex items-center gap-3 text-2xl font-bold">{t("home.right_now")}
               {freeNow > 0 && <span className="flex items-center gap-1.5 rounded-full bg-go/10 px-2.5 py-0.5 font-display text-sm font-semibold text-go"><span aria-hidden className="dot-live h-2 w-2 rounded-full bg-go" />{t("home.free_count", { n: freeNow })}</span>}
@@ -71,9 +97,9 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="pal-blue min-w-0"><TodayCard /></div>
+        <div id="panel-today" role="tabpanel" aria-labelledby="tab-today" className={`pal-blue min-w-0 ${show("today")}`}><TodayCard /></div>
 
-        <div className="min-w-0 space-y-6">
+        <div id="panel-notices" role="tabpanel" aria-labelledby="tab-notices" className={`min-w-0 space-y-6 ${show("notices")}`}>
           <section className="pal-amber neu-raised rounded-3xl p-4 sm:p-5">
             <div className="mb-1 flex items-baseline justify-between gap-4">
               <h2 className="draw-line text-2xl font-bold">{t("home.notices")}</h2>
@@ -98,15 +124,16 @@ export default function Home() {
           </aside>
         </div>
       </section>
+      </div>
 
-      <Reveal><section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-inverse p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
+      <div className="order-5"><Reveal><section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-inverse p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
         <Mark size={84} className="shrink-0" />
         <div className="min-w-0">
           <p className="font-bn text-4xl font-bold leading-tight sm:text-5xl">{NAME_BN}</p>
           <p className="mt-1 font-display text-xl font-medium text-white/80">{TAGLINE_EN}</p>
           <p className="mt-2 font-bn text-lg text-white/90">{TAGLINE_BN}</p>
         </div>
-      </section></Reveal>
+      </section></Reveal></div>
     </div>
   );
 }

@@ -21,6 +21,10 @@ const dict = {
     "rooms.title": "Find a room", "faculty.title": "Faculty", "notices.title": "Notices",
     "free_only": "Free now only", "all": "All",
 
+    "tab.label": "Home sections",
+    "tab.now": "Now",
+    "tab.today": "Today",
+    "tab.notices": "Notices",
     "top.heading": "Your daily push",
     "top.progress": "Semester progress",
     "top.days_left": "{n} days left",
@@ -107,6 +111,10 @@ const dict = {
     "rooms.title": "রুম খুঁজুন", "faculty.title": "শিক্ষক", "notices.title": "নোটিশ",
     "free_only": "শুধু এখন ফ্রি", "all": "সব",
 
+    "tab.label": "হোম বিভাগ",
+    "tab.now": "এখন",
+    "tab.today": "আজ",
+    "tab.notices": "নোটিশ",
     "top.heading": "আজকের অনুপ্রেরণা",
     "top.progress": "সেমিস্টারের অগ্রগতি",
     "top.days_left": "আর {n} দিন বাকি",
