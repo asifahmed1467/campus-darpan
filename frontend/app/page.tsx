@@ -52,7 +52,7 @@ export default function Home() {
 
       {/* everything students check, in one view: who is free, today, the latest notices */}
       <section className="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr_1fr] lg:gap-6">
-        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise neu-raised relative z-10 min-w-0 rounded-3xl p-2 sm:p-3">
+        <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="pal-green rise neu-raised relative z-10 min-w-0 rounded-3xl p-2 sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="flex items-center gap-3 text-2xl font-bold">{t("home.right_now")}
               {freeNow > 0 && <span className="flex items-center gap-1.5 rounded-full bg-go/10 px-2.5 py-0.5 font-display text-sm font-semibold text-go"><span aria-hidden className="dot-live h-2 w-2 rounded-full bg-go" />{t("home.free_count", { n: freeNow })}</span>}
@@ -70,10 +70,10 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="min-w-0"><TodayCard /></div>
+        <div className="pal-blue min-w-0"><TodayCard /></div>
 
         <div className="min-w-0 space-y-6">
-          <section>
+          <section className="pal-amber neu-raised rounded-3xl p-4 sm:p-5">
             <div className="mb-1 flex items-baseline justify-between gap-4">
               <h2 className="draw-line text-2xl font-bold">{t("home.notices")}</h2>
               <Link href="/notices" className="font-display font-semibold text-brand underline">{t("home.all_notices")}</Link>

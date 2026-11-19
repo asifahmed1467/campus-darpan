@@ -218,3 +218,19 @@ nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 .song-pop { animation: songin .35s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes songin { from { opacity: 0; transform: translateY(14px) scale(.96); } }
 @media (prefers-reduced-motion: reduce) { .song-pop { animation: none; } }
+
+/* Three home panels, one simple colour each: green = Right now, blue = AIUB Today, amber = Notices */
+.pal-green { --pal: 34 181 108; }
+.pal-blue  { --pal: 60 118 236; }
+.pal-amber { --pal: 245 166 35; }
+.pal-green.neu-raised, .pal-blue .neu-raised, .pal-amber.neu-raised {
+  background: color-mix(in srgb, rgb(var(--c-sheet)) 90%, rgb(var(--pal)));
+  border-color: rgb(var(--pal) / .55);
+  box-shadow: inset 0 4px 0 rgb(var(--pal)), 0 14px 32px -22px rgb(var(--pal) / .7);
+}
+.pal-green h2, .pal-blue h2, .pal-amber h2 { color: rgb(var(--pal)); }
+.pal-green h2 .rounded-full { color: inherit; }
+/* darker shades in the light theme so the headings stay readable */
+:root:not([data-theme="dark"]) .pal-green { --pal: 18 122 72; }
+:root:not([data-theme="dark"]) .pal-blue  { --pal: 37 84 200; }
+:root:not([data-theme="dark"]) .pal-amber { --pal: 168 100 0; }
