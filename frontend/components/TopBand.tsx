@@ -5,7 +5,7 @@ import { useLang } from "@/lib/i18n";
 import type { Meta } from "@/lib/types";
 
 const DAY = 86_400_000;
-const SONG = "/audio/shopno-jabe-bari.mp3";   // put the audio file here (frontend/public/audio)
+const SONG_URI = "spotify:track:13BwuRDoOw2CMEPMKNUxRG";   // Shopno Jabe Bari (Milon Mahmood) on Spotify
 const at = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00").getTime();
 
 /** Counts up to `to` once, so the number feels alive. */
@@ -37,26 +37,29 @@ function Ring({ pct, label }: { pct: number; label: string }) {
 
 export default function TopBand({ meta }: { meta?: Meta | null }) {
   const { t, num } = useLang();
-  const audio = useRef<HTMLAudioElement | null>(null);
-  const [song, setSong] = useState<"idle" | "playing" | "missing">("idle");
-  useEffect(() => () => { audio.current?.pause(); }, []);
-  const [own, setOwn] = useState("");
-  const pick = (f?: File | null) => {
-    if (!f) return;
-    audio.current?.pause();
-    const a = new Audio(URL.createObjectURL(f));
-    a.onended = () => setSong("idle");
-    audio.current = a; setOwn(f.name.replace(/\.[^.]+$/, ""));
-    a.play().then(() => setSong("playing")).catch(() => setSong("missing"));
-  };
-  const play = () => {
-    if (own && song !== "playing") { audio.current?.play().then(() => setSong("playing")).catch(() => setSong("missing")); return; }
-    if (song === "playing") { audio.current?.pause(); setSong("idle"); return; }
-    const a = audio.current ?? (audio.current = new Audio(SONG));
-    a.onended = () => setSong("idle");
-    a.onerror = () => setSong("missing");
-    a.currentTime = 0;
-    a.play().then(() => setSong("playing")).catch(() => setSong("missing"));
+  const [open, setOpen] = useState(false);
+  const host = useRef<HTMLDivElement | null>(null);
+  const ctl = useRef<{ play: () => void; togglePlay: () => void; destroy?: () => void } | null>(null);
+  useEffect(() => {
+    if (!open || !host.current || ctl.current) return;
+    const make = (api: { createController: (el: HTMLElement, o: object, cb: (c: any) => void) => void }) => {
+      if (!host.current) return;
+      const el = document.createElement("div"); host.current.appendChild(el);
+      api.createController(el, { uri: SONG_URI, width: "100%", height: 152, theme: "0" }, (c) => {
+        ctl.current = c;
+        c.addListener("ready", () => c.play());          // starts as soon as the player is ready
+      });
+    };
+    const w = window as any;
+    if (w.__spotifyApi) { make(w.__spotifyApi); return; }
+    w.onSpotifyIframeApiReady = (api: any) => { w.__spotifyApi = api; make(api); };
+    if (!document.getElementById("spotify-iframe-api")) {
+      const sc = document.createElement("script"); sc.id = "spotify-iframe-api"; sc.src = "https://open.spotify.com/embed/iframe-api/v1"; sc.async = true; document.body.appendChild(sc);
+    }
+  }, [open]);
+  const toggle = () => {
+    if (open && ctl.current) { try { ctl.current.destroy?.(); } catch {} ctl.current = null; if (host.current) host.current.innerHTML = ""; }
+    setOpen((o) => !o);
   };
   let progress: React.ReactNode = null;
   if (meta?.semester_start && meta.semester_end) {
@@ -74,19 +77,11 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
           <p className="text-2xl font-bold leading-tight">{left > 0 ? t("top.days_left", { n: num(left) }) : t("top.done")}</p>
           <p className="text-sm text-mute">{t("top.week", { w: num(w), of: num(weeks) })}</p>
           {nh && nd !== null && nd >= 0 && <p className="mt-1 text-sm text-mute">{t("top.next", { name: nh.name, n: num(nd) })}</p>}
-          <button type="button" onClick={play} aria-pressed={song === "playing"} className={`break-btn mt-2 ${song === "playing" ? "is-on" : ""}`}>
+          <button type="button" onClick={toggle} aria-expanded={open} className={`break-btn mt-2 ${open ? "is-on" : ""}`}>
             <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6" /></svg>
             <span>{left > 0 ? t("top.break", { n: num(left + 1) }) : t("top.break_now")}</span>
-            <span className="break-tap">{song === "playing" ? t("top.stop") : t("top.break_tap")}</span>
+            <span className="break-tap">{open ? t("top.stop") : t("top.break_tap")}</span>
           </button>
-          {song === "playing" && <p className="break-eq mt-1.5 flex items-center gap-2 text-sm text-mute" aria-live="polite"><span aria-hidden className="eq"><i /><i /><i /><i /></span>{own ? t("top.playing_own", { name: own }) : t("top.playing")}</p>}
-          {song !== "playing" && (
-            <label className="mt-1.5 block cursor-pointer text-sm font-semibold text-brand underline">
-              {t("top.pick")}
-              <input type="file" accept="audio/*,.mp3" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
-            </label>
-          )}
-          {song === "missing" && <p className="mt-1.5 text-sm" role="status"><a className="font-semibold text-brand underline" href="https://www.youtube.com/results?search_query=Shopno+Jabe+Bari" target="_blank" rel="noopener noreferrer">{t("top.listen")}</a></p>}
         </div>
       </div>
     );
@@ -104,6 +99,7 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
         </div>
         {progress}
       </div>
+      {open && <div className="relative mt-5 overflow-hidden rounded-2xl"><div ref={host} className="spotify-host min-h-[152px]" /></div>}
     </section>
   );
 }
