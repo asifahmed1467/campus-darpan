@@ -26,7 +26,7 @@ function Ring({ pct, label }: { pct: number; label: string }) {
   const R = 38, C = 2 * Math.PI * R;
   const shown = useCount(pct);
   return (
-    <svg viewBox="0 0 100 100" className="h-24 w-24 shrink-0 -rotate-90" role="img" aria-label={label}>
+    <svg viewBox="0 0 100 100" className="h-14 w-14 shrink-0 -rotate-90 sm:h-16 sm:w-16" role="img" aria-label={label}>
       <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(var(--c-line))" strokeWidth="9" />
       <circle cx="50" cy="50" r={R} fill="none" stroke="url(#sg)" strokeWidth="9" strokeLinecap="round" strokeDasharray={C}
         className="top-ring" style={{ ["--c" as string]: C, ["--to" as string]: C * (1 - pct / 100) }} />
@@ -49,14 +49,14 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
     const nh = meta.upcoming_holidays?.[0];
     const nd = nh ? Math.round((at(nh.date) - now) / DAY) : null;
     progress = (
-      <div className="top-progress flex items-center gap-4 sm:border-l sm:border-line sm:pl-6">
+      <div className="top-progress flex items-center gap-3 sm:border-l sm:border-line sm:pl-5">
         <Ring pct={pct} label={t("top.progress")} />
         <div className="min-w-0 font-display">
-          <p className="text-base font-semibold">{t("top.progress")}</p>
-          <p className="text-2xl font-bold leading-tight">{left > 0 ? t("top.days_left", { n: num(left) }) : t("top.done")}</p>
-          <p className="text-sm text-mute">{t("top.week", { w: num(w), of: num(weeks) })}</p>
-          {nh && nd !== null && nd >= 0 && <p className="mt-1 text-sm text-mute">{t("top.next", { name: nh.name, n: num(nd) })}</p>}
-          <button type="button" onClick={toggle} aria-expanded={open} className={`break-btn mt-2 ${open ? "is-on" : ""}`}>
+          <p className="text-xs font-semibold text-mute">{t("top.progress")}</p>
+          <p className="text-lg font-bold leading-tight">{left > 0 ? t("top.days_left", { n: num(left) }) : t("top.done")}</p>
+          <p className="text-xs text-mute">{t("top.week", { w: num(w), of: num(weeks) })}</p>
+          {nh && nd !== null && nd >= 0 && <p className="text-xs text-mute">{t("top.next", { name: nh.name, n: num(nd) })}</p>}
+          <button type="button" onClick={toggle} aria-expanded={open} className={`break-btn mt-1.5 ${open ? "is-on" : ""}`}>
             <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6" /></svg>
             <span>{left > 0 ? t("top.break", { n: num(left + 1) }) : t("top.break_now")}</span>
             <span className="break-tap">{open ? t("top.stop") : t("top.break_tap")}</span>
@@ -66,12 +66,12 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
     );
   }
   return (
-    <section aria-label={t("top.heading")} className="top-band relative overflow-hidden rounded-3xl p-5 sm:p-7">
+    <section aria-label={t("top.heading")} className="top-band relative overflow-hidden rounded-2xl p-3.5 sm:p-4">
       <span aria-hidden className="top-aurora" />
-      <div className={`relative grid items-center gap-6 ${progress ? (open ? "md:grid-cols-[1fr_auto_auto]" : "md:grid-cols-[1fr_auto]") : ""}`}>
+      <div className={`relative grid items-center gap-3 sm:gap-5 ${progress ? (open ? "md:grid-cols-[1fr_auto_auto]" : "md:grid-cols-[1fr_auto]") : ""}`}>
         <div className="min-w-0">
-          <p className="top-heading inline-flex items-center gap-2 font-display text-lg font-bold">
-            <svg aria-hidden viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="top-spark"><path d="M12 2l2.4 7.1L22 12l-7.6 2.9L12 22l-2.4-7.1L2 12l7.6-2.9z" /></svg>
+          <p className="top-heading inline-flex items-center gap-1.5 font-display text-sm font-bold">
+            <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="currentColor" className="top-spark"><path d="M12 2l2.4 7.1L22 12l-7.6 2.9L12 22l-2.4-7.1L2 12l7.6-2.9z" /></svg>
             {t("top.heading")}
           </p>
           <QuoteBanner />
