@@ -5,7 +5,7 @@ import { NoticeList } from "@/components/Notices";
 import NoticeTicker from "@/components/NoticeTicker";
 import TodayCard from "@/components/TodayCard";
 import Reveal from "@/components/Reveal";
-import QuoteBanner from "@/components/QuoteBanner";
+import TopBand from "@/components/TopBand";
 import SearchBox from "@/components/SearchBox";
 import { Mark, NAME_BN, TAGLINE_BN, TAGLINE_EN } from "@/components/Logo";
 import { api, dayName, fmtMin, minutesOf } from "@/lib/api";
@@ -31,7 +31,8 @@ export default function Home() {
 
   return (
     <div className="space-y-6 lg:space-y-7">
-      {/* top band: title, search and the day's quote side by side, so everything below is visible without long scrolling */}
+      <TopBand meta={meta.data} />
+      {/* hero: title, search and the day's quote side by side, so everything below is visible without long scrolling */}
       <section className="hero-glow relative z-20 grid items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
         <div className="min-w-0">
           <h1 className="text-3xl font-bold sm:text-4xl lg:text-[2.6rem] lg:leading-tight" aria-label={t("hero.title")}>
@@ -47,7 +48,6 @@ export default function Home() {
             <Link className="chip font-display" href="/rooms">{t("nav.rooms")}</Link>
           </div>
         </div>
-        <div className="quote-compact min-w-0 lg:col-span-2"><QuoteBanner /></div>
       </section>
 
       {/* everything students check, in one view: who is free, today, the latest notices */}

@@ -184,3 +184,22 @@ nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 .quote-compact .quote-text { font-size: 1rem; font-weight: 600; max-width: none; }
 .quote-compact .quote-ref { margin-top: 0; font-size: .88rem; }
 .quote-compact .quote-slot { min-height: 2rem; }
+
+/* Top band: daily quote + semester progress */
+.top-band { background: linear-gradient(135deg, rgb(var(--c-sheet)), rgb(var(--c-paper))); box-shadow: inset 0 0 0 1px rgb(var(--c-line)), 0 14px 40px -24px rgb(var(--c-brand) / .55); }
+.top-aurora { position: absolute; inset: -40% -10% auto -10%; height: 140%; pointer-events: none; opacity: .5;
+  background: radial-gradient(40% 50% at 20% 30%, rgb(var(--c-needle) / .22), transparent 70%), radial-gradient(45% 55% at 85% 20%, rgb(var(--c-brand) / .28), transparent 70%);
+  animation: aurora 14s ease-in-out infinite alternate; }
+@keyframes aurora { to { transform: translate3d(4%, 6%, 0) scale(1.08); } }
+.top-heading { color: rgb(var(--c-needle)); animation: qword .7s ease both; }
+.top-spark { animation: spark 3.2s ease-in-out infinite; transform-origin: center; }
+@keyframes spark { 0%,100% { transform: rotate(0) scale(1); } 50% { transform: rotate(90deg) scale(1.25); } }
+.top-band .quote-text { font-size: clamp(1.25rem, 2.6vw, 1.85rem); line-height: 1.4; font-weight: 700; max-width: 40ch; margin-top: .5rem; }
+.top-band .quote-ref { font-size: 1rem; margin-top: .8rem; }
+.top-ring { stroke-dashoffset: var(--c); animation: ring 1.6s cubic-bezier(.2,.7,.2,1) .3s forwards; }
+@keyframes ring { to { stroke-dashoffset: var(--to); } }
+.top-progress { animation: qword .8s ease .5s both; }
+@media (prefers-reduced-motion: reduce) {
+  .top-aurora, .top-spark, .top-heading, .top-progress { animation: none; }
+  .top-ring { animation: none; stroke-dashoffset: var(--to); }
+}
