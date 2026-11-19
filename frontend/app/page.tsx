@@ -31,6 +31,7 @@ export default function Home() {
 
   return (
     <div className="space-y-6 lg:space-y-7">
+      <NoticeTicker items={notices.data?.items ?? []} />
       <TopBand meta={meta.data} />
       {/* hero: title, search and the day's quote side by side, so everything below is visible without long scrolling */}
       <section className="hero-glow relative z-20 grid items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
@@ -97,8 +98,6 @@ export default function Home() {
           </aside>
         </div>
       </section>
-
-      <NoticeTicker items={notices.data?.items ?? []} />
 
       <Reveal><section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-inverse p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
         <Mark size={84} className="shrink-0" />
