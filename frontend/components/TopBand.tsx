@@ -45,7 +45,7 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
     const make = (api: { createController: (el: HTMLElement, o: object, cb: (c: any) => void) => void }) => {
       if (!host.current) return;
       const el = document.createElement("div"); host.current.appendChild(el);
-      api.createController(el, { uri: SONG_URI, width: "100%", height: 152, theme: "0" }, (c) => {
+      api.createController(el, { uri: SONG_URI, width: "100%", height: 80, theme: "0" }, (c) => {
         ctl.current = c;
         c.addListener("ready", () => c.play());          // starts as soon as the player is ready
       });
@@ -99,7 +99,14 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
         </div>
         {progress}
       </div>
-      {open && <div className="relative mt-5 overflow-hidden rounded-2xl"><div ref={host} className="spotify-host min-h-[152px]" /></div>}
+      {open && (
+        <div className="song-pop fixed bottom-4 right-4 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl bg-sheet shadow-2xl ring-1 ring-line">
+          <button type="button" onClick={toggle} aria-label={t("top.close")} className="absolute right-1.5 top-1.5 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/55 text-white hover:bg-black/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+            <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+          <div ref={host} className="min-h-[80px]" />
+        </div>
+      )}
     </section>
   );
 }
