@@ -70,7 +70,7 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
             <span className="break-tap">{song === "playing" ? t("top.stop") : t("top.break_tap")}</span>
           </button>
           {song === "playing" && <p className="break-eq mt-1.5 flex items-center gap-2 text-sm text-mute" aria-live="polite"><span aria-hidden className="eq"><i /><i /><i /><i /></span>{t("top.playing")}</p>}
-          {song === "missing" && <p className="mt-1.5 text-sm text-busy" role="status">{t("top.no_song")}</p>}
+          {song === "missing" && <p className="mt-1.5 text-sm" role="status"><a className="font-semibold text-brand underline" href="https://www.youtube.com/results?search_query=Shopno+Jabe+Bari" target="_blank" rel="noopener noreferrer">{t("top.listen")}</a></p>}
         </div>
       </div>
     );
