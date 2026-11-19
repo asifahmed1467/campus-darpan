@@ -30,23 +30,28 @@ export default function Home() {
   const freeNow = (fac.data?.items ?? []).filter((f) => f.has_tsf && f.status.status === "available").length;
 
   return (
-    <div className="space-y-14">
-      <QuoteBanner />
-      <section className="relative z-20 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
-        <div className="hero-glow relative z-20 min-w-0 pt-2 lg:pt-8">
-          <h1 className="max-w-[14ch] text-[2.6rem] font-bold sm:text-6xl lg:text-7xl" aria-label={t("hero.title")}>
+    <div className="space-y-6 lg:space-y-7">
+      {/* top band: title, search and the day's quote side by side, so everything below is visible without long scrolling */}
+      <section className="hero-glow relative z-20 grid items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-bold sm:text-4xl lg:text-[2.6rem] lg:leading-tight" aria-label={t("hero.title")}>
             {t("hero.title").split(" ").map((w, i, all) => <span key={i} aria-hidden className={`word mr-[.25em] ${i >= all.length - 2 ? "mark-word" : ""}`} style={{ ["--w" as string]: i }}>{w}</span>)}
           </h1>
-          <p className="mt-5 max-w-[34ch] text-lg text-mute sm:text-xl">{t("hero.sub")}</p>
-          <div className="mt-8"><SearchBox big /></div>
-          <p className="text-base text-mute">{t("home.hint")}</p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <p className="mt-1 text-base text-mute sm:text-lg">{t("hero.sub")}</p>
+        </div>
+        <div className="min-w-0">
+          <SearchBox big />
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Link className="chip font-display" href="/ask">{t("nav.ask")}</Link>
             <Link className="chip font-display" href="/notices">{t("home.all_notices")}</Link>
             <Link className="chip font-display" href="/rooms">{t("nav.rooms")}</Link>
           </div>
         </div>
+        <div className="quote-compact min-w-0 lg:col-span-2"><QuoteBanner /></div>
+      </section>
 
+      {/* everything students check, in one view: who is free, today, the latest notices */}
+      <section className="grid items-start gap-6 lg:grid-cols-[1.25fr_1fr_1fr] lg:gap-6">
         <section aria-labelledby="rn" style={{ ["--i" as string]: 2 }} className="rise neu-raised relative z-10 min-w-0 rounded-3xl p-2 sm:p-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2 px-3 pb-2 pt-3 sm:px-4">
             <h2 id="rn" className="flex items-center gap-3 text-2xl font-bold">{t("home.right_now")}
@@ -64,37 +69,37 @@ export default function Home() {
             <Link href="/faculty" className="font-display font-semibold text-brand underline">{t("home.all_faculty")}</Link>
           </div>
         </section>
-      </section>
 
-      <Reveal><TodayCard /></Reveal>
+        <div className="min-w-0"><TodayCard /></div>
+
+        <div className="min-w-0 space-y-6">
+          <section>
+            <div className="mb-1 flex items-baseline justify-between gap-4">
+              <h2 className="draw-line text-2xl font-bold">{t("home.notices")}</h2>
+              <Link href="/notices" className="font-display font-semibold text-brand underline">{t("home.all_notices")}</Link>
+            </div>
+            {notices.loading && !notices.data ? <div className="space-y-4 py-4"><div className="skeleton h-14" /><div className="skeleton h-14" /><div className="skeleton h-14" /></div>
+              : notices.error && !notices.data ? <div className="py-4"><p className="text-busy">{t("home.notices_failed")}</p><button className="btn btn-quiet mt-3" onClick={notices.reload}>{t("home.retry")}</button></div>
+              : <NoticeList items={(notices.data?.items ?? []).slice(0, 3)} />}
+          </section>
+          <aside aria-labelledby="up" className="neu-raised h-fit rounded-2xl p-4">
+            <h2 id="up" className="text-xl font-bold">{t("home.holidays")}</h2>
+            {meta.data?.semester && meta.data.semester_start && meta.data.semester_end && <p className="mt-1 text-sm text-mute">{t("home.semester", { name: meta.data.semester, from: date(meta.data.semester_start, { day: "numeric", month: "short" }), to: date(meta.data.semester_end, { day: "numeric", month: "short", year: "numeric" }) })}</p>}
+            <ul className="mt-2 divide-y divide-line">
+              {(meta.data?.upcoming_holidays ?? []).slice(0, 3).map((h) => (
+                <li key={h.date} className="flex justify-between gap-4 py-2">
+                  <span>{h.name}</span>
+                  <span className="shrink-0 font-display font-semibold">{date(h.date, { weekday: "short", day: "numeric", month: "short" })}</span>
+                </li>
+              ))}
+              {meta.data && !meta.data.upcoming_holidays.length && <li className="py-2 text-mute">{t("home.no_holidays")}</li>}
+            </ul>
+          </aside>
+        </div>
+      </section>
 
       <NoticeTicker items={notices.data?.items ?? []} />
 
-      <Reveal><section className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
-        <div className="min-w-0">
-          <div className="mb-2 flex items-baseline justify-between gap-4">
-            <h2 className="draw-line text-3xl font-bold">{t("home.notices")}</h2>
-            <Link href="/notices" className="font-display font-semibold text-brand underline">{t("home.all_notices")}</Link>
-          </div>
-          {notices.loading && !notices.data ? <div className="space-y-4 py-4"><div className="skeleton h-14" /><div className="skeleton h-14" /><div className="skeleton h-14" /></div>
-            : notices.error && !notices.data ? <div className="py-4"><p className="text-busy">{t("home.notices_failed")}</p><button className="btn btn-quiet mt-3" onClick={notices.reload}>{t("home.retry")}</button></div>
-            : <NoticeList items={notices.data?.items ?? []} />}
-        </div>
-        <aside aria-labelledby="up" className="card-hover neu-raised h-fit rounded-2xl p-5">
-          <h2 id="up" className="draw-line text-2xl font-bold">{t("home.holidays")}</h2>
-          {meta.data?.semester && meta.data.semester_start && meta.data.semester_end && <p className="mt-1 text-base text-mute">{t("home.semester", { name: meta.data.semester, from: date(meta.data.semester_start, { day: "numeric", month: "short" }), to: date(meta.data.semester_end, { day: "numeric", month: "short", year: "numeric" }) })}</p>}
-          <ul className="mt-3 divide-y divide-line">
-            {(meta.data?.upcoming_holidays ?? []).map((h) => (
-              <li key={h.date} className="flex justify-between gap-4 py-2.5">
-                <span>{h.name}</span>
-                <span className="shrink-0 font-display font-semibold">{date(h.date, { weekday: "short", day: "numeric", month: "short" })}</span>
-              </li>
-            ))}
-            {meta.data && !meta.data.upcoming_holidays.length && <li className="py-2.5 text-mute">{t("home.no_holidays")}</li>}
-          </ul>
-          <p className="mt-3 text-base text-mute">{t("home.weekend_note")}</p>
-        </aside>
-      </section></Reveal>
       <Reveal><section aria-label="ক্যাম্পাসদর্পণ" className="flex flex-col items-start gap-5 rounded-2xl bg-inverse p-6 text-white sm:flex-row sm:items-center sm:gap-8 sm:p-8">
         <Mark size={84} className="shrink-0" />
         <div className="min-w-0">

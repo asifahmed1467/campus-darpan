@@ -178,3 +178,9 @@ nav a[aria-current="page"] svg { animation: nav-settle 360ms var(--ease); }
 @media (prefers-reduced-motion: reduce) {
   .quote-text .qw, .quote-ref { animation: none; opacity: 1; filter: none; transform: none; }
 }
+
+/* one-line quote under the home hero */
+.quote-compact .quote-banner { display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem 1rem; padding: 0; border-top: 1px solid rgb(var(--c-line, 128 128 128) / .25); padding-top: .6rem; }
+.quote-compact .quote-text { font-size: 1rem; font-weight: 600; max-width: none; }
+.quote-compact .quote-ref { margin-top: 0; font-size: .88rem; }
+.quote-compact .quote-slot { min-height: 2rem; }
