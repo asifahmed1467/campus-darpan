@@ -5,7 +5,7 @@ import { useLang } from "@/lib/i18n";
 import type { Meta } from "@/lib/types";
 
 const DAY = 86_400_000;
-const SONG_URI = "spotify:track:13BwuRDoOw2CMEPMKNUxRG";   // Shopno Jabe Bari by Milon Mahmood on Spotify
+const SONG_ID = "c1oKO-wnNfw";   // YouTube: Shopno Jabe Bari (Milon Mahmud), full song
 const at = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00").getTime();
 
 /** Counts up to `to` once, so the number feels alive. */
@@ -39,28 +39,31 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
   const { t, num } = useLang();
   const [open, setOpen] = useState(false);
   const host = useRef<HTMLDivElement | null>(null);
-  const ctl = useRef<{ play: () => void; togglePlay: () => void; destroy?: () => void } | null>(null);
+  const yt = useRef<{ destroy: () => void } | null>(null);
   useEffect(() => {
-    if (!open || !host.current || ctl.current) return;
-    const make = (api: { createController: (el: HTMLElement, o: object, cb: (c: any) => void) => void }) => {
-      if (!host.current) return;
+    if (!open || !host.current || yt.current) return;
+    const w = window as any;
+    const make = () => {
+      if (!host.current || yt.current) return;
       const el = document.createElement("div"); host.current.appendChild(el);
-      api.createController(el, { uri: SONG_URI, width: "100%", height: 80, theme: "0" }, (c) => {
-        ctl.current = c;
-        c.addListener("ready", () => c.play());          // starts as soon as the player is ready
+      yt.current = new w.YT.Player(el, {
+        videoId: SONG_ID, width: "100%", height: "100%",
+        playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
+        events: { onReady: (e: any) => e.target.playVideo() },   // starts as soon as it is ready
       });
     };
-    const w = window as any;
-    if (w.__spotifyApi) { make(w.__spotifyApi); return; }
-    w.onSpotifyIframeApiReady = (api: any) => { w.__spotifyApi = api; make(api); };
-    if (!document.getElementById("spotify-iframe-api")) {
-      const sc = document.createElement("script"); sc.id = "spotify-iframe-api"; sc.src = "https://open.spotify.com/embed/iframe-api/v1"; sc.async = true; document.body.appendChild(sc);
+    if (w.YT?.Player) { make(); return; }
+    const prev = w.onYouTubeIframeAPIReady;
+    w.onYouTubeIframeAPIReady = () => { prev?.(); make(); };
+    if (!document.getElementById("yt-iframe-api")) {
+      const sc = document.createElement("script"); sc.id = "yt-iframe-api"; sc.src = "https://www.youtube.com/iframe_api"; sc.async = true; document.head.appendChild(sc);
     }
   }, [open]);
   const toggle = () => {
-    if (open && ctl.current) { try { ctl.current.destroy?.(); } catch {} ctl.current = null; if (host.current) host.current.innerHTML = ""; }
+    if (open) { try { yt.current?.destroy(); } catch {} yt.current = null; }
     setOpen((o) => !o);
   };
+  useEffect(() => () => { try { yt.current?.destroy(); } catch {} }, []);
   let progress: React.ReactNode = null;
   if (meta?.semester_start && meta.semester_end) {
     const now = at(meta.now), a = at(meta.semester_start), b = at(meta.semester_end);
@@ -89,7 +92,7 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
   return (
     <section aria-label={t("top.heading")} className="top-band relative overflow-hidden rounded-3xl p-5 sm:p-7">
       <span aria-hidden className="top-aurora" />
-      <div className={`relative grid items-center gap-6 ${progress ? "md:grid-cols-[1fr_auto]" : ""}`}>
+      <div className={`relative grid items-center gap-6 ${progress ? (open ? "md:grid-cols-[1fr_auto_auto]" : "md:grid-cols-[1fr_auto]") : ""}`}>
         <div className="min-w-0">
           <p className="top-heading inline-flex items-center gap-2 font-display text-lg font-bold">
             <svg aria-hidden viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="top-spark"><path d="M12 2l2.4 7.1L22 12l-7.6 2.9L12 22l-2.4-7.1L2 12l7.6-2.9z" /></svg>
@@ -98,15 +101,15 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
           <QuoteBanner />
         </div>
         {progress}
+        {open && (
+          <div className="song-pop relative w-full overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-line md:w-64">
+            <button type="button" onClick={toggle} aria-label={t("top.close")} className="absolute right-1.5 top-1.5 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/65 text-white hover:bg-black/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+              <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+            <div className="aspect-video w-full"><div ref={host} className="h-full w-full" /></div>
+          </div>
+        )}
       </div>
-      {open && (
-        <div className="song-pop fixed bottom-4 right-4 z-50 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-2xl bg-sheet shadow-2xl ring-1 ring-line">
-          <button type="button" onClick={toggle} aria-label={t("top.close")} className="absolute right-1.5 top-1.5 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/55 text-white hover:bg-black/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
-            <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
-          </button>
-          <div ref={host} className="min-h-[80px]" />
-        </div>
-      )}
     </section>
   );
 }
