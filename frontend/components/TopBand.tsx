@@ -84,6 +84,7 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
               <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
             <iframe title={t("top.playing")} src={SONG_SRC} allow="autoplay" className="block h-[116px] w-full border-0" />
+            <p className="px-3 pb-2 text-xs text-mute sm:hidden">{t("top.tap_play")}</p>
           </div>
         )}
       </div>

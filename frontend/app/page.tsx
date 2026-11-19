@@ -47,16 +47,16 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-6 lg:gap-7">
       <div className="order-1"><NoticeTicker items={notices.data?.items ?? []} /></div>
-      <div className="order-3 lg:order-2"><TopBand meta={meta.data} /></div>
+      <div className="order-2 lg:order-2"><TopBand meta={meta.data} /></div>
       {/* hero: title, search and the day's quote side by side, so everything below is visible without long scrolling */}
-      <section className="hero-glow relative z-20 order-2 grid lg:order-3 items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
+      <section className="hero-glow relative z-20 order-3 grid lg:order-3 items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
         <div className="min-w-0">
-          <h1 className="text-3xl font-bold sm:text-4xl lg:text-[2.6rem] lg:leading-tight" aria-label={t("hero.title")}>
+          <h1 className="text-2xl font-bold sm:text-4xl lg:text-[2.6rem] lg:leading-tight" aria-label={t("hero.title")}>
             {t("hero.title").split(" ").map((w, i, all) => <span key={i} aria-hidden className={`word mr-[.25em] ${i >= all.length - 2 ? "mark-word" : ""}`} style={{ ["--w" as string]: i }}>{w}</span>)}
           </h1>
           <p className="mt-1 hidden text-base text-mute sm:block sm:text-lg">{t("hero.sub")}</p>
         </div>
-        <div className="min-w-0">
+        <div className="home-search min-w-0">
           <SearchBox big />
           <div className="mt-3 hidden flex-wrap items-center gap-2 sm:flex">
             <Link className="chip font-display" href="/ask">{t("nav.ask")}</Link>
