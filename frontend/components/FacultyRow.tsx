@@ -53,11 +53,11 @@ export default function FacultyRow({ f, compact = false, idx = 0 }: { f: Faculty
               <span className="font-display text-lg font-semibold leading-tight">{f.name}{f.room && <span className="ml-2 align-middle"><RoomBadge room={f.room} building={f.building} /></span>}</span>
               <StatusLabel f={f} />
             </div>
-            <div className="flex flex-col gap-x-4 text-base text-mute sm:flex-row sm:justify-between">
+            <div className={`flex flex-col gap-x-4 text-base text-mute ${compact ? "" : "sm:flex-row sm:justify-between"}`}>
               <span>{[f.designation, f.department].filter(Boolean).join(", ") || f.faculty_code || " "}</span>
-              <span className="sm:text-right">{info.line}</span>
+              <span className={compact ? "" : "sm:text-right"}>{info.line}</span>
             </div>
-            {f.email && <div className="text-base text-mute [overflow-wrap:anywhere]">{f.email}</div>}
+            {f.email && !compact && <div className="text-base text-mute [overflow-wrap:anywhere]">{f.email}</div>}
             {(() => {
               const busy = f.status.status !== "available";      // in class, admin duty, closed: always say when they are next free
               if (!info.sub || (compact && !busy)) return null;
