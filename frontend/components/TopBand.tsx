@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QuoteBanner from "@/components/QuoteBanner";
 import { useLang } from "@/lib/i18n";
 import type { Meta } from "@/lib/types";
 
 const DAY = 86_400_000;
+const SONG = "/audio/shopno-jabe-bari.mp3";   // put the audio file here (frontend/public/audio)
 const at = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00").getTime();
 
 /** Counts up to `to` once, so the number feels alive. */
@@ -36,6 +37,17 @@ function Ring({ pct, label }: { pct: number; label: string }) {
 
 export default function TopBand({ meta }: { meta?: Meta | null }) {
   const { t, num } = useLang();
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const [song, setSong] = useState<"idle" | "playing" | "missing">("idle");
+  useEffect(() => () => { audio.current?.pause(); }, []);
+  const play = () => {
+    if (song === "playing") { audio.current?.pause(); setSong("idle"); return; }
+    const a = audio.current ?? (audio.current = new Audio(SONG));
+    a.onended = () => setSong("idle");
+    a.onerror = () => setSong("missing");
+    a.currentTime = 0;
+    a.play().then(() => setSong("playing")).catch(() => setSong("missing"));
+  };
   let progress: React.ReactNode = null;
   if (meta?.semester_start && meta.semester_end) {
     const now = at(meta.now), a = at(meta.semester_start), b = at(meta.semester_end);
@@ -52,6 +64,13 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
           <p className="text-2xl font-bold leading-tight">{left > 0 ? t("top.days_left", { n: num(left) }) : t("top.done")}</p>
           <p className="text-sm text-mute">{t("top.week", { w: num(w), of: num(weeks) })}</p>
           {nh && nd !== null && nd >= 0 && <p className="mt-1 text-sm text-mute">{t("top.next", { name: nh.name, n: num(nd) })}</p>}
+          <button type="button" onClick={play} aria-pressed={song === "playing"} className={`break-btn mt-2 ${song === "playing" ? "is-on" : ""}`}>
+            <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6" /></svg>
+            <span>{left > 0 ? t("top.break", { n: num(left + 1) }) : t("top.break_now")}</span>
+            <span className="break-tap">{song === "playing" ? t("top.stop") : t("top.break_tap")}</span>
+          </button>
+          {song === "playing" && <p className="break-eq mt-1.5 flex items-center gap-2 text-sm text-mute" aria-live="polite"><span aria-hidden className="eq"><i /><i /><i /><i /></span>{t("top.playing")}</p>}
+          {song === "missing" && <p className="mt-1.5 text-sm text-busy" role="status">{t("top.no_song")}</p>}
         </div>
       </div>
     );
