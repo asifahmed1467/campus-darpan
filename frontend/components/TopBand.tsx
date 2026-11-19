@@ -52,10 +52,11 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
       <div className="top-progress flex items-center gap-3 sm:border-l sm:border-line sm:pl-5">
         <Ring pct={pct} label={t("top.progress")} />
         <div className="min-w-0 font-display">
-          <p className="text-xs font-semibold text-mute">{t("top.progress")}</p>
-          <p className="text-lg font-bold leading-tight">{left > 0 ? t("top.days_left", { n: num(left) }) : t("top.done")}</p>
-          <p className="text-xs text-mute">{t("top.week", { w: num(w), of: num(weeks) })}</p>
-          {nh && nd !== null && nd >= 0 && <p className="text-xs text-mute">{t("top.next", { name: nh.name, n: num(nd) })}</p>}
+          <p className="hidden text-xs font-semibold text-mute sm:block">{t("top.progress")}</p>
+          <p className="text-sm font-bold leading-tight sm:hidden">{left > 0 ? t("top.days_left", { n: num(left) }) : t("top.done")} <span className="font-medium text-mute">· {t("top.week", { w: num(w), of: num(weeks) })}</span></p>
+          <p className="hidden text-lg font-bold leading-tight sm:block">{left > 0 ? t("top.days_left", { n: num(left) }) : t("top.done")}</p>
+          <p className="hidden text-xs text-mute sm:block">{t("top.week", { w: num(w), of: num(weeks) })}</p>
+          {nh && nd !== null && nd >= 0 && <p className="hidden text-xs text-mute sm:block">{t("top.next", { name: nh.name, n: num(nd) })}</p>}
           <button type="button" onClick={toggle} aria-expanded={open} className={`break-btn mt-1.5 ${open ? "is-on" : ""}`}>
             <svg aria-hidden viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6" /></svg>
             <span>{left > 0 ? t("top.break", { n: num(left + 1) }) : t("top.break_now")}</span>
@@ -66,11 +67,11 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
     );
   }
   return (
-    <section aria-label={t("top.heading")} className="top-band relative overflow-hidden rounded-2xl p-3.5 sm:p-4">
+    <section aria-label={t("top.heading")} className="top-band relative overflow-hidden rounded-2xl p-3 sm:p-4">
       <span aria-hidden className="top-aurora" />
       <div className={`relative grid items-center gap-3 sm:gap-5 ${progress ? (open ? "md:grid-cols-[1fr_auto_auto]" : "md:grid-cols-[1fr_auto]") : ""}`}>
         <div className="min-w-0">
-          <p className="top-heading inline-flex items-center gap-1.5 font-display text-sm font-bold">
+          <p className="top-heading hidden items-center gap-1.5 font-display text-sm font-bold sm:inline-flex">
             <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="currentColor" className="top-spark"><path d="M12 2l2.4 7.1L22 12l-7.6 2.9L12 22l-2.4-7.1L2 12l7.6-2.9z" /></svg>
             {t("top.heading")}
           </p>

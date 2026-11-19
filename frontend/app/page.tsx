@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-6 lg:gap-7">
       <div className="order-1"><NoticeTicker items={notices.data?.items ?? []} /></div>
-      <div className="order-4 lg:order-2"><TopBand meta={meta.data} /></div>
+      <div className="order-3 lg:order-2"><TopBand meta={meta.data} /></div>
       {/* hero: title, search and the day's quote side by side, so everything below is visible without long scrolling */}
       <section className="hero-glow relative z-20 order-2 grid lg:order-3 items-center gap-4 lg:grid-cols-[1fr_1.1fr] lg:gap-10">
         <div className="min-w-0">
@@ -67,7 +67,7 @@ export default function Home() {
       </section>
 
       {/* everything students check, in one view: who is free, today, the latest notices */}
-      <div className="order-3 space-y-4 lg:order-4">
+      <div className="order-4 space-y-4 lg:order-4">
       <div role="tablist" aria-label={t("tab.label")} className="sticky top-2 z-30 grid grid-cols-3 gap-1 rounded-2xl bg-sheet/95 p-1 shadow-md ring-1 ring-line backdrop-blur lg:hidden">
         {TABS.map((k) => (
           <button key={k} role="tab" aria-selected={tab === k} id={`tab-${k}`} aria-controls={`panel-${k}`} type="button" onClick={() => setTab(k)}
