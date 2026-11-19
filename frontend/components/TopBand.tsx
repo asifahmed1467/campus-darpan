@@ -5,7 +5,7 @@ import { useLang } from "@/lib/i18n";
 import type { Meta } from "@/lib/types";
 
 const DAY = 86_400_000;
-const SONG_URI = "spotify:track:13BwuRDoOw2CMEPMKNUxRG";   // Shopno Jabe Bari (Milon Mahmood) on Spotify
+const SONG_URI = "spotify:album:51x5Gd1RAM7wesr3pi1kGY";   // Grameenphone: Shopno Jabe Bari (single, 1 song) on Spotify
 const at = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00").getTime();
 
 /** Counts up to `to` once, so the number feels alive. */
