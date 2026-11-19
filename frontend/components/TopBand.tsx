@@ -40,7 +40,17 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
   const audio = useRef<HTMLAudioElement | null>(null);
   const [song, setSong] = useState<"idle" | "playing" | "missing">("idle");
   useEffect(() => () => { audio.current?.pause(); }, []);
+  const [own, setOwn] = useState("");
+  const pick = (f?: File | null) => {
+    if (!f) return;
+    audio.current?.pause();
+    const a = new Audio(URL.createObjectURL(f));
+    a.onended = () => setSong("idle");
+    audio.current = a; setOwn(f.name.replace(/\.[^.]+$/, ""));
+    a.play().then(() => setSong("playing")).catch(() => setSong("missing"));
+  };
   const play = () => {
+    if (own && song !== "playing") { audio.current?.play().then(() => setSong("playing")).catch(() => setSong("missing")); return; }
     if (song === "playing") { audio.current?.pause(); setSong("idle"); return; }
     const a = audio.current ?? (audio.current = new Audio(SONG));
     a.onended = () => setSong("idle");
@@ -69,7 +79,13 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
             <span>{left > 0 ? t("top.break", { n: num(left + 1) }) : t("top.break_now")}</span>
             <span className="break-tap">{song === "playing" ? t("top.stop") : t("top.break_tap")}</span>
           </button>
-          {song === "playing" && <p className="break-eq mt-1.5 flex items-center gap-2 text-sm text-mute" aria-live="polite"><span aria-hidden className="eq"><i /><i /><i /><i /></span>{t("top.playing")}</p>}
+          {song === "playing" && <p className="break-eq mt-1.5 flex items-center gap-2 text-sm text-mute" aria-live="polite"><span aria-hidden className="eq"><i /><i /><i /><i /></span>{own ? t("top.playing_own", { name: own }) : t("top.playing")}</p>}
+          {song !== "playing" && (
+            <label className="mt-1.5 block cursor-pointer text-sm font-semibold text-brand underline">
+              {t("top.pick")}
+              <input type="file" accept="audio/*,.mp3" className="sr-only" onChange={(e) => pick(e.target.files?.[0])} />
+            </label>
+          )}
           {song === "missing" && <p className="mt-1.5 text-sm" role="status"><a className="font-semibold text-brand underline" href="https://www.youtube.com/results?search_query=Shopno+Jabe+Bari" target="_blank" rel="noopener noreferrer">{t("top.listen")}</a></p>}
         </div>
       </div>
