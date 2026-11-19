@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import QuoteBanner from "@/components/QuoteBanner";
 import { useLang } from "@/lib/i18n";
 import type { Meta } from "@/lib/types";
 
 const DAY = 86_400_000;
-const SONG_ID = "c1oKO-wnNfw";   // YouTube: Shopno Jabe Bari (Milon Mahmud), full song
+const SONG_URL = "https://soundcloud.com/khudro-manob/shopno-jabe-bari-amar-gp-song";   // SoundCloud: audio-only, full track
+const SONG_SRC = `https://w.soundcloud.com/player/?url=${encodeURIComponent(SONG_URL)}&auto_play=true&visual=false&show_comments=false&show_user=true&show_reposts=false&hide_related=true&color=%23f5a623`;
 const at = (iso: string) => new Date(iso.slice(0, 10) + "T12:00:00").getTime();
 
 /** Counts up to `to` once, so the number feels alive. */
@@ -38,32 +39,7 @@ function Ring({ pct, label }: { pct: number; label: string }) {
 export default function TopBand({ meta }: { meta?: Meta | null }) {
   const { t, num } = useLang();
   const [open, setOpen] = useState(false);
-  const host = useRef<HTMLDivElement | null>(null);
-  const yt = useRef<{ destroy: () => void } | null>(null);
-  useEffect(() => {
-    if (!open || !host.current || yt.current) return;
-    const w = window as any;
-    const make = () => {
-      if (!host.current || yt.current) return;
-      const el = document.createElement("div"); host.current.appendChild(el);
-      yt.current = new w.YT.Player(el, {
-        videoId: SONG_ID, width: "100%", height: "100%",
-        playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
-        events: { onReady: (e: any) => e.target.playVideo() },   // starts as soon as it is ready
-      });
-    };
-    if (w.YT?.Player) { make(); return; }
-    const prev = w.onYouTubeIframeAPIReady;
-    w.onYouTubeIframeAPIReady = () => { prev?.(); make(); };
-    if (!document.getElementById("yt-iframe-api")) {
-      const sc = document.createElement("script"); sc.id = "yt-iframe-api"; sc.src = "https://www.youtube.com/iframe_api"; sc.async = true; document.head.appendChild(sc);
-    }
-  }, [open]);
-  const toggle = () => {
-    if (open) { try { yt.current?.destroy(); } catch {} yt.current = null; }
-    setOpen((o) => !o);
-  };
-  useEffect(() => () => { try { yt.current?.destroy(); } catch {} }, []);
+  const toggle = () => setOpen((o) => !o);          // closing removes the iframe, which stops the song
   let progress: React.ReactNode = null;
   if (meta?.semester_start && meta.semester_end) {
     const now = at(meta.now), a = at(meta.semester_start), b = at(meta.semester_end);
@@ -102,11 +78,11 @@ export default function TopBand({ meta }: { meta?: Meta | null }) {
         </div>
         {progress}
         {open && (
-          <div className="song-pop relative w-full overflow-hidden rounded-2xl bg-black shadow-xl ring-1 ring-line md:w-64">
+          <div className="song-pop relative w-full overflow-hidden rounded-2xl bg-sheet shadow-xl ring-1 ring-line md:w-72">
             <button type="button" onClick={toggle} aria-label={t("top.close")} className="absolute right-1.5 top-1.5 z-10 grid h-7 w-7 place-items-center rounded-full bg-black/65 text-white hover:bg-black/85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
               <svg aria-hidden viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
             </button>
-            <div className="aspect-video w-full"><div ref={host} className="h-full w-full" /></div>
+            <iframe title={t("top.playing")} src={SONG_SRC} allow="autoplay" className="block h-[116px] w-full border-0" />
           </div>
         )}
       </div>
