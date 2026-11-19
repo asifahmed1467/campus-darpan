@@ -100,7 +100,7 @@ export default function Home() {
         <div id="panel-today" role="tabpanel" aria-labelledby="tab-today" className={`pal-blue min-w-0 ${show("today")}`}><TodayCard /></div>
 
         <div id="panel-notices" role="tabpanel" aria-labelledby="tab-notices" className={`min-w-0 space-y-6 ${show("notices")}`}>
-          <section className="pal-amber neu-raised rounded-3xl p-4 sm:p-5">
+          <section className="pal-amber neu-raised home-notices rounded-3xl p-4 sm:p-5">
             <div className="mb-1 flex items-baseline justify-between gap-4">
               <h2 className="draw-line text-2xl font-bold">{t("home.notices")}</h2>
               <Link href="/notices" className="font-display font-semibold text-brand underline">{t("home.all_notices")}</Link>
